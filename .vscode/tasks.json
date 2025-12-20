@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "backend: dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build",
+      "presentation": {
+        "panel": "dedicated",
+        "showReuseMessage": false
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "group": "build",
+      "presentation": {
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "label": "npm: dev",
+      "detail": "next dev"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "presentation": {
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": [
+        "$tsc"
+      ],
+      "label": "npm: build",
+      "detail": "next build"
+    },
+    {
+      "type": "npm",
+      "script": "start",
+      "group": "build",
+      "presentation": {
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "label": "npm: start",
+      "detail": "next start"
+    }
+  ]
+}

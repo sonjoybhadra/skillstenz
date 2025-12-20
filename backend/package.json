@@ -1,0 +1,41 @@
+{
+  "name": "techtootalk-backend",
+  "version": "1.0.0",
+  "description": "Backend for AI-Powered Education & Career Platform",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "axios": "^1.5.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "docx": "^8.2.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.11",
+    "pdfkit": "^0.13.0",
+    "razorpay": "^2.9.6",
+    "stripe": "^13.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.4",
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "education",
+    "career",
+    "ai",
+    "saas"
+  ],
+  "author": "TechTooTalk",
+  "license": "ISC"
+}
