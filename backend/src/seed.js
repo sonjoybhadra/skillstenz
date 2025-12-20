@@ -9,7 +9,7 @@ const seedData = async () => {
     const adminExists = await User.findOne({ role: 'admin' });
     if (!adminExists) {
       const admin = new User({
-        email: 'admin@techtootalk.com',
+        email: 'admin@skillstenz.com',
         password: 'admin123',
         role: 'admin',
         userType: 'experienced'

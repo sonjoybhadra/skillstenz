@@ -110,7 +110,7 @@ class AIService {
   }
 
   buildPrompt(query, context, aiMode, userType) {
-    const systemPrompt = `You are an AI assistant for TechTooTalk, an education and career platform. 
+    const systemPrompt = `You are an AI assistant for SkillStenz, an education and career platform. 
 You are helping a ${userType} user with ${aiMode} AI capabilities.
 User membership: ${context.membership}
 

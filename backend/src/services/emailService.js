@@ -19,9 +19,9 @@ exports.generateOTP = () => {
 // Send OTP email
 exports.sendOTPEmail = async (email, otp, name = '') => {
   const mailOptions = {
-    from: `"TechTooTalk" <${process.env.SMTP_USER || 'noreply@techtootalk.com'}>`,
+    from: `"SkillStenz" <${process.env.SMTP_USER || 'noreply@skillstenz.com'}>`,
     to: email,
-    subject: 'Verify Your Email - TechTooTalk',
+    subject: 'Verify Your Email - SkillStenz',
     html: `
       <!DOCTYPE html>
       <html>
@@ -70,7 +70,7 @@ exports.sendOTPEmail = async (email, otp, name = '') => {
           <!-- Footer -->
           <div style="text-align: center; margin-top: 24px;">
             <p style="color: #9ca3af; font-size: 12px;">
-              © ${new Date().getFullYear()} TechTooTalk. All rights reserved.
+              © ${new Date().getFullYear()} SkillStenz. All rights reserved.
             </p>
           </div>
         </div>
@@ -91,9 +91,9 @@ exports.sendOTPEmail = async (email, otp, name = '') => {
 // Send welcome email
 exports.sendWelcomeEmail = async (email, name) => {
   const mailOptions = {
-    from: `"TechTooTalk" <${process.env.SMTP_USER || 'noreply@techtootalk.com'}>`,
+    from: `"SkillStenz" <${process.env.SMTP_USER || 'noreply@skillstenz.com'}>`,
     to: email,
-    subject: 'Welcome to TechTooTalk! 🎉',
+    subject: 'Welcome to SkillStenz! 🎉',
     html: `
       <!DOCTYPE html>
       <html>
@@ -105,16 +105,16 @@ exports.sendWelcomeEmail = async (email, name) => {
         <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <div style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="margin: 0; font-size: 28px;">
-                <span style="color: #10b981;">Tech</span><span style="color: #3b82f6;">Too</span><span style="color: #8b5cf6;">Talk</span>
+              <h1 style="margin: 0; font-size: 28px; color: #2563eb;">
+                SkillStenz
               </h1>
             </div>
             
             <div style="text-align: center;">
-              <h2 style="color: #1f2937;">Welcome to TechTooTalk! 🎉</h2>
+              <h2 style="color: #1f2937;">Welcome to SkillStenz! 🎉</h2>
               <p style="color: #4b5563; line-height: 1.6;">
                 Hi ${name || 'there'},<br><br>
-                Thank you for joining TechTooTalk! We're excited to have you on board.
+                Thank you for joining SkillStenz! We're excited to have you on board.
               </p>
               
               <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: left;">

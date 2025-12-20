@@ -73,7 +73,7 @@ const certificateSchema = new mongoose.Schema({
   issuedBy: {
     name: {
       type: String,
-      default: 'TechTooTalk'
+      default: 'SkillStenz'
     },
     logo: String,
     signature: String

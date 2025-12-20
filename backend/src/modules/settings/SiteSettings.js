@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const siteSettingsSchema = new mongoose.Schema({
   siteName: {
     type: String,
-    default: 'TechTooTalk Learn'
+    default: 'SkillStenz'
   },
   siteTagline: {
     type: String,
@@ -24,7 +24,7 @@ const siteSettingsSchema = new mongoose.Schema({
   },
   logoText: {
     type: String,
-    default: 'TechTooTalk'
+    default: 'SkillStenz'
   },
   logoAccentText: {
     type: String,
@@ -55,11 +55,11 @@ const siteSettingsSchema = new mongoose.Schema({
   },
   contactEmail: {
     type: String,
-    default: 'contact@techtootalk.com'
+    default: 'contact@skillstenz.com'
   },
   supportEmail: {
     type: String,
-    default: 'support@techtootalk.com'
+    default: 'support@skillstenz.com'
   },
   maintenanceMode: {
     type: Boolean,

@@ -4,7 +4,7 @@ const seoSettingsSchema = new mongoose.Schema({
   // General SEO
   siteTitle: {
     type: String,
-    default: 'TechTooTalk - Master AI & Modern Technologies'
+    default: 'SkillStenz - Master AI & Modern Technologies'
   },
   siteDescription: {
     type: String,
@@ -26,7 +26,7 @@ const seoSettingsSchema = new mongoose.Schema({
   },
   twitterHandle: {
     type: String,
-    default: '@techtootalk'
+    default: '@skillstenz'
   },
 
   // Verification Codes
@@ -52,7 +52,7 @@ const seoSettingsSchema = new mongoose.Schema({
 Allow: /
 Disallow: /admin/
 Disallow: /dashboard/
-Sitemap: https://techtootalk.com/sitemap.xml`
+Sitemap: https://skillstenz.com/sitemap.xml`
   },
 
   // AdSense Settings
