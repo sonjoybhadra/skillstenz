@@ -413,7 +413,7 @@ export default function LoginPage() {
             <div className="auth-promo-stat">10K+</div>
             <div className="auth-promo-label">Active Learners</div>
             <div className="auth-promo-text">
-              {settings.siteName || 'TechTooTalk'} accelerates your learning 3X faster with smart AI-powered courses that connect you with the right content instantly for seamless, efficient skill development.
+              {settings.siteName || 'SkillStenz'} accelerates your learning 3X faster with smart AI-powered courses that connect you with the right content instantly for seamless, efficient skill development.
             </div>
           </div>
         </div>
@@ -422,7 +422,7 @@ export default function LoginPage() {
       {/* Right Side - Form */}
       <div className="auth-right">
         <div className="auth-form-wrapper">
-          <h1 className="auth-title">Welcome To {settings.siteName || 'TechTooTalk'}</h1>
+          <h1 className="auth-title">Welcome To {settings.siteName || 'SkillStenz'}</h1>
           <p className="auth-subtitle">Your next big opportunity awaits start exploring now!</p>
 
           {/* Social Login Buttons */}
@@ -571,7 +571,7 @@ export default function LoginPage() {
           <div className="demo-box">
             <div className="demo-title">🔑 Demo Credentials</div>
             <div className="demo-text">
-              <strong>Admin:</strong> admin@techtootalk.com / admin123<br />
+              <strong>Admin:</strong> admin@skillstenz.com / admin123<br />
               <strong>User:</strong> Register a new account
             </div>
           </div>

@@ -25,6 +25,17 @@ interface SiteSettings {
     youtube: string;
     discord: string;
   };
+  // Menu settings
+  headerMenu?: Array<{
+    label: string;
+    href: string;
+    icon: string;
+    isActive: boolean;
+    order: number;
+  }>;
+  showTechBar?: boolean;
+  techBarTitle?: string;
+  featuredTechnologies?: string[];
 }
 
 interface SettingsContextType {
@@ -34,20 +45,20 @@ interface SettingsContextType {
 }
 
 const defaultSettings: SiteSettings = {
-  siteName: 'TechTooTalk Learn',
+  siteName: 'SkillStenz',
   siteTagline: 'AI-Powered Learning Platform',
   logo: '',
   logoDark: '',
   logoIcon: 'T',
-  logoText: 'TechTooTalk',
+  logoText: 'SkillStenz',
   logoAccentText: 'Talk',
   loaderType: 'spinner',
   loaderColor: '#0968c6',
   loaderImage: '',
   loaderText: 'Loading...',
   favicon: '/favicon.ico',
-  contactEmail: 'contact@techtootalk.com',
-  supportEmail: 'support@techtootalk.com',
+  contactEmail: 'contact@skillstenz.com',
+  supportEmail: 'support@skillstenz.com',
   maintenanceMode: false,
   socialLinks: {
     twitter: '',
@@ -55,7 +66,10 @@ const defaultSettings: SiteSettings = {
     github: '',
     youtube: '',
     discord: ''
-  }
+  },
+  showTechBar: true,
+  techBarTitle: 'Explore',
+  featuredTechnologies: []
 };
 
 const SettingsContext = createContext<SettingsContextType>({

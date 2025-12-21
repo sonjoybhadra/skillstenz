@@ -2,6 +2,20 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Types
+export interface TechnologyCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  color: string;
+  image?: string;
+  order: number;
+  isPublished: boolean;
+  featured: boolean;
+  technologiesCount: number;
+}
+
 export interface Technology {
   _id: string;
   name: string;
@@ -15,6 +29,7 @@ export interface Technology {
   order: number;
   courses?: Course[];
   categories?: Category[];
+  category?: TechnologyCategory;
 }
 
 export interface Course {
@@ -263,9 +278,12 @@ export const technologiesAPI = {
   },
 
   getBySlug: async (slug: string) => {
-    const response = await apiRequest<{ technology: Technology } | Technology>(`/technologies/slug/${slug}`);
+    const response = await apiRequest<{ technology: Technology; courses: Course[] } | Technology>(`/technologies/slug/${slug}`);
     if (response.data && 'technology' in response.data) {
-      return { data: response.data.technology, error: response.error, status: response.status };
+      // Attach courses to technology object for backward compatibility
+      const tech = response.data.technology;
+      tech.courses = response.data.courses || [];
+      return { data: tech, error: response.error, status: response.status };
     }
     return response as { data: Technology | null; error: string | null; status: number };
   },
@@ -298,6 +316,64 @@ export const technologiesAPI = {
   getCourseBySlug: async (techSlug: string, courseSlug: string) => {
     return apiRequest<Course>(`/technologies/slug/${techSlug}/courses/${courseSlug}`);
   },
+};
+
+// Technology Categories API
+export const technologyCategoriesAPI = {
+  getAll: async (params?: { featured?: boolean }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.featured) queryParams.append('featured', 'true');
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await apiRequest<{ categories: TechnologyCategory[] }>(`/technology-categories${query}`);
+    if (response.data && 'categories' in response.data) {
+      return { data: response.data.categories, error: response.error, status: response.status };
+    }
+    return { data: [] as TechnologyCategory[], error: response.error, status: response.status };
+  },
+  
+  getBySlug: async (slug: string) => {
+    return apiRequest<{ category: TechnologyCategory; technologies: Technology[] }>(`/technology-categories/${slug}`);
+  },
+  
+  // Admin methods
+  getAllAdmin: async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ categories: TechnologyCategory[] }>('/technology-categories/admin/all', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  },
+  
+  create: async (data: Partial<TechnologyCategory>) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ category: TechnologyCategory }>('/technology-categories', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(data)
+    });
+  },
+  
+  update: async (id: string, data: Partial<TechnologyCategory>) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ category: TechnologyCategory }>(`/technology-categories/${id}`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(data)
+    });
+  },
+  
+  delete: async (id: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ message: string }>(`/technology-categories/${id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  }
 };
 
 // Courses API - New MongoDB-backed API

@@ -86,6 +86,26 @@ const siteSettingsSchema = new mongoose.Schema({
     type: Number,
     default: 24 // hours
   },
+  // Header Menu Configuration
+  headerMenu: [{
+    label: { type: String, required: true },
+    href: { type: String, required: true },
+    icon: { type: String, default: '' },
+    isActive: { type: Boolean, default: true },
+    order: { type: Number, default: 0 }
+  }],
+  // Technology Bar Configuration
+  showTechBar: {
+    type: Boolean,
+    default: true
+  },
+  techBarTitle: {
+    type: String,
+    default: 'Explore Technologies'
+  },
+  featuredTechnologies: [{
+    type: String // Technology slugs
+  }],
   socialLinks: {
     twitter: { type: String, default: '' },
     linkedin: { type: String, default: '' },

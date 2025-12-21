@@ -441,7 +441,7 @@ export default function AdminDashboard() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Dashboard</h1>
-          <p className="admin-page-subtitle">Welcome to TechTooTalk Admin Panel</p>
+          <p className="admin-page-subtitle">Welcome to SkillStenz Admin Panel</p>
         </div>
         <button onClick={loadDashboardStats} className="admin-refresh-btn">
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">

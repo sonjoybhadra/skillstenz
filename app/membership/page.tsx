@@ -201,7 +201,7 @@ export default function MembershipPage() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'TechTooTalk Learn',
+        name: 'SkillStenz',
         description: `${plan.name} Plan - ${plan.duration} ${plan.durationType}`,
         order_id: orderData.orderId,
         handler: async (response: RazorpayResponse) => {

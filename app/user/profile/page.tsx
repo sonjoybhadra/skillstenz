@@ -242,7 +242,7 @@ export default function UserProfilePage() {
                         className="flex-1 px-4 py-2 border border-[var(--border-primary)] rounded-r-lg bg-[var(--bg-primary)] focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                       />
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] mt-1">Your public profile: techtootalk.com/{profile.username || 'username'}</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">Your public profile: skillstenz.com/{profile.username || 'username'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Title / Role</label>

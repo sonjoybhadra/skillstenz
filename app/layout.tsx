@@ -107,7 +107,8 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${inter.variable} ${poppins.variable} ${jetbrainsMono.variable} antialiased bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 min-h-screen`}
+        className={`${inter.variable} ${poppins.variable} ${jetbrainsMono.variable} antialiased min-h-screen`}
+        style={{ background: 'var(--bg-primary)' }}
       >
         <Providers>
           {children}

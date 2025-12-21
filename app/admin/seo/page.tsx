@@ -298,7 +298,7 @@ export default function SEOSettingsPage() {
                     <span style={{ color: 'var(--text-muted)' }}>OG Image Preview</span>
                   </div>
                   <div style={{ padding: '12px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>techtootalk.com</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>skillstenz.com</p>
                     <h5 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                       {settings.siteTitle.slice(0, 60)}
                     </h5>

@@ -158,7 +158,7 @@ export default function CertificateViewer({ certificateId, showDownload = true }
             <div className="text-center">
               <div className="w-32 h-px bg-[var(--text-primary)] mb-2"></div>
               <div className="font-semibold text-[var(--text-primary)]">
-                {certificate.issuedBy?.name || 'TechTooTalk'}
+                {certificate.issuedBy?.name || 'SkillStenz'}
               </div>
               <div className="text-sm text-[var(--text-muted)]">Platform</div>
             </div>

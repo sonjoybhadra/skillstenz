@@ -4,31 +4,13 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '../../../components/Layout';
 import Link from 'next/link';
-import { technologiesAPI, Technology } from '../../../lib/api';
+import { technologiesAPI, Technology, Course } from '../../../lib/api';
 
 interface TechnologyPageProps {
   params: Promise<{
     technology: string;
   }>;
 }
-
-// Get icon for technology based on slug
-const getTechIcon = (slug: string): string => {
-  const icons: Record<string, string> = {
-    'ai': '🤖',
-    'ai-agents': '🦾',
-    'machine-learning': '🧠',
-    'langchain': '🔗',
-    'prompt-engineering': '💬',
-    'rag-systems': '📚',
-    'nlp': '💭',
-    'computer-vision': '👁️',
-    'python-for-ai': '🐍',
-    'genai-applications': '✨',
-    'default': '📘'
-  };
-  return icons[slug] || icons['default'];
-};
 
 export default function TechnologyPage({ params }: TechnologyPageProps) {
   const { technology } = use(params);
@@ -105,8 +87,16 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
             fontSize: '48px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>
-            {getTechIcon(tech.slug || '')}
+            {tech.icon || '📘'}
           </div>
+
+          {tech.category && (
+            <div style={{ marginBottom: '12px' }}>
+              <span className="badge" style={{ padding: '6px 12px', fontSize: '12px', background: tech.category.color + '20', color: tech.category.color }}>
+                {tech.category.icon} {tech.category.name}
+              </span>
+            </div>
+          )}
 
           <h1 style={{ fontSize: '48px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
             {tech.name}
@@ -143,10 +133,10 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
 
           {courses.length > 0 ? (
             <div className="grid grid-3" style={{ gap: '24px' }}>
-              {courses.map((course, idx) => (
+              {courses.map((course: Course, idx: number) => (
                 <Link
                   key={course._id || idx}
-                  href={`/technologies/${tech.slug}/${course.slug}`}
+                  href={`/${tech.slug}/courses/${course.slug}`}
                   className="card"
                   style={{ overflow: 'hidden', transition: 'all 0.3s ease' }}
                 >
@@ -158,14 +148,14 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
                     justifyContent: 'center',
                     fontSize: '48px'
                   }}>
-                    {getTechIcon(tech.slug || '')}
+                    {tech.icon || '📘'}
                   </div>
                   <div className="card-body">
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                      <span className={`badge ${course.level === 'beginner' ? 'badge-success' : course.level === 'intermediate' ? 'badge-warning' : 'badge-error'}`}>
+                      <span className={`badge ${course.level === 'Beginner' ? 'badge-success' : course.level === 'Intermediate' ? 'badge-warning' : 'badge-error'}`}>
                         {course.level}
                       </span>
-                      {course.price === 0 && <span className="badge badge-primary">Free</span>}
+                      {(course.price === 'free' || course.price === 0) && <span className="badge badge-primary">Free</span>}
                     </div>
                     <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
                       {course.title}
@@ -183,7 +173,7 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
                         )}
                       </div>
                       <span style={{ color: 'var(--text-accent)', fontWeight: 600, fontSize: '14px' }}>
-                        {course.price === 0 ? 'Free' : `$${course.price}`}
+                        {course.price === 'free' || course.price === 0 ? 'Free' : `$${course.price}`}
                       </span>
                     </div>
                   </div>
@@ -207,20 +197,26 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
         </div>
       </section>
 
-      {/* Related Technologies */}
+      {/* Call to Action */}
       <section className="section">
         <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">
-              Related <span className="section-title-accent">Technologies</span>
+          <div className="card" style={{ padding: '48px', textAlign: 'center', background: 'linear-gradient(135deg, var(--bg-accent) 0%, #059669 100%)' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
+              Start Learning {tech.name} Today
             </h2>
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
-            {['ai', 'ai-agents', 'machine-learning', 'langchain', 'prompt-engineering', 'rag-systems'].filter(s => s !== tech.slug).map((slug) => (
-              <Link key={slug} href={`/technologies/${slug}`} className="tag" style={{ padding: '10px 20px', fontSize: '14px' }}>
-                {getTechIcon(slug)} {slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.9)', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>
+              Master {tech.name} with our comprehensive tutorials and hands-on projects.
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href={`/tutorials/${tech.slug}`} className="btn" style={{ background: 'white', color: 'var(--bg-accent)' }}>
+                📚 Free Tutorials
               </Link>
-            ))}
+              {courses.length > 0 && (
+                <Link href={`/${tech.slug}/courses/${courses[0].slug}`} className="btn" style={{ border: '2px solid white', color: 'white', background: 'transparent' }}>
+                  🎓 Start First Course
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </section>

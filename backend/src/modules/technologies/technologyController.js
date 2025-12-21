@@ -1,4 +1,5 @@
 const Technology = require('./Technology');
+const Course = require('../courses/Course');
 
 // Get all technologies
 exports.getAllTechnologies = async (req, res) => {
@@ -20,7 +21,8 @@ exports.getAllTechnologies = async (req, res) => {
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('category', 'name slug icon color');
       
     const total = await Technology.countDocuments(query);
     
@@ -66,17 +68,30 @@ exports.getTechnologyBySlug = async (req, res) => {
     
     const technology = await Technology.findOne({ slug })
       .populate('createdBy', 'name email profileImage')
-      .populate('prerequisites', 'name slug icon');
+      .populate('prerequisites', 'name slug icon')
+      .populate('category', 'name slug icon color');
     
     if (!technology) {
       return res.status(404).json({ message: 'Technology not found' });
     }
     
+    // Fetch courses for this technology
+    const courses = await Course.find({ 
+      technology: technology._id,
+      isPublished: true 
+    })
+    .select('title slug description thumbnail level duration price rating studentsCount lessonsCount')
+    .sort({ order: 1, createdAt: -1 })
+    .limit(20);
+    
     // Increment views
     technology.views++;
     await technology.save();
     
-    res.json(technology);
+    res.json({ 
+      technology: technology.toObject(),
+      courses 
+    });
   } catch (error) {
     console.error('Get technology error:', error);
     res.status(500).json({ message: 'Failed to get technology', error: error.message });

@@ -32,6 +32,17 @@ interface SiteSettings {
     youtube: string;
     discord: string;
   };
+  // Menu Settings
+  headerMenu: Array<{
+    label: string;
+    href: string;
+    icon: string;
+    isActive: boolean;
+    order: number;
+  }>;
+  showTechBar: boolean;
+  techBarTitle: string;
+  featuredTechnologies: string[];
 }
 
 interface SettingsCard {
@@ -46,20 +57,20 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings>({
-    siteName: 'TechTooTalk Learn',
+    siteName: 'SkillStenz',
     siteTagline: 'AI-Powered Learning Platform',
     logo: '',
     logoDark: '',
     logoIcon: 'T',
-    logoText: 'TechTooTalk',
+    logoText: 'SkillStenz',
     logoAccentText: 'Talk',
     loaderType: 'spinner',
     loaderColor: '#0968c6',
     loaderImage: '',
     loaderText: 'Loading...',
     favicon: '/favicon.ico',
-    contactEmail: 'contact@techtootalk.com',
-    supportEmail: 'support@techtootalk.com',
+    contactEmail: 'contact@skillstenz.com',
+    supportEmail: 'support@skillstenz.com',
     maintenanceMode: false,
     registrationEnabled: true,
     emailVerificationRequired: false,
@@ -72,11 +83,21 @@ export default function AdminSettingsPage() {
       github: '',
       youtube: '',
       discord: ''
-    }
+    },
+    headerMenu: [
+      { label: 'Home', href: '/', icon: '🏠', isActive: true, order: 1 },
+      { label: 'Technologies', href: '/technologies', icon: '🚀', isActive: true, order: 2 },
+      { label: 'Courses', href: '/courses', icon: '📚', isActive: true, order: 3 },
+      { label: 'Roadmaps', href: '/roadmaps', icon: '🗺️', isActive: true, order: 4 },
+      { label: 'Tools', href: '/tools', icon: '🔧', isActive: true, order: 5 },
+    ],
+    showTechBar: true,
+    techBarTitle: 'Explore Technologies',
+    featuredTechnologies: ['python', 'javascript', 'react', 'nodejs', 'typescript', 'mongodb']
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'branding' | 'loader' | 'general' | 'security' | 'social'>('branding');
+  const [activeTab, setActiveTab] = useState<'branding' | 'loader' | 'general' | 'security' | 'social' | 'menus'>('branding');
   const logoInputRef = useRef<HTMLInputElement>(null);
   const logoDarkInputRef = useRef<HTMLInputElement>(null);
   const loaderImageInputRef = useRef<HTMLInputElement>(null);
@@ -183,7 +204,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleInputChange = (field: string, value: string | number | boolean) => {
+  const handleInputChange = (field: string, value: string | number | boolean | string[]) => {
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 
@@ -298,7 +319,8 @@ export default function AdminSettingsPage() {
               { id: 'loader', label: 'Loader', icon: '⏳' },
               { id: 'general', label: 'General', icon: '⚙️' },
               { id: 'security', label: 'Security', icon: '🔒' },
-              { id: 'social', label: 'Social Links', icon: '🔗' }
+              { id: 'social', label: 'Social Links', icon: '🔗' },
+              { id: 'menus', label: 'Header & Menus', icon: '📋' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -335,7 +357,7 @@ export default function AdminSettingsPage() {
                     value={settings.logoText}
                     onChange={(e) => handleInputChange('logoText', e.target.value)}
                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
-                    placeholder="TechTooTalk"
+                    placeholder="SkillStenz"
                   />
                   <p className="text-xs text-gray-500 mt-1">The main text of your logo</p>
                 </div>
@@ -896,6 +918,160 @@ export default function AdminSettingsPage() {
                     placeholder="https://discord.gg/your-invite"
                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                   />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Header & Menus Tab */}
+          {activeTab === 'menus' && (
+            <div className="space-y-8">
+              {/* Technology Bar Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  🚀 Technology Bar Settings
+                </h3>
+                
+                <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.showTechBar}
+                        onChange={(e) => handleInputChange('showTechBar', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-violet-300 dark:peer-focus:ring-violet-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-violet-600"></div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Show Technology Bar
+                    </span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Technology Bar Title
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.techBarTitle}
+                    onChange={(e) => handleInputChange('techBarTitle', e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    placeholder="Explore Technologies"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Featured Technologies (comma-separated slugs)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.featuredTechnologies?.join(', ') || ''}
+                    onChange={(e) => handleInputChange('featuredTechnologies', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    placeholder="python, javascript, react, nodejs"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Enter technology slugs separated by commas. Leave empty to show all technologies.</p>
+                </div>
+              </div>
+
+              {/* Header Menu Items */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    📋 Header Navigation Menu
+                  </h3>
+                  <button
+                    onClick={() => {
+                      const newItem = {
+                        label: 'New Link',
+                        href: '/',
+                        icon: '📄',
+                        isActive: true,
+                        order: (settings.headerMenu?.length || 0) + 1
+                      };
+                      setSettings(prev => ({
+                        ...prev,
+                        headerMenu: [...(prev.headerMenu || []), newItem]
+                      }));
+                    }}
+                    className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors"
+                  >
+                    + Add Menu Item
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {(settings.headerMenu || []).map((item, index) => (
+                    <div key={index} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <span className="cursor-move">⠿</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={item.icon}
+                        onChange={(e) => {
+                          const updated = [...settings.headerMenu];
+                          updated[index] = { ...updated[index], icon: e.target.value };
+                          setSettings(prev => ({ ...prev, headerMenu: updated }));
+                        }}
+                        className="w-12 px-2 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-center"
+                        placeholder="🏠"
+                      />
+                      <input
+                        type="text"
+                        value={item.label}
+                        onChange={(e) => {
+                          const updated = [...settings.headerMenu];
+                          updated[index] = { ...updated[index], label: e.target.value };
+                          setSettings(prev => ({ ...prev, headerMenu: updated }));
+                        }}
+                        className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                        placeholder="Label"
+                      />
+                      <input
+                        type="text"
+                        value={item.href}
+                        onChange={(e) => {
+                          const updated = [...settings.headerMenu];
+                          updated[index] = { ...updated[index], href: e.target.value };
+                          setSettings(prev => ({ ...prev, headerMenu: updated }));
+                        }}
+                        className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                        placeholder="/path"
+                      />
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={item.isActive}
+                          onChange={(e) => {
+                            const updated = [...settings.headerMenu];
+                            updated[index] = { ...updated[index], isActive: e.target.checked };
+                            setSettings(prev => ({ ...prev, headerMenu: updated }));
+                          }}
+                          className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Active</span>
+                      </label>
+                      <button
+                        onClick={() => {
+                          const updated = settings.headerMenu.filter((_, i) => i !== index);
+                          setSettings(prev => ({ ...prev, headerMenu: updated }));
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {(!settings.headerMenu || settings.headerMenu.length === 0) && (
+                    <div className="text-center py-8 text-gray-500">
+                      No menu items. Click &quot;Add Menu Item&quot; to create one.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -167,7 +167,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
             {mode === 'login' 
               ? 'Sign in to continue your learning journey' 
-              : 'Join TechTooTalk and start learning today'}
+              : 'Join SkillStenz and start learning today'}
           </p>
         </div>
 

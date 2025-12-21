@@ -19,6 +19,11 @@ const technologySchema = new mongoose.Schema({
   image: String,
   color: { type: String, default: '#3B82F6' },
   category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TechnologyCategory'
+  },
+  // Keep legacy category field for backward compatibility
+  categoryLegacy: {
     type: String,
     enum: ['programming', 'ai-ml', 'web', 'mobile', 'database', 'devops', 'tools', 'other'],
     default: 'programming'

@@ -29,9 +29,12 @@ const menuGroups: MenuGroup[] = [
     name: 'Content',
     icon: '📚',
     items: [
+      { name: 'Categories', href: '/admin/categories', icon: '📂' },
       { name: 'Technologies', href: '/admin/technologies', icon: '💻' },
+      { name: 'Tutorials', href: '/admin/tutorials', icon: '📚' },
       { name: 'Courses', href: '/admin/courses', icon: '📖' },
       { name: 'Topics', href: '/admin/topics', icon: '📑' },
+      { name: 'Lessons', href: '/admin/lessons', icon: '📄' },
       { name: 'Cheatsheets', href: '/admin/cheatsheets', icon: '📝' },
       { name: 'MCQs', href: '/admin/mcqs', icon: '❓' },
     ]

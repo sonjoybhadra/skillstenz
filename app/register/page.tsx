@@ -62,7 +62,7 @@ export default function RegisterPage() {
 
       if (response.ok) {
         login(data.accessToken, data.refreshToken, data.user);
-        toast.success('Account created successfully! Welcome to TechTooTalk!');
+        toast.success('Account created successfully! Welcome to SkillStenz!');
         router.push('/profile-setup');
       } else {
         toast.error(data.message || 'Registration failed. Please try again.');

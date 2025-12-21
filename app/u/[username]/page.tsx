@@ -469,7 +469,7 @@ export default function PublicProfilePage() {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Powered by <Link href="/" className="text-emerald-600 hover:underline">TechTooTalk Learn</Link>
+            Powered by <Link href="/" className="text-emerald-600 hover:underline">SkillStenz</Link>
           </p>
         </div>
       </div>

@@ -12,7 +12,7 @@ interface Technology {
   icon: string;
   image?: string;
   color: string;
-  category: string;
+  category: string | { _id: string; name: string; slug: string; icon: string; color: string };
   difficulty: string;
   accessType: string;
   featured: boolean;
@@ -23,18 +23,15 @@ interface Technology {
   createdAt: string;
 }
 
-const API_URL = 'http://localhost:5000/api';
+interface TechnologyCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  color: string;
+}
 
-const CATEGORIES = [
-  { value: 'programming', label: 'Programming' },
-  { value: 'ai-ml', label: 'AI/ML' },
-  { value: 'web', label: 'Web Development' },
-  { value: 'mobile', label: 'Mobile' },
-  { value: 'database', label: 'Database' },
-  { value: 'devops', label: 'DevOps' },
-  { value: 'tools', label: 'Tools' },
-  { value: 'other', label: 'Other' }
-];
+const API_URL = 'http://localhost:5000/api';
 
 const DIFFICULTIES = [
   { value: 'beginner', label: 'Beginner' },
@@ -44,12 +41,13 @@ const DIFFICULTIES = [
 
 export default function AdminTechnologiesPage() {
   const [technologies, setTechnologies] = useState<Technology[]>([]);
+  const [categories, setCategories] = useState<TechnologyCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTech, setEditingTech] = useState<Technology | null>(null);
   const [formData, setFormData] = useState({
     name: '', slug: '', description: '', shortDescription: '', icon: '💻',
-    image: '', color: '#3b82f6', category: 'programming', difficulty: 'beginner',
+    image: '', color: '#3b82f6', category: '', difficulty: 'beginner',
     accessType: 'free', featured: false, isPublished: true, tags: ''
   });
   const [saving, setSaving] = useState(false);
@@ -57,11 +55,19 @@ export default function AdminTechnologiesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
-  useEffect(() => { fetchTechnologies(); }, [searchQuery, filterCategory]);
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_URL}/technology-categories`);
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) { console.error('Failed to fetch categories:', error); }
+  };
 
   const fetchTechnologies = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       let url = `${API_URL}/technologies?limit=100`;
       if (searchQuery) url += `&search=${searchQuery}`;
       if (filterCategory) url += `&category=${filterCategory}`;
@@ -74,15 +80,39 @@ export default function AdminTechnologiesPage() {
     finally { setLoading(false); }
   };
 
+  useEffect(() => { 
+    fetchCategories();
+    fetchTechnologies();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  useEffect(() => { 
+    fetchTechnologies(); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, filterCategory]);
+
+  const getCategoryName = (cat: string | { _id: string; name: string; slug: string; icon: string; color: string } | undefined) => {
+    if (!cat) return 'Uncategorized';
+    if (typeof cat === 'object') return `${cat.icon} ${cat.name}`;
+    const found = categories.find(c => c._id === cat || c.slug === cat);
+    return found ? `${found.icon} ${found.name}` : cat;
+  };
+
+  const getCategoryId = (cat: string | { _id: string; name: string; slug: string; icon: string; color: string } | undefined) => {
+    if (!cat) return '';
+    if (typeof cat === 'object') return cat._id;
+    return cat;
+  };
+
   const openAddModal = () => {
     setEditingTech(null);
-    setFormData({ name: '', slug: '', description: '', shortDescription: '', icon: '💻', image: '', color: '#3b82f6', category: 'programming', difficulty: 'beginner', accessType: 'free', featured: false, isPublished: true, tags: '' });
+    setFormData({ name: '', slug: '', description: '', shortDescription: '', icon: '💻', image: '', color: '#3b82f6', category: categories[0]?._id || '', difficulty: 'beginner', accessType: 'free', featured: false, isPublished: true, tags: '' });
     setShowModal(true);
   };
 
   const openEditModal = (tech: Technology) => {
     setEditingTech(tech);
-    setFormData({ name: tech.name, slug: tech.slug, description: tech.description || '', shortDescription: tech.shortDescription || '', icon: tech.icon || '💻', image: tech.image || '', color: tech.color || '#3b82f6', category: tech.category || 'programming', difficulty: tech.difficulty || 'beginner', accessType: tech.accessType || 'free', featured: tech.featured || false, isPublished: tech.isPublished !== false, tags: '' });
+    setFormData({ name: tech.name, slug: tech.slug, description: tech.description || '', shortDescription: tech.shortDescription || '', icon: tech.icon || '💻', image: tech.image || '', color: tech.color || '#3b82f6', category: getCategoryId(tech.category), difficulty: tech.difficulty || 'beginner', accessType: tech.accessType || 'free', featured: tech.featured || false, isPublished: tech.isPublished !== false, tags: '' });
     setShowModal(true);
   };
 
@@ -90,7 +120,7 @@ export default function AdminTechnologiesPage() {
     if (!formData.name) { setMessage({ type: 'error', text: 'Name is required' }); return; }
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const method = editingTech ? 'PUT' : 'POST';
       const url = editingTech ? `${API_URL}/technologies/${editingTech._id}` : `${API_URL}/technologies`;
       const response = await fetch(url, {
@@ -106,20 +136,20 @@ export default function AdminTechnologiesPage() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/technologies/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setMessage({ type: 'success', text: 'Deleted!' }); fetchTechnologies(); }
     } catch { setMessage({ type: 'error', text: 'Network error' }); }
   };
 
   const togglePublish = async (tech: Technology) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     await fetch(`${API_URL}/technologies/${tech._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ isPublished: !tech.isPublished }) });
     fetchTechnologies();
   };
 
   const toggleFeatured = async (tech: Technology) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     await fetch(`${API_URL}/technologies/${tech._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ featured: !tech.featured }) });
     fetchTechnologies();
   };
@@ -143,7 +173,7 @@ export default function AdminTechnologiesPage() {
           <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, minWidth: '200px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
           <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
             <option value="">All Categories</option>
-            {CATEGORIES.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
+            {categories.map(cat => <option key={cat._id} value={cat._id}>{cat.icon} {cat.name}</option>)}
           </select>
         </div>
       </div>
@@ -176,7 +206,7 @@ export default function AdminTechnologiesPage() {
                       {tech.featured && <span style={{ padding: '2px 8px', fontSize: '10px', fontWeight: 600, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '4px' }}>⭐</span>}
                     </div>
                   </td>
-                  <td style={{ padding: '16px' }}><span style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 500, background: 'var(--bg-secondary)', borderRadius: '6px', textTransform: 'capitalize' }}>{tech.category}</span></td>
+                  <td style={{ padding: '16px' }}><span style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 500, background: 'var(--bg-secondary)', borderRadius: '6px', textTransform: 'capitalize' }}>{getCategoryName(tech.category)}</span></td>
                   <td style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>{tech.views || 0}</td>
                   <td style={{ padding: '16px', textAlign: 'center' }}><span style={{ color: '#10b981' }}>↑{tech.votes?.upvotes || 0}</span> / <span style={{ color: '#ef4444' }}>↓{tech.votes?.downvotes || 0}</span></td>
                   <td style={{ padding: '16px', textAlign: 'center' }}>
@@ -209,7 +239,7 @@ export default function AdminTechnologiesPage() {
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Slug</label><input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} placeholder="python" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Icon</label><input type="text" value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} placeholder="🐍" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Color</label><div style={{ display: 'flex', gap: '8px' }}><input type="color" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} style={{ width: '50px', height: '42px', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} /><input type="text" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} style={{ flex: 1, padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{CATEGORIES.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}</select></div>
+                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}><option value="">Select Category</option>{categories.map(cat => <option key={cat._id} value={cat._id}>{cat.icon} {cat.name}</option>)}</select></div>
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Difficulty</label><select value={formData.difficulty} onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{DIFFICULTIES.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}</select></div>
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Access</label><select value={formData.accessType} onChange={(e) => setFormData({ ...formData, accessType: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}><option value="free">Free</option><option value="paid">Paid</option><option value="mixed">Mixed</option></select></div>
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Image URL</label><input type="text" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>

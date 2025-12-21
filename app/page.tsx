@@ -165,7 +165,7 @@ export default function Home() {
             }}>
               <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>🎓 Annual Membership</h3>
               <p style={{ opacity: 0.9, marginBottom: '24px' }}>
-                Become a TechTooTalk Pro member and enjoy unlimited access to all courses, projects, and exclusive content.
+                Become a SkillStenz Pro member and enjoy unlimited access to all courses, projects, and exclusive content.
               </p>
               <Link href="/membership" className="btn btn-dark">
                 Subscribe Now
@@ -475,7 +475,7 @@ export default function Home() {
                 <span>TechToo<span style={{ color: 'var(--text-accent)' }}>Talk</span></span>
               </div>
               <p className="footer-description">
-                TechTooTalk is a leading AI EdTech company focused on AI, AI Agents, Machine Learning, and cutting-edge AI technologies for the future.
+                SkillStenz is a leading AI EdTech company focused on AI, AI Agents, Machine Learning, and cutting-edge AI technologies for the future.
               </p>
               <div className="footer-social">
                 <a href="#" aria-label="Twitter">𝕏</a>
@@ -522,7 +522,7 @@ export default function Home() {
           </div>
           <div className="footer-bottom">
             <p className="footer-copyright">
-              Copyright © 2025 TechTooTalk. All Rights Reserved.
+              Copyright © 2025 SkillStenz. All Rights Reserved.
             </p>
             <div className="footer-bottom-links">
               <Link href="/terms" className="footer-bottom-link">Terms of Use</Link>

@@ -212,7 +212,7 @@ export default function CoursePage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}><span style={{ color: 'var(--text-muted)' }}>Courses</span><span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{course.instructor.courses || 'N/A'}</span></div>
                     </div>
                   </>
-                ) : <div style={{ color: 'var(--text-secondary)' }}>{typeof course.instructor === 'string' ? course.instructor : 'TechTooTalk Academy'}</div>}
+                ) : <div style={{ color: 'var(--text-secondary)' }}>{typeof course.instructor === 'string' ? course.instructor : 'SkillStenz Academy'}</div>}
               </div>
             </div>
           </div>
