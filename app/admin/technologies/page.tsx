@@ -31,7 +31,7 @@ interface TechnologyCategory {
   color: string;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const DIFFICULTIES = [
   { value: 'beginner', label: 'Beginner' },
@@ -54,6 +54,8 @@ export default function AdminTechnologiesPage() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchCategories = async () => {
     try {
@@ -170,8 +172,8 @@ export default function AdminTechnologiesPage() {
 
       <div className="card" style={{ padding: '16px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, minWidth: '200px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+          <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} style={{ flex: 1, minWidth: '200px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+          <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
             <option value="">All Categories</option>
             {categories.map(cat => <option key={cat._id} value={cat._id}>{cat.icon} {cat.name}</option>)}
           </select>
@@ -192,9 +194,11 @@ export default function AdminTechnologiesPage() {
               </tr>
             </thead>
             <tbody>
-              {technologies.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No technologies found. Add your first!</td></tr>
-              ) : technologies.map((tech) => (
+              {(() => {
+                const paginated = technologies.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                return paginated.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No technologies found. Add your first!</td></tr>
+                ) : paginated.map((tech) => (
                 <tr key={tech._id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
                   <td style={{ padding: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -221,10 +225,36 @@ export default function AdminTechnologiesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ));
+              })()}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {(() => {
+          const totalPages = Math.ceil(technologies.length / itemsPerPage);
+          if (totalPages <= 1) return null;
+          return (
+            <div style={{ padding: '16px', borderTop: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, technologies.length)} of {technologies.length}</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: '8px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-primary)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}>← Prev</button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let page = i + 1;
+                  if (totalPages > 5) {
+                    if (currentPage > 3) page = currentPage - 2 + i;
+                    if (currentPage > totalPages - 2) page = totalPages - 4 + i;
+                  }
+                  return (
+                    <button key={page} onClick={() => setCurrentPage(page)} style={{ padding: '8px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: currentPage === page ? 'var(--bg-accent)' : 'transparent', color: currentPage === page ? 'white' : 'var(--text-primary)', cursor: 'pointer' }}>{page}</button>
+                  );
+                })}
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: '8px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-primary)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}>Next →</button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {showModal && (

@@ -39,6 +39,8 @@ const defaultPlan: Omit<Plan, '_id'> = {
   order: 0
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 export default function AdminPlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function AdminPlansPage() {
   const fetchPlans = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:5000/api/plans/admin/all', {
+      const response = await fetch(`${API_URL}/plans/admin/all`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -107,8 +109,8 @@ export default function AdminPlansPage() {
     try {
       const token = localStorage.getItem('accessToken');
       const url = editingPlan 
-        ? `http://localhost:5000/api/plans/${editingPlan._id}`
-        : 'http://localhost:5000/api/plans';
+        ? `${API_URL}/plans/${editingPlan._id}`
+        : `${API_URL}/plans`;
       
       const response = await fetch(url, {
         method: editingPlan ? 'PUT' : 'POST',
@@ -138,7 +140,7 @@ export default function AdminPlansPage() {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:5000/api/plans/${planId}`, {
+      const response = await fetch(`${API_URL}/plans/${planId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -278,180 +280,184 @@ export default function AdminPlansPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {editingPlan ? 'Edit Plan' : 'Create Plan'}
-                </h2>
-                <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-card)] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-[var(--border-primary)] shadow-lg">
+            <div className="p-6 border-b border-[var(--border-primary)] flex items-center justify-between">
+              <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {editingPlan ? 'Edit Plan' : 'New Plan'}
+              </h2>
+              <button onClick={() => setShowModal(false)} className="text-2xl">×</button>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Name</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="input w-full"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Slug</label>
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      className="input w-full"
-                      placeholder="Auto-generated if empty"
-                    />
-                  </div>
-                </div>
-
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="input w-full"
-                    rows={2}
+                    required
                   />
                 </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Price</label>
-                    <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                      className="input w-full"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Currency</label>
-                    <select
-                      value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      className="input w-full"
-                    >
-                      <option value="INR">INR (₹)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>AI Queries/Day</label>
-                    <input
-                      type="number"
-                      value={formData.aiQueryLimit}
-                      onChange={(e) => setFormData({ ...formData, aiQueryLimit: Number(e.target.value) })}
-                      className="input w-full"
-                      min="-1"
-                      placeholder="-1 for unlimited"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Duration</label>
-                    <input
-                      type="number"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-                      className="input w-full"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Duration Type</label>
-                    <select
-                      value={formData.durationType}
-                      onChange={(e) => setFormData({ ...formData, durationType: e.target.value })}
-                      className="input w-full"
-                    >
-                      <option value="day">Day</option>
-                      <option value="month">Month</option>
-                      <option value="year">Year</option>
-                      <option value="lifetime">Lifetime</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Features</label>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={newFeature}
-                      onChange={(e) => setNewFeature(e.target.value)}
-                      className="input flex-1"
-                      placeholder="Add a feature..."
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                    />
-                    <button type="button" onClick={addFeature} className="btn btn-primary">Add</button>
-                  </div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {formData.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 rounded" style={{ background: 'var(--bg-tertiary)' }}>
-                        <button
-                          type="button"
-                          onClick={() => toggleFeatureIncluded(index)}
-                          className={`w-6 h-6 rounded flex items-center justify-center text-white ${feature.included ? 'bg-green-500' : 'bg-gray-400'}`}
-                        >
-                          {feature.included ? '✓' : '✗'}
-                        </button>
-                        <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>{feature.title}</span>
-                        <button type="button" onClick={() => removeFeature(index)} className="text-red-500 hover:text-red-700">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Slug</label>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    className="input w-full"
+                    placeholder="Auto-generated if empty"
+                  />
                 </div>
+              </div>
 
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isPopular}
-                      onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <span style={{ color: 'var(--text-primary)' }}>Mark as Popular</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isActive}
-                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <span style={{ color: 'var(--text-primary)' }}>Active</span>
-                  </label>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="input w-full"
+                  rows={2}
+                />
+              </div>
 
-                <div className="flex justify-end gap-3 pt-4">
-                  <button type="button" onClick={() => setShowModal(false)} className="btn">Cancel</button>
-                  <button type="submit" disabled={saving} className="btn btn-primary">
-                    {saving ? 'Saving...' : (editingPlan ? 'Update Plan' : 'Create Plan')}
-                  </button>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Price</label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    className="input w-full"
+                    min="0"
+                  />
                 </div>
-              </form>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Currency</label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="input w-full"
+                  >
+                    <option value="INR">INR (₹)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>AI Queries/Day</label>
+                  <input
+                    type="number"
+                    value={formData.aiQueryLimit}
+                    onChange={(e) => setFormData({ ...formData, aiQueryLimit: Number(e.target.value) })}
+                    className="input w-full"
+                    min="-1"
+                    placeholder="-1 for unlimited"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Duration</label>
+                  <input
+                    type="number"
+                    value={formData.duration}
+                    onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
+                    className="input w-full"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Duration Type</label>
+                  <select
+                    value={formData.durationType}
+                    onChange={(e) => setFormData({ ...formData, durationType: e.target.value })}
+                    className="input w-full"
+                  >
+                    <option value="day">Day</option>
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                    <option value="lifetime">Lifetime</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Features</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={newFeature}
+                    onChange={(e) => setNewFeature(e.target.value)}
+                    className="input flex-1"
+                    placeholder="Add a feature..."
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                  />
+                  <button type="button" onClick={addFeature} className="btn btn-primary">Add</button>
+                </div>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {formData.features.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 rounded" style={{ background: 'var(--bg-tertiary)' }}>
+                      <button
+                        type="button"
+                        onClick={() => toggleFeatureIncluded(index)}
+                        className={`w-6 h-6 rounded flex items-center justify-center text-white ${feature.included ? 'bg-green-500' : 'bg-gray-400'}`}
+                      >
+                        {feature.included ? '✓' : '✗'}
+                      </button>
+                      <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>{feature.title}</span>
+                      <button type="button" onClick={() => removeFeature(index)} className="text-red-500 hover:text-red-700">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPopular}
+                    onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span style={{ color: 'var(--text-primary)' }}>Mark as Popular</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span style={{ color: 'var(--text-primary)' }}>Active</span>
+                </label>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2 border border-[var(--border-primary)] rounded-lg hover:bg-[var(--bg-hover)]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 bg-[var(--bg-accent)] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : editingPlan ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

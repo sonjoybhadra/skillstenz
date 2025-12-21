@@ -31,112 +31,112 @@ export default function ContactPage() {
 
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '48px 24px' }}>
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-4">Contact Us</h1>
-          <p className="text-lg text-[var(--muted-foreground)]">
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Contact Us</h1>
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)' }}>
             Have questions? We&apos;d love to hear from you.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
           {/* Contact Form */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-6">Send us a message</h2>
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>Send us a message</h2>
             {submitted ? (
-              <div className="p-8 text-center">
-                <div className="w-16 h-16 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div style={{ padding: '32px', textAlign: 'center' }}>
+                <div style={{ width: '56px', height: '56px', margin: '0 auto 16px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-[var(--foreground)]">Message Sent!</h3>
-                <p className="text-[var(--muted-foreground)]">We&apos;ll get back to you shortly.</p>
+                <h3 style={{ fontSize: '16px', fontWeight: '500', color: 'var(--text-primary)' }}>Message Sent!</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>We&apos;ll get back to you shortly.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Name</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Name</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px' }}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Email</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Email</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px' }}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Subject</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Subject</label>
                   <input
                     type="text"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px' }}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Message</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Message</label>
                   <textarea
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     rows={5}
-                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)]"
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
                     required
                   />
                 </div>
-                <button type="submit" className="btn-primary w-full">Send Message</button>
+                <button type="submit" style={{ width: '100%', padding: '12px', background: 'var(--bg-accent)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>Send Message</button>
               </form>
             )}
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-6">
-            <div className="card">
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-6">Contact Information</h2>
-              <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '24px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>Contact Information</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {contactInfo.map((info, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <span className="text-2xl">{info.icon}</span>
+                  <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '24px' }}>{info.icon}</span>
                     <div>
-                      <div className="text-sm text-[var(--muted-foreground)]">{info.label}</div>
-                      <div className="text-[var(--foreground)]">{info.value}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{info.label}</div>
+                      <div style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{info.value}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="card">
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">Follow Us</h2>
-              <div className="flex gap-4">
-                {['Twitter', 'LinkedIn', 'GitHub', 'YouTube'].map((social) => (
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '24px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '16px' }}>Follow Us</h2>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {['🐦', '💼', '📘', '📺'].map((icon, i) => (
                   <a
-                    key={social}
+                    key={i}
                     href="#"
-                    className="w-10 h-10 rounded-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[var(--primary)] hover:text-white transition-colors"
+                    style={{ width: '40px', height: '40px', borderRadius: '6px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', textDecoration: 'none' }}
                   >
-                    {social[0]}
+                    {icon}
                   </a>
                 ))}
               </div>
             </div>
 
-            <div className="card bg-[var(--primary)] text-white">
-              <h2 className="text-xl font-semibold mb-2">Need Quick Help?</h2>
-              <p className="opacity-90 mb-4">Check out our FAQ or documentation for instant answers.</p>
-              <a href="/faq" className="inline-block px-4 py-2 bg-white text-[var(--primary)] rounded-lg font-medium hover:bg-gray-100 transition-colors">
+            <div style={{ background: 'var(--bg-accent)', borderRadius: '6px', padding: '24px', color: 'white' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>Need Quick Help?</h2>
+              <p style={{ opacity: 0.9, marginBottom: '16px', fontSize: '14px' }}>Check out our FAQ or documentation for instant answers.</p>
+              <a href="/faq" style={{ display: 'inline-block', padding: '10px 20px', background: 'white', color: 'var(--bg-accent)', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '14px' }}>
                 View FAQ
               </a>
             </div>

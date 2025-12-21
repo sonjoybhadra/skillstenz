@@ -29,7 +29,7 @@ interface Technology {
   color: string;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function AdminTutorialsPage() {
   const [chapters, setChapters] = useState<TutorialChapter[]>([]);
@@ -41,6 +41,8 @@ export default function AdminTutorialsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
   const [saving, setSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
     technologyId: '',
@@ -179,9 +181,10 @@ export default function AdminTutorialsPage() {
   };
 
   const resetForm = () => {
+    const selectedTech = filterTech ? technologies.find(t => t.slug === filterTech) : undefined;
     setEditingChapter(null);
     setFormData({
-      technologyId: filterTech || '',
+      technologyId: selectedTech?._id || '',
       title: '',
       slug: '',
       description: '',
@@ -208,19 +211,6 @@ export default function AdminTutorialsPage() {
   const removeKeyPoint = (index: number) => {
     setFormData({ ...formData, keyPoints: formData.keyPoints.filter((_, i) => i !== index) });
   };
-
-  // Group chapters by technology
-  const groupedChapters = chapters.reduce((acc, chapter) => {
-    const techId = chapter.technology?._id || 'unknown';
-    if (!acc[techId]) {
-      acc[techId] = {
-        technology: chapter.technology,
-        chapters: []
-      };
-    }
-    acc[techId].chapters.push(chapter);
-    return acc;
-  }, {} as Record<string, { technology: Technology; chapters: TutorialChapter[] }>);
 
   return (
     <div className="space-y-6">
@@ -263,7 +253,7 @@ export default function AdminTutorialsPage() {
       <div className="flex flex-wrap gap-4">
         <select
           value={filterTech}
-          onChange={(e) => setFilterTech(e.target.value)}
+          onChange={(e) => { setFilterTech(e.target.value); setCurrentPage(1); }}
           className="px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg"
         >
           <option value="">All Technologies</option>
@@ -275,12 +265,12 @@ export default function AdminTutorialsPage() {
           type="text"
           placeholder="Search chapters..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
           className="flex-1 max-w-xs px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg"
         />
       </div>
 
-      {/* Chapters List */}
+      {/* Chapters Table */}
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--bg-accent)] border-t-transparent"></div>
@@ -291,103 +281,139 @@ export default function AdminTutorialsPage() {
           <h3 className="text-lg font-semibold text-[var(--text-primary)]">No chapters yet</h3>
           <p className="text-[var(--text-secondary)]">Create your first tutorial chapter</p>
         </div>
-      ) : filterTech ? (
-        // Single technology view
-        <div className="space-y-3">
-          {chapters.sort((a, b) => a.order - b.order).map((chapter, index) => (
-            <div key={chapter._id} className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)] flex items-center justify-center font-bold text-[var(--text-accent)]">
-                  {index + 1}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span>{chapter.icon}</span>
-                    <h3 className="font-medium text-[var(--text-primary)]">{chapter.title}</h3>
-                    {!chapter.isPublished && (
-                      <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-600 text-xs rounded">Draft</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-[var(--text-secondary)]">{chapter.description}</p>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-                  <span>{chapter.estimatedTime}m</span>
-                  <span className={`px-2 py-0.5 rounded text-xs ${
-                    chapter.difficulty === 'beginner' ? 'bg-green-500/10 text-green-600' :
-                    chapter.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
-                    'bg-red-500/10 text-red-600'
-                  }`}>
-                    {chapter.difficulty}
-                  </span>
-                  <span>👁 {chapter.viewCount}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/tutorials/${chapter.technology.slug}/${chapter.slug}`}
-                    target="_blank"
-                    className="p-2 hover:bg-[var(--bg-hover)] rounded-lg text-[var(--text-secondary)]"
-                    title="View"
-                  >
-                    👁
-                  </Link>
-                  <button
-                    onClick={() => openEditModal(chapter)}
-                    className="p-2 hover:bg-[var(--bg-hover)] rounded-lg text-[var(--text-secondary)]"
-                    title="Edit"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDelete(chapter._id)}
-                    className="p-2 hover:bg-red-500/10 rounded-lg text-red-500"
-                    title="Delete"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       ) : (
-        // Grouped by technology view
-        <div className="space-y-6">
-          {Object.values(groupedChapters).map(({ technology, chapters: techChapters }) => (
-            <div key={technology._id} className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl overflow-hidden">
-              <div className="p-4 bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{technology.icon}</span>
-                  <div>
-                    <h3 className="font-semibold text-[var(--text-primary)]">{technology.name}</h3>
-                    <p className="text-sm text-[var(--text-secondary)]">{techChapters.length} chapters</p>
-                  </div>
+        <>
+          <div className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">#</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Chapter</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Technology</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Difficulty</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Time</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Views</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Status</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const sortedChapters = chapters.sort((a, b) => a.order - b.order);
+                  const paginatedChapters = sortedChapters.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                  return paginatedChapters.map((chapter, index) => (
+                    <tr key={chapter._id} className="border-b border-[var(--border-primary)] hover:bg-[var(--bg-hover)]">
+                      <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span>{chapter.icon}</span>
+                          <div>
+                            <p className="font-medium text-[var(--text-primary)]">{chapter.title}</p>
+                            <p className="text-xs text-[var(--text-muted)]">{chapter.slug}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="flex items-center gap-1 text-sm">
+                          {chapter.technology?.icon} {chapter.technology?.name}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          chapter.difficulty === 'beginner' ? 'bg-green-500/10 text-green-600' :
+                          chapter.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
+                          'bg-red-500/10 text-red-600'
+                        }`}>
+                          {chapter.difficulty}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{chapter.estimatedTime}m</td>
+                      <td className="px-4 py-3 text-sm text-[var(--text-muted)]">👁 {chapter.viewCount}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          chapter.isPublished ? 'bg-green-500/10 text-green-600' : 'bg-yellow-500/10 text-yellow-600'
+                        }`}>
+                          {chapter.isPublished ? 'Published' : 'Draft'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/tutorials/${chapter.technology?.slug}/${chapter.slug}`}
+                            target="_blank"
+                            className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg text-[var(--text-secondary)]"
+                            title="View"
+                          >
+                            👁
+                          </Link>
+                          <button
+                            onClick={() => openEditModal(chapter)}
+                            className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg text-[var(--text-secondary)]"
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDelete(chapter._id)}
+                            className="p-2 hover:bg-red-500/10 rounded-lg text-red-500"
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {(() => {
+            const totalPages = Math.ceil(chapters.length / itemsPerPage);
+            if (totalPages <= 1) return null;
+            return (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-[var(--text-muted)]">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, chapters.length)} of {chapters.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-[var(--border-primary)] rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--bg-secondary)]"
+                  >
+                    ← Prev
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).slice(
+                    Math.max(0, currentPage - 3),
+                    Math.min(totalPages, currentPage + 2)
+                  ).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded-lg text-sm ${
+                        page === currentPage
+                          ? 'bg-[var(--bg-accent)] text-white'
+                          : 'border border-[var(--border-primary)] hover:bg-[var(--bg-secondary)]'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border border-[var(--border-primary)] rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--bg-secondary)]"
+                  >
+                    Next →
+                  </button>
                 </div>
-                <button
-                  onClick={() => setFilterTech(technology.slug)}
-                  className="text-sm text-[var(--text-accent)] hover:underline"
-                >
-                  View All →
-                </button>
               </div>
-              <div className="divide-y divide-[var(--border-primary)]">
-                {techChapters.slice(0, 5).map((chapter, idx) => (
-                  <div key={chapter._id} className="p-3 flex items-center gap-3 hover:bg-[var(--bg-hover)]">
-                    <span className="w-6 h-6 rounded bg-[var(--bg-secondary)] flex items-center justify-center text-xs font-medium">
-                      {idx + 1}
-                    </span>
-                    <span className="flex-1 text-sm">{chapter.title}</span>
-                    <button onClick={() => openEditModal(chapter)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">✏️</button>
-                  </div>
-                ))}
-                {techChapters.length > 5 && (
-                  <div className="p-3 text-center text-sm text-[var(--text-muted)]">
-                    +{techChapters.length - 5} more chapters
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+            );
+          })()}
+        </>
       )}
 
       {/* Modal */}

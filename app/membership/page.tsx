@@ -78,7 +78,7 @@ export default function MembershipPage() {
 
   const fetchPlans = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/plans');
+      const response = await fetch(`${API_URL}/plans`);
       if (response.ok) {
         const data = await response.json();
         setPlans(data.plans || []);
@@ -93,7 +93,7 @@ export default function MembershipPage() {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/memberships', {
+      const response = await fetch(`${API_URL}/memberships`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -113,7 +113,7 @@ export default function MembershipPage() {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/users/me', {
+      const response = await fetch(`${API_URL}/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -157,7 +157,7 @@ export default function MembershipPage() {
     if (plan.price === 0) {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('http://localhost:5000/api/memberships/upgrade', {
+        const response = await fetch(`${API_URL}/memberships/upgrade`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ export default function MembershipPage() {
     try {
       const token = localStorage.getItem('accessToken');
       
-      const orderResponse = await fetch('http://localhost:5000/api/payments/razorpay/create-order', {
+      const orderResponse = await fetch(`${API_URL}/payments/razorpay/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,7 +206,7 @@ export default function MembershipPage() {
         order_id: orderData.orderId,
         handler: async (response: RazorpayResponse) => {
           try {
-            const verifyResponse = await fetch('http://localhost:5000/api/payments/razorpay/verify', {
+            const verifyResponse = await fetch(`${API_URL}/payments/razorpay/verify`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

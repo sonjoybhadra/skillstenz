@@ -84,7 +84,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings/public/site');
+      const response = await fetch(`${API_BASE_URL}/settings/public/site`);
       if (response.ok) {
         const data = await response.json();
         setSettings(prev => ({ ...prev, ...data }));

@@ -21,7 +21,7 @@ interface User {
   createdAt: string;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const ROLES = [
   { value: 'student', label: '🎓 Student', color: '#3b82f6' },
@@ -48,7 +48,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       let url = `${API_URL}/auth/users?limit=100`;
       if (searchQuery) url += `&search=${searchQuery}`;
       if (filterRole) url += `&role=${filterRole}`;
@@ -76,7 +76,7 @@ export default function AdminUsersPage() {
     if (!formData.name || !formData.email) { setMessage({ type: 'error', text: 'Name and email are required' }); return; }
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const payload = {
         ...formData,
         socialLinks: { github: formData.github, linkedin: formData.linkedin, twitter: formData.twitter, youtube: formData.youtube },
@@ -93,7 +93,7 @@ export default function AdminUsersPage() {
   };
 
   const toggleActive = async (user: User) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     await fetch(`${API_URL}/auth/users/${user._id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ isActive: !user.isActive })
@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
   };
 
   const changeRole = async (user: User, newRole: string) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     await fetch(`${API_URL}/auth/users/${user._id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ role: newRole })
@@ -113,7 +113,7 @@ export default function AdminUsersPage() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/auth/users/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setMessage({ type: 'success', text: 'User deleted!' }); fetchUsers(); }
     } catch { setMessage({ type: 'error', text: 'Network error' }); }

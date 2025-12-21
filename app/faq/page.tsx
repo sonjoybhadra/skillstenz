@@ -52,11 +52,11 @@ export default function FAQPage() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[var(--foreground)] mb-4">Frequently Asked Questions</h1>
-          <p className="text-lg text-[var(--muted-foreground)]">
+          <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-4">Frequently Asked Questions</h1>
+          <p className="text-lg text-[var(--text-secondary)]">
             Find answers to common questions about LearnHub
           </p>
         </div>
@@ -69,9 +69,9 @@ export default function FAQPage() {
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="w-full flex items-center justify-between text-left"
               >
-                <h3 className="font-medium text-[var(--foreground)] pr-4">{faq.question}</h3>
+                <h3 className="font-medium text-[var(--text-primary)] pr-4">{faq.question}</h3>
                 <svg
-                  className={`w-5 h-5 text-[var(--muted-foreground)] transition-transform ${
+                  className={`w-5 h-5 text-[var(--text-muted)] transition-transform ${
                     openIndex === index ? 'rotate-180' : ''
                   }`}
                   fill="none"
@@ -82,7 +82,7 @@ export default function FAQPage() {
                 </svg>
               </button>
               {openIndex === index && (
-                <p className="mt-4 text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
+                <p className="mt-4 text-[var(--text-secondary)] border-t border-[var(--border-primary)] pt-4">
                   {faq.answer}
                 </p>
               )}
@@ -91,9 +91,9 @@ export default function FAQPage() {
         </div>
 
         {/* Still have questions */}
-        <div className="mt-12 text-center card bg-[var(--muted)]">
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Still have questions?</h2>
-          <p className="text-[var(--muted-foreground)] mb-4">
+        <div className="mt-12 text-center card bg-[var(--bg-secondary)]">
+          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Still have questions?</h2>
+          <p className="text-[var(--text-secondary)] mb-4">
             Can&apos;t find the answer you&apos;re looking for? Contact our support team.
           </p>
           <Link href="/contact" className="btn-primary inline-block">

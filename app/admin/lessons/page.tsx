@@ -34,7 +34,7 @@ interface Technology {
   icon: string;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function AdminLessonsPage() {
   const [technologies, setTechnologies] = useState<Technology[]>([]);

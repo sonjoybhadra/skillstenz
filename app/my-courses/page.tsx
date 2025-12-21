@@ -33,7 +33,7 @@ export default function MyCoursesPage() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/enrollments/my', {
+      const response = await fetch(`${API_URL}/enrollments/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

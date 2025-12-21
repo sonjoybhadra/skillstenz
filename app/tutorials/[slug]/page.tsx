@@ -92,47 +92,86 @@ export default function TutorialDetailPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[var(--bg-primary)]">
+      <style jsx global>{`
+        @media (min-width: 1024px) {
+          .tutorial-grid {
+            grid-template-columns: 260px 1fr !important;
+          }
+          .tutorial-sidebar {
+            order: 1 !important;
+          }
+          .tutorial-content {
+            order: 2 !important;
+          }
+        }
+      `}</style>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
         {/* Header */}
         <section 
-          className="py-12"
-          style={{ background: `linear-gradient(135deg, ${technology?.color || '#4f46e5'}20, ${technology?.color || '#4f46e5'}05)` }}
+          style={{ 
+            padding: '48px 0',
+            background: `linear-gradient(135deg, ${technology?.color || '#4f46e5'}20, ${technology?.color || '#4f46e5'}05)` 
+          }}
         >
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-4">
-              <Link href="/tutorials" className="hover:text-[var(--text-accent)]">Tutorials</Link>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              <Link href="/tutorials" style={{ color: 'inherit', textDecoration: 'none' }}>Tutorials</Link>
               <span>/</span>
-              <span className="text-[var(--text-primary)]">{technology?.name || slug}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{technology?.name || slug}</span>
             </div>
             
-            <div className="flex flex-col md:flex-row md:items-center gap-6">
-              <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center text-5xl"
-                style={{ backgroundColor: technology?.color + '30' }}
-              >
-                {technology?.icon || '📚'}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">
-                    {technology?.name || slug} Tutorial
-                  </h1>
-                  <span className="px-2 py-1 bg-green-500/10 text-green-600 text-xs font-medium rounded">FREE</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                <div 
+                  style={{ 
+                    width: '72px', 
+                    height: '72px', 
+                    borderRadius: '8px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    fontSize: '36px',
+                    backgroundColor: (technology?.color || '#4f46e5') + '30' 
+                  }}
+                >
+                  {technology?.icon || '📚'}
                 </div>
-                <p className="text-[var(--text-secondary)] text-lg max-w-2xl">
-                  {technology?.description || `Learn ${slug} from beginner to advanced with hands-on examples and exercises.`}
-                </p>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                    <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: '700', color: 'var(--text-primary)' }}>
+                      {technology?.name || slug} Tutorial
+                    </h1>
+                    <span style={{ padding: '4px 10px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', fontSize: '12px', fontWeight: '500', borderRadius: '4px' }}>FREE</span>
+                  </div>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '18px', maxWidth: '700px' }}>
+                    {technology?.description || `Learn ${slug} from beginner to advanced with hands-on examples and exercises.`}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-3">
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {chapters.length > 0 && (
                   <Link
                     href={`/tutorials/${slug}/${chapters[0]?.slug || 'introduction'}`}
-                    className="px-6 py-3 bg-[var(--bg-accent)] text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
+                    style={{ 
+                      padding: '12px 24px', 
+                      background: 'var(--bg-accent)', 
+                      color: 'white', 
+                      borderRadius: '8px', 
+                      fontWeight: '500', 
+                      textDecoration: 'none' 
+                    }}
                   >
                     Start Learning
                   </Link>
                 )}
-                <button className="px-6 py-3 border border-[var(--border-primary)] rounded-lg hover:bg-[var(--bg-hover)] transition-colors">
+                <button style={{ 
+                  padding: '12px 24px', 
+                  border: '1px solid var(--border-primary)', 
+                  borderRadius: '8px', 
+                  background: 'transparent', 
+                  color: 'var(--text-primary)', 
+                  cursor: 'pointer' 
+                }}>
                   Download PDF
                 </button>
               </div>
@@ -140,42 +179,49 @@ export default function TutorialDetailPage() {
           </div>
         </section>
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] p-5 sticky top-24">
-                <h3 className="font-semibold text-[var(--text-primary)] mb-4">Quick Info</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Chapters</span>
-                    <span className="text-[var(--text-primary)] font-medium">{chapters.length}</span>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+          <div className="tutorial-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '24px' }}>
+            {/* Sidebar - shown at top on mobile/tablet */}
+            <div className="tutorial-sidebar" style={{ order: 2 }}>
+              <div style={{ 
+                background: 'var(--bg-secondary)', 
+                borderRadius: '6px', 
+                border: '1px solid var(--border-primary)', 
+                padding: '20px', 
+                position: 'sticky', 
+                top: '80px' 
+              }}>
+                <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '16px' }}>Quick Info</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Chapters</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{chapters.length}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Duration</span>
-                    <span className="text-[var(--text-primary)] font-medium">{timeDisplay}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Duration</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{timeDisplay}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Level</span>
-                    <span className="text-[var(--text-primary)] font-medium">All Levels</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Level</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>All Levels</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Price</span>
-                    <span className="text-green-600 font-medium">Free</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Price</span>
+                    <span style={{ color: '#22c55e', fontWeight: '500' }}>Free</span>
                   </div>
                 </div>
 
-                <hr className="my-5 border-[var(--border-primary)]" />
+                <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid var(--border-primary)' }} />
 
-                <h3 className="font-semibold text-[var(--text-primary)] mb-4">Resources</h3>
-                <div className="space-y-2">
-                  <Link href={`/cheatsheets/${slug}`} className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '16px' }}>Resources</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <Link href={`/cheatsheets/${slug}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>
                     <span>📝</span> Cheat Sheet
                   </Link>
-                  <Link href={`/compiler/${slug}`} className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                  <Link href={`/compiler/${slug}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>
                     <span>💻</span> Try it Online
                   </Link>
-                  <Link href={`/roadmaps/${slug}`} className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                  <Link href={`/roadmaps/${slug}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>
                     <span>🗺️</span> Learning Roadmap
                   </Link>
                 </div>
@@ -183,71 +229,109 @@ export default function TutorialDetailPage() {
             </div>
 
             {/* Main Content - Chapters List */}
-            <div className="lg:col-span-3">
+            <div className="tutorial-content" style={{ order: 1 }}>
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-[var(--border-primary)] border-t-[var(--bg-accent)]"></div>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
+                  <div className="spinner"></div>
                 </div>
               ) : chapters.length === 0 ? (
-                <div className="text-center py-12 bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)]">
-                  <div className="text-4xl mb-4">📚</div>
-                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Coming Soon</h3>
-                  <p className="text-[var(--text-secondary)]">Tutorial chapters for {technology?.name || slug} are being created.</p>
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '40px', 
+                  background: 'var(--bg-secondary)', 
+                  borderRadius: '6px', 
+                  border: '1px solid var(--border-primary)' 
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Coming Soon</h3>
+                  <p style={{ color: 'var(--text-secondary)' }}>Tutorial chapters for {technology?.name || slug} are being created.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-6">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '24px' }}>
                     Chapters ({chapters.length})
                   </h2>
 
                   {chapters.sort((a, b) => a.order - b.order).map((chapter, index) => (
                     <div 
                       key={chapter._id}
-                      className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] overflow-hidden"
+                      style={{ 
+                        background: 'var(--bg-secondary)', 
+                        borderRadius: '6px', 
+                        border: '1px solid var(--border-primary)', 
+                        overflow: 'hidden' 
+                      }}
                     >
                       <button
                         onClick={() => toggleChapter(chapter._id)}
-                        className="w-full flex items-center gap-4 p-5 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                        style={{ 
+                          width: '100%', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '16px', 
+                          padding: '20px', 
+                          background: 'transparent', 
+                          border: 'none', 
+                          cursor: 'pointer', 
+                          textAlign: 'left' 
+                        }}
                       >
-                        <div className="w-12 h-12 rounded-full bg-[var(--bg-accent)]/10 text-[var(--text-accent)] flex items-center justify-center text-xl">
+                        <div style={{ 
+                          width: '48px', 
+                          height: '48px', 
+                          borderRadius: '50%', 
+                          background: 'rgba(var(--accent-rgb, 59, 130, 246), 0.1)', 
+                          color: 'var(--text-accent)', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '20px' 
+                        }}>
                           {chapter.icon || '📖'}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-[var(--text-muted)]">Chapter {index + 1}</span>
-                            <span className={`px-2 py-0.5 rounded text-xs ${
-                              chapter.difficulty === 'beginner' ? 'bg-green-500/10 text-green-600' :
-                              chapter.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
-                              'bg-red-500/10 text-red-600'
-                            }`}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Chapter {index + 1}</span>
+                            <span style={{ 
+                              padding: '2px 8px', 
+                              borderRadius: '4px', 
+                              fontSize: '12px',
+                              background: chapter.difficulty === 'beginner' ? 'rgba(34, 197, 94, 0.1)' :
+                                         chapter.difficulty === 'intermediate' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                              color: chapter.difficulty === 'beginner' ? '#22c55e' :
+                                    chapter.difficulty === 'intermediate' ? '#eab308' : '#ef4444'
+                            }}>
                               {chapter.difficulty}
                             </span>
                           </div>
-                          <h3 className="font-medium text-[var(--text-primary)]">{chapter.title}</h3>
-                          <p className="text-sm text-[var(--text-secondary)]">{chapter.description}</p>
+                          <h3 style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{chapter.title}</h3>
+                          <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{chapter.description}</p>
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm text-[var(--text-muted)]">{chapter.estimatedTime || 10} min</div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{chapter.estimatedTime || 10} min</div>
                         </div>
                         <svg 
-                          className={`w-5 h-5 text-[var(--text-secondary)] transition-transform ${expandedChapters.has(chapter._id) ? 'rotate-180' : ''}`}
+                          width="20" 
+                          height="20" 
+                          viewBox="0 0 24 24" 
                           fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
+                          stroke="var(--text-secondary)" 
+                          strokeWidth="2"
+                          style={{ transform: expandedChapters.has(chapter._id) ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
 
                       {expandedChapters.has(chapter._id) && (
-                        <div className="border-t border-[var(--border-primary)] bg-[var(--bg-secondary)] p-5">
+                        <div style={{ borderTop: '1px solid var(--border-primary)', background: 'var(--bg-secondary)', padding: '20px' }}>
                           {chapter.keyPoints?.length > 0 && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">Key Points:</h4>
-                              <ul className="space-y-1">
+                            <div style={{ marginBottom: '16px' }}>
+                              <h4 style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '8px' }}>Key Points:</h4>
+                              <ul style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 {chapter.keyPoints.map((point, idx) => (
-                                  <li key={idx} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
-                                    <span className="text-green-500">✓</span>
+                                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                                    <span style={{ color: '#22c55e' }}>✓</span>
                                     {point}
                                   </li>
                                 ))}
@@ -256,11 +340,22 @@ export default function TutorialDetailPage() {
                           )}
                           <Link
                             href={`/tutorials/${slug}/${chapter.slug}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-accent)] text-white rounded-lg hover:opacity-90 text-sm font-medium"
+                            style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '8px', 
+                              padding: '8px 16px', 
+                              background: 'var(--bg-accent)', 
+                              color: 'white', 
+                              borderRadius: '8px', 
+                              fontSize: '14px', 
+                              fontWeight: '500', 
+                              textDecoration: 'none' 
+                            }}
                           >
                             Start Chapter
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                             </svg>
                           </Link>
                         </div>

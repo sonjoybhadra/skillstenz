@@ -38,7 +38,7 @@ export default function BookmarksPage() {
   const fetchBookmarks = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:5000/api/bookmarks', {
+      const response = await fetch(`${API_URL}/bookmarks`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -57,7 +57,7 @@ export default function BookmarksPage() {
   const removeBookmark = async (id: string) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:5000/api/bookmarks/${id}`, {
+      const response = await fetch(`${API_URL}/bookmarks/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

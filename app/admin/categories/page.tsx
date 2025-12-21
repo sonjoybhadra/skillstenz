@@ -16,7 +16,7 @@ interface TechnologyCategory {
   technologiesCount: number;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const defaultCategories = [
   { name: 'Web Development', icon: '🌐', color: '#3B82F6', description: 'Frontend and backend web technologies' },
@@ -40,6 +40,9 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<TechnologyCategory | null>(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -254,59 +257,92 @@ export default function AdminCategoriesPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categories.sort((a, b) => a.order - b.order).map((category) => (
-            <div 
-              key={category._id} 
-              className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div 
-                className="h-20 flex items-center justify-center text-4xl"
-                style={{ backgroundColor: category.color + '20' }}
-              >
-                {category.icon}
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-[var(--text-primary)]">{category.name}</h3>
-                    <p className="text-xs text-[var(--text-muted)]">/{category.slug}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {category.featured && (
-                      <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-600 text-xs rounded">⭐</span>
-                    )}
-                    {!category.isPublished && (
-                      <span className="px-2 py-0.5 bg-gray-500/10 text-gray-500 text-xs rounded">Draft</span>
-                    )}
-                  </div>
-                </div>
-                <p className="text-sm text-[var(--text-secondary)] mb-3 line-clamp-2">{category.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--text-muted)]">
-                    💻 {category.technologiesCount || 0} technologies
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEditModal(category)}
-                      className="p-2 hover:bg-[var(--bg-hover)] rounded-lg text-[var(--text-secondary)]"
-                      title="Edit"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => handleDelete(category._id)}
-                      className="p-2 hover:bg-red-500/10 rounded-lg text-red-500"
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              </div>
+        <>
+          {/* Search */}
+          <div className="card" style={{ padding: '16px', marginBottom: '24px' }}>
+            <input
+              type="text"
+              placeholder="Search categories..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              style={{ width: '100%', maxWidth: '300px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+            />
+          </div>
+
+          {/* Table View */}
+          <div className="card">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                    <th style={{ padding: '16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Category</th>
+                    <th style={{ padding: '16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Slug</th>
+                    <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Technologies</th>
+                    <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Order</th>
+                    <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Status</th>
+                    <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const filtered = categories
+                      .filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()) || cat.slug.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .sort((a, b) => a.order - b.order);
+                    const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                    
+                    return paginated.length === 0 ? (
+                      <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No categories found</td></tr>
+                    ) : paginated.map((category) => (
+                      <tr key={category._id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '28px', width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: category.color + '20' }}>{category.icon}</span>
+                            <div>
+                              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{category.name}</div>
+                              <div style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{category.description}</div>
+                            </div>
+                            {category.featured && <span style={{ padding: '2px 8px', fontSize: '10px', fontWeight: 600, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '4px' }}>⭐</span>}
+                          </div>
+                        </td>
+                        <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '13px' }}>/{category.slug}</td>
+                        <td style={{ padding: '16px', textAlign: 'center', color: 'var(--text-primary)' }}>{category.technologiesCount || 0}</td>
+                        <td style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>{category.order}</td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <span style={{ padding: '4px 12px', fontSize: '12px', fontWeight: 500, border: 'none', borderRadius: '12px', background: category.isPublished ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: category.isPublished ? '#10b981' : '#ef4444' }}>{category.isPublished ? 'Published' : 'Draft'}</span>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button onClick={() => openEditModal(category)} style={{ padding: '6px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
+                            <button onClick={() => handleDelete(category._id)} style={{ padding: '6px 12px', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+
+            {/* Pagination */}
+            {(() => {
+              const filtered = categories.filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()) || cat.slug.toLowerCase().includes(searchQuery.toLowerCase()));
+              const totalPages = Math.ceil(filtered.length / itemsPerPage);
+              if (totalPages <= 1) return null;
+              return (
+                <div style={{ padding: '16px', borderTop: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length}</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: '8px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-primary)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}>← Prev</button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button key={page} onClick={() => setCurrentPage(page)} style={{ padding: '8px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: currentPage === page ? 'var(--bg-accent)' : 'transparent', color: currentPage === page ? 'white' : 'var(--text-primary)', cursor: 'pointer' }}>{page}</button>
+                    ))}
+                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: '8px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-primary)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}>Next →</button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </>
       )}
 
       {/* Modal */}

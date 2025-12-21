@@ -250,28 +250,163 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div style={{ minHeight: '100%' }}>
+      {/* Inline Styles for Admin Theme */}
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .settings-page { 
+          color: var(--text-primary); 
+        }
+        .settings-card {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-primary);
+          border-radius: 12px;
+        }
+        .settings-input {
+          width: 100%;
+          padding: 10px 14px;
+          background: var(--bg-primary);
+          border: 1px solid var(--border-primary);
+          border-radius: 8px;
+          color: var(--text-primary);
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+        .settings-input:focus {
+          outline: none;
+          border-color: var(--accent-primary);
+          box-shadow: 0 0 0 3px rgba(9, 104, 198, 0.1);
+        }
+        .settings-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-secondary);
+          margin-bottom: 6px;
+        }
+        .settings-tab {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 20px;
+          font-size: 14px;
+          font-weight: 500;
+          border-bottom: 2px solid transparent;
+          cursor: pointer;
+          transition: all 0.2s;
+          white-space: nowrap;
+          color: var(--text-muted);
+        }
+        .settings-tab:hover {
+          color: var(--text-primary);
+          background: var(--bg-hover);
+        }
+        .settings-tab.active {
+          color: var(--accent-primary);
+          border-bottom-color: var(--accent-primary);
+        }
+        .settings-toggle {
+          position: relative;
+          width: 44px;
+          height: 24px;
+          background: var(--border-primary);
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .settings-toggle.active {
+          background: var(--accent-primary);
+        }
+        .settings-toggle::after {
+          content: '';
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 20px;
+          height: 20px;
+          background: white;
+          border-radius: 50%;
+          transition: all 0.2s;
+        }
+        .settings-toggle.active::after {
+          left: 22px;
+        }
+        .quick-link {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-primary);
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-decoration: none;
+        }
+        .quick-link:hover {
+          border-color: var(--accent-primary);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .save-btn {
+          display: inline-flex !important;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 24px;
+          background: linear-gradient(135deg, #0968c6 0%, #0756a3 100%);
+          color: white !important;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .save-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(9, 104, 198, 0.3);
+        }
+        .save-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .upload-zone {
+          border: 2px dashed var(--border-primary);
+          border-radius: 12px;
+          padding: 24px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .upload-zone:hover {
+          border-color: var(--accent-primary);
+          background: var(--bg-hover);
+        }
+      `}</style>
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>⚙️ Settings</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
             Manage your platform settings and configurations
           </p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg font-medium hover:from-violet-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="save-btn"
         >
           {saving ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               Saving...
             </>
           ) : (
             <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
               Save Changes
@@ -281,143 +416,125 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         {settingsCards.map((card) => (
           <Link
             key={card.href}
             href={card.href}
-            className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
+            className="quick-link"
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
-            <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center text-2xl shadow-lg`}>
-                {card.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-                  {card.title}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                  {card.description}
-                </p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--bg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+              {card.icon}
             </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
+                {card.title}
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {card.description}
+              </p>
+            </div>
+            <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>→</span>
           </Link>
         ))}
       </div>
 
       {/* Settings Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="settings-card" style={{ overflow: 'hidden' }}>
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex -mb-px overflow-x-auto">
-            {[
-              { id: 'branding', label: 'Logo & Branding', icon: '🎨' },
-              { id: 'loader', label: 'Loader', icon: '⏳' },
-              { id: 'general', label: 'General', icon: '⚙️' },
-              { id: 'security', label: 'Security', icon: '🔒' },
-              { id: 'social', label: 'Social Links', icon: '🔗' },
-              { id: 'menus', label: 'Header & Menus', icon: '📋' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-violet-600 text-violet-600 dark:text-violet-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </nav>
+        <div style={{ borderBottom: '1px solid var(--border-primary)', overflowX: 'auto', display: 'flex' }}>
+          {[
+            { id: 'branding', label: 'Logo & Branding', icon: '🎨' },
+            { id: 'loader', label: 'Loader', icon: '⏳' },
+            { id: 'general', label: 'General', icon: '⚙️' },
+            { id: 'security', label: 'Security', icon: '🔒' },
+            { id: 'social', label: 'Social Links', icon: '🔗' },
+            { id: 'menus', label: 'Header & Menus', icon: '📋' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`settings-tab ${activeTab === tab.id ? 'active' : ''}`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">
+        <div style={{ padding: '24px' }}>
           {/* Branding Tab */}
           {activeTab === 'branding' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 🎨 Logo & Branding
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Logo Text (Main)
-                  </label>
+                  <label className="settings-label">Logo Text (Main)</label>
                   <input
                     type="text"
                     value={settings.logoText}
                     onChange={(e) => handleInputChange('logoText', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                     placeholder="SkillStenz"
                   />
-                  <p className="text-xs text-gray-500 mt-1">The main text of your logo</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>The main text of your logo</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Logo Accent Text
-                  </label>
+                  <label className="settings-label">Logo Accent Text</label>
                   <input
                     type="text"
                     value={settings.logoAccentText}
                     onChange={(e) => handleInputChange('logoAccentText', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                     placeholder="Talk"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Part of logo text that&apos;s highlighted</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Part of logo text that&apos;s highlighted</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Logo Icon (Single Character)
-                </label>
+                <label className="settings-label">Logo Icon (Single Character)</label>
                 <input
                   type="text"
                   value={settings.logoIcon}
                   onChange={(e) => handleInputChange('logoIcon', e.target.value.slice(0, 2))}
-                  className="w-24 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all text-center text-xl font-bold"
+                  className="settings-input"
+                  style={{ width: '80px', textAlign: 'center', fontSize: '20px', fontWeight: 700 }}
                   maxLength={2}
                   placeholder="T"
                 />
-                <p className="text-xs text-gray-500 mt-1">Displayed when no logo image is uploaded (max 2 characters)</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Displayed when no logo image is uploaded (max 2 characters)</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Logo Image (Light Theme)
-                  </label>
+                  <label className="settings-label">Logo Image (Light Theme)</label>
                   <input
                     type="file"
                     ref={logoInputRef}
                     accept="image/*"
                     onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'logo')}
-                    className="hidden"
+                    style={{ display: 'none' }}
                   />
                   <div 
                     onClick={() => logoInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-violet-500 transition-colors"
+                    className="upload-zone"
                   >
                     {settings.logo ? (
-                      <img src={settings.logo} alt="Logo" className="max-h-20 mx-auto mb-2 object-contain" />
+                      <img src={settings.logo} alt="Logo" style={{ maxHeight: '60px', margin: '0 auto 8px', objectFit: 'contain' }} />
                     ) : (
-                      <div className="text-4xl mb-2">📷</div>
+                      <div style={{ fontSize: '36px', marginBottom: '8px' }}>📷</div>
                     )}
-                    <p className="text-sm text-gray-500"><strong className="text-violet-600">Click to upload</strong> or drag and drop</p>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}><strong style={{ color: 'var(--accent-primary)' }}>Click to upload</strong> or drag and drop</p>
                   </div>
                   {settings.logo && (
                     <button
                       onClick={() => handleInputChange('logo', '')}
-                      className="mt-2 text-sm text-red-500 hover:text-red-600"
+                      style={{ marginTop: '8px', fontSize: '13px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
                     >
                       🗑️ Remove Logo
                     </button>
@@ -425,31 +542,29 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Logo Image (Dark Theme)
-                  </label>
+                  <label className="settings-label">Logo Image (Dark Theme)</label>
                   <input
                     type="file"
                     ref={logoDarkInputRef}
                     accept="image/*"
                     onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'logoDark')}
-                    className="hidden"
+                    style={{ display: 'none' }}
                   />
                   <div 
                     onClick={() => logoDarkInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-violet-500 transition-colors"
+                    className="upload-zone"
                   >
                     {settings.logoDark ? (
-                      <img src={settings.logoDark} alt="Logo Dark" className="max-h-20 mx-auto mb-2 object-contain" />
+                      <img src={settings.logoDark} alt="Logo Dark" style={{ maxHeight: '60px', margin: '0 auto 8px', objectFit: 'contain' }} />
                     ) : (
-                      <div className="text-4xl mb-2">🌙</div>
+                      <div style={{ fontSize: '36px', marginBottom: '8px' }}>🌙</div>
                     )}
-                    <p className="text-sm text-gray-500"><strong className="text-violet-600">Click to upload</strong> for dark theme</p>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}><strong style={{ color: 'var(--accent-primary)' }}>Click to upload</strong> for dark theme</p>
                   </div>
                   {settings.logoDark && (
                     <button
                       onClick={() => handleInputChange('logoDark', '')}
-                      className="mt-2 text-sm text-red-500 hover:text-red-600"
+                      style={{ marginTop: '8px', fontSize: '13px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
                     >
                       🗑️ Remove Dark Logo
                     </button>
@@ -458,43 +573,42 @@ export default function AdminSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Favicon
-                </label>
+                <label className="settings-label">Favicon</label>
                 <input
                   type="file"
                   ref={faviconInputRef}
                   accept="image/*,.ico"
                   onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'favicon')}
-                  className="hidden"
+                  style={{ display: 'none' }}
                 />
                 <div 
                   onClick={() => faviconInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:border-violet-500 transition-colors inline-block"
+                  className="upload-zone"
+                  style={{ display: 'inline-block', padding: '16px 24px' }}
                 >
                   {settings.favicon && settings.favicon !== '/favicon.ico' ? (
-                    <img src={settings.favicon} alt="Favicon" className="w-8 h-8 mx-auto" />
+                    <img src={settings.favicon} alt="Favicon" style={{ width: '32px', height: '32px', margin: '0 auto' }} />
                   ) : (
-                    <div className="text-2xl">🔖</div>
+                    <div style={{ fontSize: '24px' }}>🔖</div>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">Upload favicon</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Upload favicon</p>
                 </div>
               </div>
 
               {/* Logo Preview */}
-              <div className="bg-gray-100 dark:bg-gray-900 rounded-xl p-6">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">Preview:</p>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 inline-flex items-center gap-3 border border-gray-200 dark:border-gray-700">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold overflow-hidden">
+              <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '16px' }}>Preview:</p>
+                <div style={{ background: 'var(--bg-secondary)', borderRadius: '8px', padding: '16px', display: 'inline-flex', alignItems: 'center', gap: '12px', border: '1px solid var(--border-primary)' }}>
+                  <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, var(--accent-primary) 0%, #0756a3 100%)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, overflow: 'hidden' }}>
                     {settings.logo ? (
-                      <img src={settings.logo} alt="Logo" className="w-full h-full object-cover" />
+                      <img src={settings.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       settings.logoIcon || 'T'
                     )}
                   </div>
-                  <span className="text-xl font-bold text-gray-900 dark:text-white">
+                  <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {settings.logoText?.replace(settings.logoAccentText, '') || 'TechToo'}
-                    <span className="text-violet-600">{settings.logoAccentText || 'Talk'}</span>
+                    <span style={{ color: 'var(--accent-primary)' }}>{settings.logoAccentText || 'Talk'}</span>
                   </span>
                 </div>
               </div>
@@ -503,92 +617,91 @@ export default function AdminSettingsPage() {
 
           {/* Loader Tab */}
           {activeTab === 'loader' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 ⏳ Loader Settings
               </h3>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                  Loader Type
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <label className="settings-label">Loader Type</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px', marginTop: '8px' }}>
                   {['spinner', 'dots', 'pulse', 'bars', 'custom'].map((type) => (
                     <div
                       key={type}
                       onClick={() => handleInputChange('loaderType', type)}
-                      className={`p-4 border-2 rounded-xl text-center cursor-pointer transition-all ${
-                        settings.loaderType === type
-                          ? 'border-violet-600 bg-violet-50 dark:bg-violet-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-violet-400'
-                      }`}
+                      style={{
+                        padding: '16px',
+                        border: `2px solid ${settings.loaderType === type ? 'var(--accent-primary)' : 'var(--border-primary)'}`,
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        background: settings.loaderType === type ? 'rgba(9, 104, 198, 0.1)' : 'var(--bg-primary)',
+                        transition: 'all 0.2s'
+                      }}
                     >
-                      <div className="h-10 flex items-center justify-center mb-2" style={{ '--loader-color': settings.loaderColor } as React.CSSProperties}>
+                      <div style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
                         {type === 'spinner' && (
-                          <div className="w-8 h-8 border-3 border-gray-200 rounded-full animate-spin" style={{ borderTopColor: settings.loaderColor, borderWidth: '3px' }}></div>
+                          <div style={{ width: '32px', height: '32px', border: '3px solid var(--border-primary)', borderTopColor: settings.loaderColor, borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                         )}
                         {type === 'dots' && (
-                          <div className="flex gap-1">
+                          <div style={{ display: 'flex', gap: '4px' }}>
                             {[0, 1, 2].map(i => (
-                              <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: settings.loaderColor, animationDelay: `${i * 0.1}s` }}></div>
+                              <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: settings.loaderColor, animation: `bounce 0.6s ease-in-out ${i * 0.1}s infinite alternate` }}></div>
                             ))}
                           </div>
                         )}
                         {type === 'pulse' && (
-                          <div className="w-8 h-8 rounded-full animate-pulse" style={{ backgroundColor: settings.loaderColor }}></div>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: settings.loaderColor, animation: 'pulse 1.5s ease-in-out infinite' }}></div>
                         )}
                         {type === 'bars' && (
-                          <div className="flex gap-1 items-end h-8">
+                          <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '32px' }}>
                             {[12, 20, 28, 20, 12].map((h, i) => (
-                              <div key={i} className="w-1.5 rounded animate-pulse" style={{ height: `${h}px`, backgroundColor: settings.loaderColor, animationDelay: `${i * 0.1}s` }}></div>
+                              <div key={i} style={{ width: '6px', height: `${h}px`, borderRadius: '2px', backgroundColor: settings.loaderColor, animation: `pulse 1s ease-in-out ${i * 0.1}s infinite` }}></div>
                             ))}
                           </div>
                         )}
                         {type === 'custom' && (
                           settings.loaderImage ? (
-                            <img src={settings.loaderImage} alt="Custom" className="w-8 h-8" />
+                            <img src={settings.loaderImage} alt="Custom" style={{ width: '32px', height: '32px' }} />
                           ) : (
-                            <span className="text-2xl">🖼️</span>
+                            <span style={{ fontSize: '24px' }}>🖼️</span>
                           )
                         )}
                       </div>
-                      <span className="text-sm capitalize text-gray-700 dark:text-gray-300">{type}</span>
+                      <span style={{ fontSize: '13px', textTransform: 'capitalize', color: 'var(--text-secondary)' }}>{type}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Loader Color
-                  </label>
-                  <div className="flex items-center gap-3">
+                  <label className="settings-label">Loader Color</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input
                       type="color"
                       value={settings.loaderColor}
                       onChange={(e) => handleInputChange('loaderColor', e.target.value)}
-                      className="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-300"
+                      style={{ width: '48px', height: '48px', borderRadius: '8px', cursor: 'pointer', border: '2px solid var(--border-primary)' }}
                     />
                     <input
                       type="text"
                       value={settings.loaderColor}
                       onChange={(e) => handleInputChange('loaderColor', e.target.value)}
-                      className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                      className="settings-input"
+                      style={{ flex: 1 }}
                       placeholder="#0968c6"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Loader Text
-                  </label>
+                  <label className="settings-label">Loader Text</label>
                   <input
                     type="text"
                     value={settings.loaderText}
                     onChange={(e) => handleInputChange('loaderText', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                     placeholder="Loading..."
                   />
                 </div>
@@ -596,202 +709,165 @@ export default function AdminSettingsPage() {
 
               {settings.loaderType === 'custom' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Custom Loader Image/GIF
-                  </label>
+                  <label className="settings-label">Custom Loader Image/GIF</label>
                   <input
                     type="file"
                     ref={loaderImageInputRef}
                     accept="image/*,.gif"
                     onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'loaderImage')}
-                    className="hidden"
+                    style={{ display: 'none' }}
                   />
                   <div 
                     onClick={() => loaderImageInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-violet-500 transition-colors"
+                    className="upload-zone"
                   >
                     {settings.loaderImage ? (
-                      <img src={settings.loaderImage} alt="Loader" className="max-h-16 mx-auto mb-2" />
+                      <img src={settings.loaderImage} alt="Loader" style={{ maxHeight: '64px', margin: '0 auto 8px' }} />
                     ) : (
-                      <div className="text-4xl mb-2">🎬</div>
+                      <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎬</div>
                     )}
-                    <p className="text-sm text-gray-500"><strong className="text-violet-600">Upload</strong> a custom loader image or GIF</p>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}><strong style={{ color: 'var(--accent-primary)' }}>Upload</strong> a custom loader image or GIF</p>
                   </div>
                 </div>
               )}
 
               {/* Loader Preview */}
-              <div className="bg-gray-100 dark:bg-gray-900 rounded-xl p-8 flex flex-col items-center gap-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Preview:</p>
-                <div className="h-12 flex items-center justify-center">
+              <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)' }}>Preview:</p>
+                <div style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {settings.loaderType === 'spinner' && (
-                    <div className="w-12 h-12 border-4 border-gray-200 rounded-full animate-spin" style={{ borderTopColor: settings.loaderColor }}></div>
+                    <div style={{ width: '48px', height: '48px', border: '4px solid var(--border-primary)', borderTopColor: settings.loaderColor, borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                   )}
                   {settings.loaderType === 'dots' && (
-                    <div className="flex gap-2">
+                    <div style={{ display: 'flex', gap: '8px' }}>
                       {[0, 1, 2].map(i => (
-                        <div key={i} className="w-3 h-3 rounded-full animate-bounce" style={{ backgroundColor: settings.loaderColor, animationDelay: `${i * 0.1}s` }}></div>
+                        <div key={i} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: settings.loaderColor, animation: `bounce 0.6s ease-in-out ${i * 0.1}s infinite alternate` }}></div>
                       ))}
                     </div>
                   )}
                   {settings.loaderType === 'pulse' && (
-                    <div className="w-12 h-12 rounded-full animate-pulse" style={{ backgroundColor: settings.loaderColor }}></div>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: settings.loaderColor, animation: 'pulse 1.5s ease-in-out infinite' }}></div>
                   )}
                   {settings.loaderType === 'bars' && (
-                    <div className="flex gap-1 items-end h-12">
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '48px' }}>
                       {[16, 28, 40, 28, 16].map((h, i) => (
-                        <div key={i} className="w-2 rounded animate-pulse" style={{ height: `${h}px`, backgroundColor: settings.loaderColor, animationDelay: `${i * 0.1}s` }}></div>
+                        <div key={i} style={{ width: '8px', height: `${h}px`, borderRadius: '3px', backgroundColor: settings.loaderColor, animation: `pulse 1s ease-in-out ${i * 0.1}s infinite` }}></div>
                       ))}
                     </div>
                   )}
                   {settings.loaderType === 'custom' && settings.loaderImage && (
-                    <img src={settings.loaderImage} alt="Custom Loader" className="w-12 h-12" />
+                    <img src={settings.loaderImage} alt="Custom Loader" style={{ width: '48px', height: '48px' }} />
                   )}
                 </div>
-                <p className="text-gray-500 dark:text-gray-400">{settings.loaderText}</p>
+                <p style={{ color: 'var(--text-muted)' }}>{settings.loaderText}</p>
               </div>
             </div>
           )}
 
           {/* General Tab */}
           {activeTab === 'general' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                ⚙️ General Settings
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Site Name
-                  </label>
+                  <label className="settings-label">Site Name</label>
                   <input
                     type="text"
                     value={settings.siteName}
                     onChange={(e) => handleInputChange('siteName', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Site Tagline
-                  </label>
+                  <label className="settings-label">Site Tagline</label>
                   <input
                     type="text"
                     value={settings.siteTagline}
                     onChange={(e) => handleInputChange('siteTagline', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Contact Email
-                  </label>
+                  <label className="settings-label">Contact Email</label>
                   <input
                     type="email"
                     value={settings.contactEmail}
                     onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Support Email
-                  </label>
+                  <label className="settings-label">Support Email</label>
                   <input
                     type="email"
                     value={settings.supportEmail}
                     onChange={(e) => handleInputChange('supportEmail', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Default User Type
-                  </label>
+                  <label className="settings-label">Default User Type</label>
                   <select
                     value={settings.defaultUserType}
                     onChange={(e) => handleInputChange('defaultUserType', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   >
                     <option value="fresher">Fresher</option>
                     <option value="experienced">Experienced</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Session Timeout (hours)
-                  </label>
+                  <label className="settings-label">Session Timeout (hours)</label>
                   <input
                     type="number"
                     value={settings.sessionTimeout}
                     onChange={(e) => handleInputChange('sessionTimeout', parseInt(e.target.value))}
                     min="1"
                     max="168"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
               </div>
 
               {/* Toggles */}
-              <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
+              <div style={{ paddingTop: '20px', borderTop: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-primary)', borderRadius: '8px' }}>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Maintenance Mode</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Temporarily disable the site for maintenance</p>
+                    <h4 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Maintenance Mode</h4>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Temporarily disable the site for maintenance</p>
                   </div>
-                  <button
-                    type="button"
+                  <div
                     onClick={() => handleInputChange('maintenanceMode', !settings.maintenanceMode)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
-                      settings.maintenanceMode ? 'bg-violet-600' : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        settings.maintenanceMode ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
+                    className={`settings-toggle ${settings.maintenanceMode ? 'active' : ''}`}
+                  />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-primary)', borderRadius: '8px' }}>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">User Registration</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Allow new users to register</p>
+                    <h4 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>User Registration</h4>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Allow new users to register</p>
                   </div>
-                  <button
-                    type="button"
+                  <div
                     onClick={() => handleInputChange('registrationEnabled', !settings.registrationEnabled)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
-                      settings.registrationEnabled ? 'bg-violet-600' : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        settings.registrationEnabled ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
+                    className={`settings-toggle ${settings.registrationEnabled ? 'active' : ''}`}
+                  />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-primary)', borderRadius: '8px' }}>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Email Verification Required</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Require email verification for new accounts</p>
+                    <h4 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Email Verification Required</h4>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Require email verification for new accounts</p>
                   </div>
-                  <button
-                    type="button"
+                  <div
                     onClick={() => handleInputChange('emailVerificationRequired', !settings.emailVerificationRequired)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
-                      settings.emailVerificationRequired ? 'bg-violet-600' : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        settings.emailVerificationRequired ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
+                    className={`settings-toggle ${settings.emailVerificationRequired ? 'active' : ''}`}
+                  />
                 </div>
               </div>
             </div>
@@ -799,44 +875,44 @@ export default function AdminSettingsPage() {
 
           {/* Security Tab */}
           {activeTab === 'security' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔒 Security Settings
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Max Login Attempts
-                  </label>
+                  <label className="settings-label">Max Login Attempts</label>
                   <input
                     type="number"
                     value={settings.maxLoginAttempts}
                     onChange={(e) => handleInputChange('maxLoginAttempts', parseInt(e.target.value))}
                     min="3"
                     max="10"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Number of failed attempts before lockout</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Number of failed attempts before lockout</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Session Timeout (hours)
-                  </label>
+                  <label className="settings-label">Session Timeout (hours)</label>
                   <input
                     type="number"
                     value={settings.sessionTimeout}
                     onChange={(e) => handleInputChange('sessionTimeout', parseInt(e.target.value))}
                     min="1"
                     max="168"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Auto logout after inactivity</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Auto logout after inactivity</p>
                 </div>
               </div>
 
-              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">⚠️</span>
+              <div style={{ padding: '16px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <span style={{ fontSize: '20px' }}>⚠️</span>
                   <div>
-                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200">Security Notice</h4>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                    <h4 style={{ fontWeight: 500, color: '#f59e0b' }}>Security Notice</h4>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       Changes to security settings will affect all users. Make sure to test these settings before applying them to production.
                     </p>
                   </div>
@@ -847,76 +923,70 @@ export default function AdminSettingsPage() {
 
           {/* Social Links Tab */}
           {activeTab === 'social' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔗 Social Links
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <span className="inline-flex items-center gap-2">
-                      <span>𝕏</span> Twitter / X
-                    </span>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>𝕏</span> Twitter / X
                   </label>
                   <input
                     type="url"
                     value={settings.socialLinks.twitter}
                     onChange={(e) => handleSocialChange('twitter', e.target.value)}
                     placeholder="https://twitter.com/your-handle"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <span className="inline-flex items-center gap-2">
-                      <span>💼</span> LinkedIn
-                    </span>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>💼</span> LinkedIn
                   </label>
                   <input
                     type="url"
                     value={settings.socialLinks.linkedin}
                     onChange={(e) => handleSocialChange('linkedin', e.target.value)}
                     placeholder="https://linkedin.com/company/your-company"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <span className="inline-flex items-center gap-2">
-                      <span>🐱</span> GitHub
-                    </span>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>🐱</span> GitHub
                   </label>
                   <input
                     type="url"
                     value={settings.socialLinks.github}
                     onChange={(e) => handleSocialChange('github', e.target.value)}
                     placeholder="https://github.com/your-org"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <span className="inline-flex items-center gap-2">
-                      <span>📺</span> YouTube
-                    </span>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>📺</span> YouTube
                   </label>
                   <input
                     type="url"
                     value={settings.socialLinks.youtube}
                     onChange={(e) => handleSocialChange('youtube', e.target.value)}
                     placeholder="https://youtube.com/@your-channel"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <span className="inline-flex items-center gap-2">
-                      <span>💬</span> Discord
-                    </span>
+                  <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>💬</span> Discord
                   </label>
                   <input
                     type="url"
                     value={settings.socialLinks.discord}
                     onChange={(e) => handleSocialChange('discord', e.target.value)}
                     placeholder="https://discord.gg/your-invite"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                   />
                 </div>
               </div>
@@ -925,62 +995,49 @@ export default function AdminSettingsPage() {
 
           {/* Header & Menus Tab */}
           {activeTab === 'menus' && (
-            <div className="space-y-8">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               {/* Technology Bar Settings */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   🚀 Technology Bar Settings
                 </h3>
                 
-                <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={settings.showTechBar}
-                        onChange={(e) => handleInputChange('showTechBar', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-violet-300 dark:peer-focus:ring-violet-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-violet-600"></div>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Show Technology Bar
-                    </span>
-                  </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-primary)', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Show Technology Bar</span>
+                  <div
+                    onClick={() => handleInputChange('showTechBar', !settings.showTechBar)}
+                    className={`settings-toggle ${settings.showTechBar ? 'active' : ''}`}
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Technology Bar Title
-                  </label>
+                  <label className="settings-label">Technology Bar Title</label>
                   <input
                     type="text"
                     value={settings.techBarTitle}
                     onChange={(e) => handleInputChange('techBarTitle', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                     placeholder="Explore Technologies"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Featured Technologies (comma-separated slugs)
-                  </label>
+                  <label className="settings-label">Featured Technologies (comma-separated slugs)</label>
                   <input
                     type="text"
                     value={settings.featuredTechnologies?.join(', ') || ''}
                     onChange={(e) => handleInputChange('featuredTechnologies', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="settings-input"
                     placeholder="python, javascript, react, nodejs"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Enter technology slugs separated by commas. Leave empty to show all technologies.</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Enter technology slugs separated by commas. Leave empty to show all technologies.</p>
                 </div>
               </div>
 
               {/* Header Menu Items */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     📋 Header Navigation Menu
                   </h3>
                   <button
@@ -997,18 +1054,16 @@ export default function AdminSettingsPage() {
                         headerMenu: [...(prev.headerMenu || []), newItem]
                       }));
                     }}
-                    className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors"
+                    style={{ padding: '8px 16px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
                   >
                     + Add Menu Item
                   </button>
                 </div>
 
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {(settings.headerMenu || []).map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <span className="cursor-move">⠿</span>
-                      </div>
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'var(--bg-primary)', borderRadius: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)', cursor: 'move' }}>⠿</span>
                       <input
                         type="text"
                         value={item.icon}
@@ -1017,7 +1072,8 @@ export default function AdminSettingsPage() {
                           updated[index] = { ...updated[index], icon: e.target.value };
                           setSettings(prev => ({ ...prev, headerMenu: updated }));
                         }}
-                        className="w-12 px-2 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-center"
+                        className="settings-input"
+                        style={{ width: '60px', textAlign: 'center' }}
                         placeholder="🏠"
                       />
                       <input
@@ -1028,7 +1084,8 @@ export default function AdminSettingsPage() {
                           updated[index] = { ...updated[index], label: e.target.value };
                           setSettings(prev => ({ ...prev, headerMenu: updated }));
                         }}
-                        className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                        className="settings-input"
+                        style={{ flex: 1 }}
                         placeholder="Label"
                       />
                       <input
@@ -1039,10 +1096,11 @@ export default function AdminSettingsPage() {
                           updated[index] = { ...updated[index], href: e.target.value };
                           setSettings(prev => ({ ...prev, headerMenu: updated }));
                         }}
-                        className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                        className="settings-input"
+                        style={{ flex: 1 }}
                         placeholder="/path"
                       />
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                         <input
                           type="checkbox"
                           checked={item.isActive}
@@ -1051,16 +1109,16 @@ export default function AdminSettingsPage() {
                             updated[index] = { ...updated[index], isActive: e.target.checked };
                             setSettings(prev => ({ ...prev, headerMenu: updated }));
                           }}
-                          className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                          style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
                         />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Active</span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Active</span>
                       </label>
                       <button
                         onClick={() => {
                           const updated = settings.headerMenu.filter((_, i) => i !== index);
                           setSettings(prev => ({ ...prev, headerMenu: updated }));
                         }}
-                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
                       >
                         🗑️
                       </button>
@@ -1068,7 +1126,7 @@ export default function AdminSettingsPage() {
                   ))}
                   
                   {(!settings.headerMenu || settings.headerMenu.length === 0) && (
-                    <div className="text-center py-8 text-gray-500">
+                    <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
                       No menu items. Click &quot;Add Menu Item&quot; to create one.
                     </div>
                   )}
@@ -1077,6 +1135,29 @@ export default function AdminSettingsPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Sticky Save Bar */}
+      <div style={{ position: 'sticky', bottom: 0, marginTop: '16px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-primary)', padding: '12px 0', display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="save-btn"
+        >
+          {saving ? (
+            <>
+              <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              Save Changes
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

@@ -5,16 +5,30 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthModal from './AuthModal';
 import SearchModal from './SearchModal';
-import TechnologyBar from './TechnologyBar';
 import { useSettings } from '../lib/settings';
 
-// Quick technology links shown in header (pointing to free tutorials)
-const quickTechLinks = [
-  { name: 'HTML', href: '/tutorials/html', icon: '📄' },
-  { name: 'CSS', href: '/tutorials/css', icon: '🎨' },
-  { name: 'JavaScript', href: '/tutorials/javascript', icon: '🟨' },
-  { name: 'Python', href: '/tutorials/python', icon: '🐍' },
-  { name: 'React', href: '/tutorials/react', icon: '⚛️' },
+// Primary navigation (after logo)
+const primaryNav = [
+  { name: 'Technologies', href: '/technologies', icon: '🔧' },
+  { name: 'Tutorials', href: '/tutorials', icon: '📖', badge: 'FREE' },
+];
+
+// Secondary navigation (after search)
+const secondaryNav = [
+  { name: 'Courses', href: '/courses', icon: '🎓' },
+  { name: 'Tools', href: '/tools', icon: '🛠️' },
+];
+
+// Bottom menu bar items with icons
+const bottomMenuItems = [
+  { name: 'Home', href: '/', icon: '🏠' },
+  { name: 'Roadmaps', href: '/roadmaps', icon: '🗺️' },
+  { name: 'Cheatsheets', href: '/cheatsheets', icon: '📋' },
+  { name: 'Careers', href: '/careers', icon: '💼' },
+  { name: 'Compiler', href: '/compiler', icon: '⚡' },
+  { name: 'Code Editor', href: '/code-editor', icon: '💻' },
+  { name: 'Certificates', href: '/certificates', icon: '🏆' },
+  { name: 'Articles', href: '/tutorials', icon: '📰' },
 ];
 
 export default function Header() {
@@ -24,13 +38,23 @@ export default function Header() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { settings } = useSettings();
 
-  const isLoggedIn = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('accessToken');
+  // Check login status on mount and listen for auth changes
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsLoggedIn(!!localStorage.getItem('accessToken'));
+    };
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    window.addEventListener('authChange', checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('authChange', checkAuth);
+    };
   }, []);
 
   // Apply theme to document on mount
@@ -57,19 +81,11 @@ export default function Header() {
     window.dispatchEvent(new CustomEvent('toggleSidebar'));
   };
 
-  const navItems = [
-    { href: '/', label: 'Home' },
-    { href: '/tutorials', label: 'Tutorials', badge: 'FREE' },
-    { href: '/courses', label: 'Courses' },
-    { href: '/roadmaps', label: 'Roadmaps' },
-    { href: '/tools', label: 'Tools' },
-  ];
-
   return (
     <>
       <header className="navbar navbar-full-width">
         <div className="navbar-inner">
-          {/* Left Section: Toggle + Logo + Quick Links */}
+          {/* Left Section: Toggle + Logo + Primary Nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {isLoggedIn && (
               <button
@@ -97,42 +113,46 @@ export default function Header() {
               </span>
             </Link>
 
-            {/* Quick Tech Links (Desktop) */}
-            <div className="quick-tech-links desktop-only">
-              {quickTechLinks.map((item) => (
-                <Link key={item.href} href={item.href} className="quick-tech-link">
+            {/* Primary Nav Links (After Logo) */}
+            <nav className="primary-nav desktop-only">
+              {primaryNav.map((item) => (
+                <Link 
+                  key={item.href} 
+                  href={item.href} 
+                  className={`primary-nav-link ${pathname === item.href || pathname.startsWith(item.href + '/') ? 'active' : ''}`}
+                >
+                  <span>{item.icon}</span>
+                  <span>{item.name}</span>
+                  {item.badge && <span className="nav-badge">{item.badge}</span>}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Center: Search */}
+          <div className="navbar-search desktop-only" onClick={() => setSearchModalOpen(true)} style={{ cursor: 'pointer', flex: '0 1 400px' }}>
+            <svg className="navbar-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input type="text" placeholder="Search courses, tutorials..." value={searchQuery} readOnly style={{ cursor: 'pointer' }} />
+          </div>
+
+          {/* Right Section: Secondary Nav + Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Secondary Nav Links (After Search) */}
+            <nav className="secondary-nav desktop-only">
+              {secondaryNav.map((item) => (
+                <Link 
+                  key={item.href} 
+                  href={item.href} 
+                  className={`secondary-nav-link ${pathname === item.href ? 'active' : ''}`}
+                >
                   <span>{item.icon}</span>
                   <span>{item.name}</span>
                 </Link>
               ))}
-            </div>
-          </div>
-
-          {/* Center: Navigation */}
-          <nav className="navbar-nav desktop-only">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`navbar-nav-item ${pathname === item.href ? 'active' : ''}`}
-              >
-                {item.label}
-                {item.badge && (
-                  <span className="nav-badge">{item.badge}</span>
-                )}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Right Section: Search + Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="navbar-search desktop-only" onClick={() => setSearchModalOpen(true)} style={{ cursor: 'pointer' }}>
-              <svg className="navbar-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <input type="text" placeholder="Search..." value={searchQuery} readOnly style={{ cursor: 'pointer' }} />
-            </div>
+            </nav>
 
             <div className="navbar-actions">
               <button onClick={toggleTheme} className="theme-toggle" aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
@@ -174,13 +194,23 @@ export default function Header() {
         {isMenuOpen && (
           <div className="mobile-menu">
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {navItems.map((item) => (
+              {/* Primary Nav */}
+              {primaryNav.map((item) => (
                 <Link key={item.href} href={item.href} className={`navbar-nav-item ${pathname === item.href ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-                  {item.label}
+                  {item.icon} {item.name}
                 </Link>
               ))}
               <div style={{ borderTop: '1px solid var(--border-primary)', margin: '8px 0', paddingTop: '8px' }}>
-                {quickTechLinks.map((item) => (
+                {/* Secondary Nav */}
+                {secondaryNav.map((item) => (
+                  <Link key={item.href} href={item.href} className="navbar-nav-item" onClick={() => setIsMenuOpen(false)}>
+                    {item.icon} {item.name}
+                  </Link>
+                ))}
+              </div>
+              <div style={{ borderTop: '1px solid var(--border-primary)', margin: '8px 0', paddingTop: '8px' }}>
+                {/* Bottom Menu Items */}
+                {bottomMenuItems.map((item) => (
                   <Link key={item.href} href={item.href} className="navbar-nav-item" onClick={() => setIsMenuOpen(false)}>
                     {item.icon} {item.name}
                   </Link>
@@ -200,8 +230,21 @@ export default function Header() {
         )}
       </header>
 
-      {/* Technology Bar - Below Header */}
-      <TechnologyBar />
+      {/* Secondary Menu Bar */}
+      <div className="secondary-menu-bar desktop-only">
+        <div className="secondary-menu-inner">
+          {bottomMenuItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`secondary-menu-item ${pathname === item.href ? 'active' : ''}`}
+            >
+              <span>{item.icon}</span>
+              <span>{item.name}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <style jsx global>{`
         .navbar-full-width {
@@ -235,20 +278,50 @@ export default function Header() {
           color: var(--text-primary);
         }
         
-        .quick-tech-links {
+        /* Primary Nav (After Logo) */
+        .primary-nav {
           display: flex;
           align-items: center;
           gap: 4px;
-          margin-left: 16px;
-          padding-left: 16px;
+          margin-left: 24px;
+          padding-left: 24px;
           border-left: 1px solid var(--border-primary);
         }
         
-        .quick-tech-link {
+        .primary-nav-link {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-secondary);
+          border-radius: var(--radius-md);
+          transition: all 0.2s;
+        }
+        
+        .primary-nav-link:hover {
+          background: var(--bg-hover);
+          color: var(--text-primary);
+        }
+        
+        .primary-nav-link.active {
+          background: var(--bg-accent);
+          color: white;
+        }
+        
+        /* Secondary Nav (After Search) */
+        .secondary-nav {
           display: flex;
           align-items: center;
           gap: 4px;
-          padding: 6px 10px;
+        }
+        
+        .secondary-nav-link {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
           font-size: 13px;
           font-weight: 500;
           color: var(--text-secondary);
@@ -256,9 +329,65 @@ export default function Header() {
           transition: all 0.2s;
         }
         
-        .quick-tech-link:hover {
+        .secondary-nav-link:hover {
           background: var(--bg-hover);
           color: var(--text-primary);
+        }
+        
+        .secondary-nav-link.active {
+          color: var(--text-accent);
+        }
+        
+        /* Secondary Menu Bar */
+        .secondary-menu-bar {
+          background: var(--bg-secondary);
+          border-bottom: 1px solid var(--border-primary);
+          position: fixed;
+          top: var(--navbar-height);
+          left: 0;
+          right: 0;
+          height: var(--secondary-menu-height);
+          z-index: 99;
+        }
+        
+        .secondary-menu-inner {
+          max-width: 100%;
+          margin: 0 auto;
+          padding: 0 24px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          height: 100%;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        
+        .secondary-menu-inner::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .secondary-menu-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-secondary);
+          white-space: nowrap;
+          transition: all 0.2s;
+          border-radius: var(--radius-md);
+        }
+        
+        .secondary-menu-item:hover {
+          color: var(--text-primary);
+          background: var(--bg-hover);
+        }
+        
+        .secondary-menu-item.active {
+          color: var(--text-accent);
+          background: rgba(var(--accent-rgb, 34, 197, 94), 0.1);
         }
         
         .mobile-menu {
@@ -271,6 +400,8 @@ export default function Header() {
           padding: 16px;
           z-index: 999;
           box-shadow: var(--shadow-lg);
+          max-height: 70vh;
+          overflow-y: auto;
         }
         
         .mobile-menu-btn {
@@ -298,14 +429,14 @@ export default function Header() {
           }
         }
         
-        @media (min-width: 1200px) {
-          .quick-tech-links {
-            display: flex;
+        @media (max-width: 1024px) {
+          .primary-nav {
+            display: none !important;
           }
-        }
-        
-        @media (max-width: 1199px) {
-          .quick-tech-links {
+          .secondary-nav {
+            display: none !important;
+          }
+          .secondary-menu-bar {
             display: none !important;
           }
         }

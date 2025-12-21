@@ -41,7 +41,7 @@ export default function CareersPage() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/careers');
+      const response = await fetch(`${API_URL}/careers`);
       const data = await response.json();
       if (response.ok) {
         setJobs(data.jobs || []);
@@ -57,7 +57,7 @@ export default function CareersPage() {
 
   const fetchBenefits = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/careers/benefits');
+      const response = await fetch(`${API_URL}/careers/benefits`);
       const data = await response.json();
       if (response.ok && data.benefits) {
         setBenefits(data.benefits);
@@ -103,24 +103,24 @@ export default function CareersPage() {
 
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '48px 24px' }}>
         {/* Hero */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-6">Join Our Team</h1>
-          <p className="text-xl text-[var(--muted-foreground)] max-w-3xl mx-auto">
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>Join Our Team</h1>
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)', maxWidth: '700px', margin: '0 auto' }}>
             Help us shape the future of tech education. We&apos;re looking for passionate individuals to join our mission.
           </p>
         </div>
 
         {/* Benefits */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6 text-center">Why Join Us?</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        <div style={{ marginBottom: '48px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '24px', textAlign: 'center' }}>Why Join Us?</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
             {(benefits.length > 0 ? benefits : defaultBenefits).map((benefit, index) => (
-              <div key={index} className="card text-center">
-                <div className="text-3xl mb-3">{benefit.icon}</div>
-                <h3 className="font-semibold text-[var(--foreground)] mb-1">{benefit.title}</h3>
-                <p className="text-sm text-[var(--muted-foreground)]">{benefit.description}</p>
+              <div key={index} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '28px', marginBottom: '10px' }}>{benefit.icon}</div>
+                <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '14px' }}>{benefit.title}</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{benefit.description}</p>
               </div>
             ))}
           </div>
@@ -128,21 +128,27 @@ export default function CareersPage() {
 
         {/* Open Positions */}
         <div>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-            <h2 className="text-2xl font-bold text-[var(--foreground)]">Open Positions</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)' }}>Open Positions</h2>
             
             {/* Department Filter */}
             {departments.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                 {departments.map((dept) => (
                   <button
                     key={dept}
                     onClick={() => setSelectedDepartment(dept)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                      selectedDepartment === dept
-                        ? 'bg-[var(--color-primary)] text-white'
-                        : 'bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--border)]'
-                    }`}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      whiteSpace: 'nowrap',
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: selectedDepartment === dept ? 'var(--bg-accent)' : 'var(--bg-secondary)',
+                      color: selectedDepartment === dept ? 'white' : 'var(--text-secondary)'
+                    }}
                   >
                     {dept === 'all' ? 'All Departments' : dept}
                   </button>
@@ -152,43 +158,43 @@ export default function CareersPage() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 0' }}>
+              <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-primary)', borderTop: '3px solid var(--bg-accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : filteredJobs.length === 0 ? (
-            <div className="card text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">No positions available</h3>
-              <p className="text-[var(--muted-foreground)]">
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '48px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>No positions available</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
                 Check back later or subscribe to get notified about new openings.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {filteredJobs.map((job) => (
-                <div key={job._id} className={`card flex flex-col md:flex-row md:items-center justify-between gap-4 ${job.isFeatured ? 'border-[var(--color-primary)] border-2' : ''}`}>
+                <div key={job._id} style={{ background: 'var(--bg-secondary)', border: job.isFeatured ? '2px solid var(--bg-accent)' : '1px solid var(--border-primary)', borderRadius: '6px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
                     {job.isFeatured && (
-                      <span className="inline-block px-2 py-1 text-xs font-medium bg-[var(--color-primary)] text-white rounded mb-2">
+                      <span style={{ display: 'inline-block', padding: '4px 8px', fontSize: '11px', fontWeight: '600', background: 'var(--bg-accent)', color: 'white', borderRadius: '4px', marginBottom: '8px' }}>
                         Featured
                       </span>
                     )}
-                    <h3 className="font-semibold text-[var(--foreground)]">{job.title}</h3>
-                    <div className="flex flex-wrap gap-2 md:gap-4 text-sm text-[var(--muted-foreground)] mt-1">
+                    <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '15px' }}>{job.title}</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
                       <span>{job.department}</span>
-                      <span className="hidden md:inline">•</span>
+                      <span>•</span>
                       <span>{job.location}</span>
-                      <span className="hidden md:inline">•</span>
+                      <span>•</span>
                       <span>{formatJobType(job.jobType)}</span>
                       {formatSalary(job.salary) && (
                         <>
-                          <span className="hidden md:inline">•</span>
-                          <span className="text-green-600 dark:text-green-400">{formatSalary(job.salary)}</span>
+                          <span>•</span>
+                          <span style={{ color: '#22c55e' }}>{formatSalary(job.salary)}</span>
                         </>
                       )}
                     </div>
                   </div>
-                  <Link href={`/careers/${job.slug}`} className="btn-primary whitespace-nowrap">
+                  <Link href={`/careers/${job.slug}`} style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--bg-accent)', color: 'white', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '13px', whiteSpace: 'nowrap', alignSelf: 'flex-start' }}>
                     Apply Now
                   </Link>
                 </div>
@@ -198,10 +204,10 @@ export default function CareersPage() {
         </div>
 
         {/* CTA */}
-        <div className="mt-16 text-center card bg-[var(--muted)]">
-          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-4">Don&apos;t see a perfect fit?</h2>
-          <p className="text-[var(--muted-foreground)] mb-6">We&apos;re always looking for talented individuals. Send us your resume and we&apos;ll keep you in mind.</p>
-          <Link href="/contact" className="btn-primary">
+        <div style={{ marginTop: '48px', textAlign: 'center', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '32px 24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>Don&apos;t see a perfect fit?</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '14px' }}>We&apos;re always looking for talented individuals. Send us your resume and we&apos;ll keep you in mind.</p>
+          <Link href="/contact" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--bg-accent)', color: 'white', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '14px' }}>
             Get in Touch
           </Link>
         </div>

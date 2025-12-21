@@ -2,33 +2,45 @@
 
 import Layout from '../../components/Layout';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { technologiesAPI, Technology } from '../../lib/api';
+import { useState, useEffect, useMemo } from 'react';
+import { technologiesAPI, technologyCategoriesAPI, Technology, TechnologyCategory } from '../../lib/api';
 
 export default function TechnologiesPage() {
   const [technologies, setTechnologies] = useState<Technology[]>([]);
+  const [categories, setCategories] = useState<TechnologyCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'grouped'>('grouped');
 
   useEffect(() => {
-    const fetchTechnologies = async () => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await technologiesAPI.getAll();
-        if (data && !error) {
-          setTechnologies(data);
+        const [techResult, catResult] = await Promise.all([
+          technologiesAPI.getAll(),
+          technologyCategoriesAPI.getAll()
+        ]);
+        
+        if (techResult.data && !techResult.error) {
+          setTechnologies(techResult.data);
+        }
+        if (catResult.data && !catResult.error) {
+          setCategories(catResult.data);
         }
       } catch (err) {
-        console.error('Failed to fetch technologies:', err);
+        console.error('Failed to fetch data:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchTechnologies();
+    fetchData();
   }, []);
 
-  // Get icon for technology based on slug
-  const getTechIcon = (slug: string): string => {
+  // Get icon for technology - use category icon or fallback
+  const getTechIcon = (tech: Technology): string => {
+    if (tech.icon) return tech.icon;
+    if (tech.category?.icon) return tech.category.icon;
+    
     const icons: Record<string, string> = {
       'ai': '🤖',
       'ai-agents': '🦾',
@@ -42,28 +54,134 @@ export default function TechnologiesPage() {
       'genai-applications': '✨',
       'default': '📘'
     };
-    return icons[slug] || icons['default'];
+    return icons[tech.slug || ''] || icons['default'];
   };
 
-  const categories = [
-    { id: 'all', name: 'All Technologies', icon: '🔥' },
-    { id: 'ai', name: 'AI & Agents', icon: '🤖' },
-    { id: 'ml', name: 'Machine Learning', icon: '🧠' },
-    { id: 'llm', name: 'LLM & GenAI', icon: '💬' },
-    { id: 'nlp', name: 'NLP & Vision', icon: '👁️' },
-  ];
+  // Filter technologies based on search and category
+  const filteredTechnologies = useMemo(() => {
+    return technologies.filter(tech => {
+      const matchesSearch = tech.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (tech.description && tech.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      if (selectedCategory === 'all') return matchesSearch;
+      
+      // Match by category ID or slug
+      const techCategoryId = tech.category?._id || (tech as { categoryId?: string }).categoryId;
+      const techCategorySlug = tech.category?.slug;
+      
+      return matchesSearch && (techCategoryId === selectedCategory || techCategorySlug === selectedCategory);
+    });
+  }, [technologies, searchQuery, selectedCategory]);
 
-  const filteredTechnologies = technologies.filter(tech => {
-    const matchesSearch = tech.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (tech.description && tech.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Group technologies by category
+  const groupedTechnologies = useMemo(() => {
+    const groups: Record<string, { category: TechnologyCategory | null; technologies: Technology[] }> = {};
     
-    if (selectedCategory === 'all') return matchesSearch;
-    if (selectedCategory === 'ai') return matchesSearch && ['ai', 'ai-agents'].includes(tech.slug || '');
-    if (selectedCategory === 'ml') return matchesSearch && ['machine-learning', 'python-for-ai'].includes(tech.slug || '');
-    if (selectedCategory === 'llm') return matchesSearch && ['langchain', 'prompt-engineering', 'rag-systems', 'genai-applications'].includes(tech.slug || '');
-    if (selectedCategory === 'nlp') return matchesSearch && ['nlp', 'computer-vision'].includes(tech.slug || '');
-    return matchesSearch;
-  });
+    // Initialize groups for all categories
+    categories.forEach(cat => {
+      groups[cat._id] = { category: cat, technologies: [] };
+    });
+    
+    // Add uncategorized group
+    groups['uncategorized'] = { category: null, technologies: [] };
+    
+    // Assign technologies to groups
+    filteredTechnologies.forEach(tech => {
+      const categoryId = tech.category?._id || (tech as { categoryId?: string }).categoryId;
+      if (categoryId && groups[categoryId]) {
+        groups[categoryId].technologies.push(tech);
+      } else {
+        groups['uncategorized'].technologies.push(tech);
+      }
+    });
+    
+    // Filter out empty groups and sort by category order
+    return Object.values(groups)
+      .filter(group => group.technologies.length > 0)
+      .sort((a, b) => {
+        if (!a.category) return 1;
+        if (!b.category) return -1;
+        return (a.category.order || 0) - (b.category.order || 0);
+      });
+  }, [filteredTechnologies, categories]);
+
+  // Category tabs including "All"
+  const categoryTabs = useMemo(() => {
+    return [
+      { _id: 'all', name: 'All Technologies', icon: '🔥', slug: 'all' },
+      ...categories.filter(cat => cat.isPublished)
+    ];
+  }, [categories]);
+
+  // Technology Card Component
+  const TechnologyCard = ({ technology, getTechIcon }: { technology: Technology; getTechIcon: (tech: Technology) => string }) => (
+    <Link
+      href={`/technologies/${technology.slug}`}
+      className="card"
+      style={{ 
+        overflow: 'hidden', 
+        transition: 'all 0.3s ease',
+        cursor: 'pointer'
+      }}
+    >
+      {/* Icon Header */}
+      <div style={{ 
+        height: '120px', 
+        background: technology.color || technology.category?.color || 'linear-gradient(135deg, var(--bg-accent) 0%, #059669 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '48px',
+        position: 'relative'
+      }}>
+        <span style={{ filter: 'grayscale(0)' }}>
+          {getTechIcon(technology)}
+        </span>
+        {/* Category Badge */}
+        {technology.category && (
+          <span style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            background: 'rgba(255,255,255,0.2)',
+            padding: '4px 8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            color: 'white',
+            fontWeight: 500,
+            backdropFilter: 'blur(4px)'
+          }}>
+            {technology.category.name}
+          </span>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="card-body">
+        <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+          {technology.name}
+        </h3>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+          {technology.description ? technology.description.slice(0, 80) + '...' : 'Learn this technology'}
+        </p>
+        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              {technology.courseCount || technology.courses?.length || 0} Courses
+            </span>
+          </div>
+          <span style={{ color: 'var(--text-accent)', fontSize: '14px', fontWeight: 600 }}>
+            Explore →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
 
   return (
     <Layout>
@@ -108,12 +226,22 @@ export default function TechnologiesPage() {
       {/* Category Tabs */}
       <section style={{ borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }}>
         <div className="container">
-          <div className="tabs" style={{ justifyContent: 'center', padding: '16px 0' }}>
-            {categories.map((cat) => (
+          <div className="tabs" style={{ justifyContent: 'flex-start', padding: '16px 0', overflowX: 'auto', gap: '8px' }}>
+            {categoryTabs.map((cat) => (
               <button
-                key={cat.id}
-                className={`tab ${selectedCategory === cat.id ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat.id)}
+                key={cat._id}
+                className={`tab ${selectedCategory === cat._id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat._id)}
+                style={{
+                  whiteSpace: 'nowrap',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  border: selectedCategory === cat._id ? 'none' : '1px solid var(--border-primary)',
+                  background: selectedCategory === cat._id 
+                    ? ('color' in cat && cat.color ? cat.color : 'var(--bg-accent)') 
+                    : 'transparent',
+                  color: selectedCategory === cat._id ? 'white' : 'var(--text-secondary)'
+                }}
               >
                 <span style={{ marginRight: '8px' }}>{cat.icon}</span>
                 {cat.name}
@@ -144,78 +272,100 @@ export default function TechnologiesPage() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button className="btn btn-outline btn-sm">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <path d="M3 6h18M6 12h12M9 18h6" />
-                </svg>
-                Filter
-              </button>
-              <button className="btn btn-outline btn-sm">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <path d="M11 5h10M11 9h7M11 13h4M3 17l3 3 3-3M6 18V4" />
-                </svg>
-                Sort
-              </button>
+              {/* View Mode Toggle */}
+              <div style={{ display: 'flex', border: '1px solid var(--border-primary)', borderRadius: '8px', overflow: 'hidden' }}>
+                <button 
+                  className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setViewMode('grid')}
+                  style={{ borderRadius: 0, border: 'none' }}
+                  title="Grid View"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                  </svg>
+                </button>
+                <button 
+                  className={`btn btn-sm ${viewMode === 'grouped' ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setViewMode('grouped')}
+                  style={{ borderRadius: 0, border: 'none' }}
+                  title="Grouped View"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18" />
+                    <path d="M3 12h18" />
+                    <path d="M3 18h18" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Grid */}
+          {/* Content */}
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '64px' }}>
               <div style={{ fontSize: '16px', color: 'var(--text-muted)' }}>Loading technologies...</div>
             </div>
-          ) : (
-            <div className="grid grid-4" style={{ gap: '24px' }}>
-              {filteredTechnologies.map((technology) => (
-                <Link
-                  key={technology._id}
-                  href={`/technologies/${technology.slug}`}
-                  className="card"
-                  style={{ 
-                    overflow: 'hidden', 
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {/* Icon Header */}
+          ) : viewMode === 'grouped' && selectedCategory === 'all' ? (
+            /* Grouped View - Show technologies organized by category */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+              {groupedTechnologies.map((group) => (
+                <div key={group.category?._id || 'uncategorized'}>
+                  {/* Category Header */}
                   <div style={{ 
-                    height: '120px', 
-                    background: technology.color || 'linear-gradient(135deg, var(--bg-accent) 0%, #059669 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '48px'
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    marginBottom: '24px',
+                    paddingBottom: '16px',
+                    borderBottom: '2px solid var(--border-primary)'
                   }}>
-                    <span style={{ filter: 'grayscale(0)' }}>
-                      {getTechIcon(technology.slug || '')}
-                    </span>
-                  </div>
-
-                  {/* Content */}
-                  <div className="card-body">
-                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                      {technology.name}
-                    </h3>
-                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-                      {technology.description ? technology.description.slice(0, 80) + '...' : 'Learn this AI technology'}
-                    </p>
-                    
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
-                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                        </svg>
-                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                          {technology.courses?.length || 0} Courses
-                        </span>
-                      </div>
-                      <span style={{ color: 'var(--text-accent)', fontSize: '14px', fontWeight: 600 }}>
-                        Explore →
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ 
+                        fontSize: '32px',
+                        background: group.category?.color || 'var(--bg-accent)',
+                        padding: '12px',
+                        borderRadius: '12px'
+                      }}>
+                        {group.category?.icon || '📂'}
                       </span>
+                      <div>
+                        <h3 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {group.category?.name || 'Other Technologies'}
+                        </h3>
+                        <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                          {group.category?.description || 'Additional technologies'}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ 
+                      padding: '6px 12px', 
+                      background: group.category?.color || 'var(--bg-accent)', 
+                      color: 'white', 
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      fontWeight: 600
+                    }}>
+                      {group.technologies.length} {group.technologies.length === 1 ? 'Technology' : 'Technologies'}
                     </div>
                   </div>
-                </Link>
+
+                  {/* Technologies Grid within Category */}
+                  <div className="grid grid-4" style={{ gap: '24px' }}>
+                    {group.technologies.map((technology) => (
+                      <TechnologyCard key={technology._id} technology={technology} getTechIcon={getTechIcon} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Grid View - Flat list */
+            <div className="grid grid-4" style={{ gap: '24px' }}>
+              {filteredTechnologies.map((technology) => (
+                <TechnologyCard key={technology._id} technology={technology} getTechIcon={getTechIcon} />
               ))}
             </div>
           )}

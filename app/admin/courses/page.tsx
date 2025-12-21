@@ -52,7 +52,7 @@ interface Technology {
   icon: string;
 }
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'all-levels'];
 const CONTENT_TYPES = [
@@ -83,6 +83,8 @@ export default function AdminCoursesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTech, setFilterTech] = useState('');
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => { fetchCourses(); fetchTechnologies(); }, [searchQuery, filterTech]);
 
@@ -207,8 +209,8 @@ export default function AdminCoursesPage() {
 
       <div className="card" style={{ padding: '16px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          <input type="text" placeholder="Search courses..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, minWidth: '200px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
-          <select value={filterTech} onChange={(e) => setFilterTech(e.target.value)} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+          <input type="text" placeholder="Search courses..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} style={{ flex: 1, minWidth: '200px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+          <select value={filterTech} onChange={(e) => { setFilterTech(e.target.value); setCurrentPage(1); }} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
             <option value="">All Technologies</option>
             {technologies.map(tech => <option key={tech._id} value={tech._id}>{tech.icon} {tech.name}</option>)}
           </select>
@@ -218,7 +220,9 @@ export default function AdminCoursesPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {courses.length === 0 ? (
           <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No courses found. Add your first!</div>
-        ) : courses.map((course) => (
+        ) : (() => {
+          const paginatedCourses = courses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+          return paginatedCourses.map((course) => (
           <div key={course._id} className="card" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
               {course.thumbnail && <img src={course.thumbnail} alt={course.title} style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />}
@@ -282,8 +286,50 @@ export default function AdminCoursesPage() {
               </div>
             )}
           </div>
-        ))}
+        ));
+        })()}
       </div>
+
+      {/* Pagination */}
+      {courses.length > 0 && (() => {
+        const totalPages = Math.ceil(courses.length / itemsPerPage);
+        if (totalPages <= 1) return null;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '24px' }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+              Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, courses.length)} of {courses.length}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                style={{ padding: '6px 12px', border: '1px solid var(--border-primary)', borderRadius: '6px', fontSize: '13px', background: 'transparent', color: 'var(--text-muted)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).slice(
+                Math.max(0, currentPage - 3),
+                Math.min(totalPages, currentPage + 2)
+              ).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: page === currentPage ? 'none' : '1px solid var(--border-primary)', background: page === currentPage ? 'var(--accent-primary)' : 'transparent', color: page === currentPage ? 'white' : 'var(--text-muted)', cursor: 'pointer' }}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                style={{ padding: '6px 12px', border: '1px solid var(--border-primary)', borderRadius: '6px', fontSize: '13px', background: 'transparent', color: 'var(--text-muted)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Course Modal */}
       {showModal && (

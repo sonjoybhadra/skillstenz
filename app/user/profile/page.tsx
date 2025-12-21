@@ -367,95 +367,6 @@ export default function UserProfilePage() {
 
             {/* Resume Tab */}
             {activeTab === 'resume' && (
-                          )}
-
-                          {/* Certificates Tab */}
-                          {activeTab === 'certificates' && (
-                            <div className="space-y-6">
-                              {certificates.length === 0 ? (
-                                <div className="text-center py-12">
-                                  <div className="text-6xl mb-4">🏆</div>
-                                  <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-                                    No Certificates Yet
-                                  </h3>
-                                  <p className="text-[var(--text-muted)] mb-6">
-                                    Complete courses and pass tests to earn certificates!
-                                  </p>
-                                  <Link
-                                    href="/courses"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
-                                  >
-                                    Browse Courses
-                                  </Link>
-                                </div>
-                              ) : (
-                                <div className="grid md:grid-cols-2 gap-6">
-                                  {certificates.map((cert: any) => (
-                                    <div key={cert._id} className="card hover:shadow-lg transition-shadow">
-                                      <div className="flex items-start justify-between mb-4">
-                                        <div className="flex-1">
-                                          <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-2xl">🏆</span>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${
-                                              cert.certificateType === 'course' 
-                                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                                : cert.certificateType === 'test'
-                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                                            }`}>
-                                              {cert.certificateType}
-                                            </span>
-                                          </div>
-                                          <h4 className="font-semibold text-[var(--text-primary)] mb-1">
-                                            {cert.title}
-                                          </h4>
-                                          <p className="text-sm text-[var(--text-muted)] line-clamp-2">
-                                            {cert.description}
-                                          </p>
-                                        </div>
-                                      </div>
-                        
-                                      <div className="flex items-center gap-4 mb-4 text-sm">
-                                        <div className="flex items-center gap-1">
-                                          <span className="font-semibold text-green-600">{cert.score}%</span>
-                                          <span className="text-[var(--text-muted)]">Score</span>
-                                        </div>
-                                        <div className="w-px h-4 bg-[var(--border-primary)]"></div>
-                                        <div className="flex items-center gap-1">
-                                          <span className="font-semibold text-yellow-600">{cert.grade}</span>
-                                          <span className="text-[var(--text-muted)]">Grade</span>
-                                        </div>
-                                        <div className="w-px h-4 bg-[var(--border-primary)]"></div>
-                                        <span className="text-[var(--text-muted)]">
-                                          {new Date(cert.issueDate).toLocaleDateString()}
-                                        </span>
-                                      </div>
-
-                                      <div className="flex gap-2">
-                                        <Link
-                                          href={`/verify-certificate/${cert.certificateId}`}
-                                          target="_blank"
-                                          className="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg text-center font-medium hover:bg-violet-700"
-                                        >
-                                          View Certificate
-                                        </Link>
-                                        <button
-                                          onClick={() => {
-                                            const url = `${window.location.origin}/verify-certificate/${cert.certificateId}`;
-                                            navigator.clipboard.writeText(url);
-                                            toast.success('Link copied!');
-                                          }}
-                                          className="px-4 py-2 border border-[var(--border-primary)] rounded-lg hover:bg-[var(--bg-hover)]"
-                                          title="Copy link"
-                                        >
-                                          🔗
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
               <div className="space-y-6">
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <h3 className="font-medium text-blue-800 dark:text-blue-200 flex items-center gap-2">
@@ -509,6 +420,95 @@ export default function UserProfilePage() {
                     <span>✨</span> Open Resume Builder
                   </Link>
                 </div>
+              </div>
+            )}
+
+            {/* Certificates Tab */}
+            {activeTab === 'certificates' && (
+              <div className="space-y-6">
+                {certificates.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🏆</div>
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
+                      No Certificates Yet
+                    </h3>
+                    <p className="text-[var(--text-muted)] mb-6">
+                      Complete courses and pass tests to earn certificates!
+                    </p>
+                    <Link
+                      href="/courses"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+                    >
+                      Browse Courses
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {certificates.map((cert: any) => (
+                      <div key={cert._id} className="card hover:shadow-lg transition-shadow">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl">🏆</span>
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                cert.certificateType === 'course' 
+                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                  : cert.certificateType === 'test'
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                  : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                              }`}>
+                                {cert.certificateType}
+                              </span>
+                            </div>
+                            <h4 className="font-semibold text-[var(--text-primary)] mb-1">
+                              {cert.title}
+                            </h4>
+                            <p className="text-sm text-[var(--text-muted)] line-clamp-2">
+                              {cert.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 mb-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-green-600">{cert.score}%</span>
+                            <span className="text-[var(--text-muted)]">Score</span>
+                          </div>
+                          <div className="w-px h-4 bg-[var(--border-primary)]"></div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-yellow-600">{cert.grade}</span>
+                            <span className="text-[var(--text-muted)]">Grade</span>
+                          </div>
+                          <div className="w-px h-4 bg-[var(--border-primary)]"></div>
+                          <span className="text-[var(--text-muted)]">
+                            {new Date(cert.issueDate).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/verify-certificate/${cert.certificateId}`}
+                            target="_blank"
+                            className="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg text-center font-medium hover:bg-violet-700"
+                          >
+                            View Certificate
+                          </Link>
+                          <button
+                            onClick={() => {
+                              const url = `${window.location.origin}/verify-certificate/${cert.certificateId}`;
+                              navigator.clipboard.writeText(url);
+                              toast.success('Link copied!');
+                            }}
+                            className="px-4 py-2 border border-[var(--border-primary)] rounded-lg hover:bg-[var(--bg-hover)]"
+                            title="Copy link"
+                          >
+                            🔗
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

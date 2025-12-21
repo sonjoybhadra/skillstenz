@@ -70,7 +70,7 @@
   
   /* Layout */
   --navbar-height: 64px;
-  --techbar-height: 48px;
+  --secondary-menu-height: 44px;
   --sidebar-width: 280px;
   --container-max: 1400px;
   
@@ -88,10 +88,10 @@
   --transition-slow: 350ms ease;
   
   /* Border Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
   --radius-full: 9999px;
 }
 
@@ -691,31 +691,18 @@ button {
 
 .card {
   position: relative;
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   transition: all var(--transition-base);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-/* Subtle abstract pattern on cards */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle at 100% 0%, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
-  pointer-events: none;
-  border-radius: inherit;
+  box-shadow: none;
 }
 
 .card:hover {
   border-color: var(--border-secondary);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .card-header {
@@ -739,10 +726,10 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  background: var(--bg-card);
+  padding: 20px 16px;
+  background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   text-align: center;
   transition: all var(--transition-fast);
   cursor: pointer;
@@ -2161,12 +2148,12 @@ button {
 }
 
 .main-content {
-  margin-top: calc(var(--navbar-height) + var(--techbar-height));
-  min-height: calc(100vh - var(--navbar-height) - var(--techbar-height));
+  margin-top: calc(var(--navbar-height) + var(--secondary-menu-height));
+  min-height: calc(100vh - var(--navbar-height) - var(--secondary-menu-height));
   flex: 1;
 }
 
-.main-content.no-techbar {
+.main-content.no-secondary-menu {
   margin-top: var(--navbar-height);
   min-height: calc(100vh - var(--navbar-height));
 }
@@ -2201,4 +2188,121 @@ button {
     background: white !important;
     color: black !important;
   }
+}
+
+/* ============================================
+   TABLET RESPONSIVE STYLES (768px - 1024px)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  /* Hide secondary menu on tablet */
+  .secondary-menu-bar {
+    display: none !important;
+  }
+
+  /* Adjust main content for tablet without secondary menu */
+  .main-content {
+    margin-top: var(--navbar-height);
+    min-height: calc(100vh - var(--navbar-height));
+  }
+
+  /* Grid layouts for tablet */
+  .grid-cols-4,
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Cards on tablet */
+  .card {
+    padding: 16px;
+  }
+
+  /* Hero sections */
+  .hero,
+  .hero-gradient {
+    padding: 40px 0 !important;
+  }
+
+  .hero h1,
+  .hero-gradient h1 {
+    font-size: 2rem !important;
+  }
+
+  /* Sidebar adjustments */
+  .sidebar {
+    width: 260px;
+  }
+
+  .main-content.with-sidebar {
+    margin-left: 260px;
+  }
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES (< 768px)
+   ============================================ */
+
+@media (max-width: 767px) {
+  :root {
+    --navbar-height: 56px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Hide secondary menu on mobile */
+  .secondary-menu-bar {
+    display: none !important;
+  }
+
+  /* Adjust main content for mobile */
+  .main-content {
+    margin-top: var(--navbar-height);
+    min-height: calc(100vh - var(--navbar-height));
+  }
+
+  /* Single column grids on mobile */
+  .grid-cols-4,
+  .grid-cols-3,
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Cards on mobile */
+  .card {
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+
+  /* Hero sections */
+  .hero,
+  .hero-gradient {
+    padding: 32px 0 !important;
+  }
+
+  .hero h1,
+  .hero-gradient h1 {
+    font-size: 1.75rem !important;
+  }
+
+  /* Sidebar hidden on mobile */
+  .main-content.with-sidebar {
+    margin-left: 0;
+  }
+
+  /* Button adjustments */
+  .btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* Typography */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
 }
