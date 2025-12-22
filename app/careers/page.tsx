@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface JobPosition {
   _id: string;
   title: string;
@@ -33,6 +35,15 @@ export default function CareersPage() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [benefits, setBenefits] = useState<Benefit[]>([]);
 
+  const defaultBenefits: Benefit[] = [
+    { icon: '🏠', title: 'Remote Work', description: 'Work from anywhere in the world' },
+    { icon: '📚', title: 'Learning Budget', description: '$2,000/year for courses and conferences' },
+    { icon: '🏥', title: 'Health Insurance', description: 'Comprehensive health coverage' },
+    { icon: '🎯', title: 'Equity', description: 'Stock options for all employees' },
+    { icon: '🌴', title: 'Unlimited PTO', description: 'Take time off when you need it' },
+    { icon: '💻', title: 'Equipment', description: 'Top-of-the-line setup' },
+  ];
+
   useEffect(() => {
     fetchJobs();
     fetchBenefits();
@@ -48,7 +59,6 @@ export default function CareersPage() {
       }
     } catch (error) {
       console.error('Failed to fetch jobs:', error);
-      // Fallback to static data if API fails
       setJobs([]);
     } finally {
       setLoading(false);
@@ -62,23 +72,12 @@ export default function CareersPage() {
       if (response.ok && data.benefits) {
         setBenefits(data.benefits);
       } else {
-        // Fallback to default benefits
         setBenefits(defaultBenefits);
       }
     } catch {
-      // Fallback to default benefits
       setBenefits(defaultBenefits);
     }
   };
-
-  const defaultBenefits: Benefit[] = [
-    { icon: '🏠', title: 'Remote Work', description: 'Work from anywhere in the world' },
-    { icon: '📚', title: 'Learning Budget', description: '$2,000/year for courses and conferences' },
-    { icon: '🏥', title: 'Health Insurance', description: 'Comprehensive health coverage' },
-    { icon: '🎯', title: 'Equity', description: 'Stock options for all employees' },
-    { icon: '🌴', title: 'Unlimited PTO', description: 'Take time off when you need it' },
-    { icon: '💻', title: 'Equipment', description: 'Top-of-the-line setup' },
-  ];
 
   const departments = ['all', ...new Set(jobs.map(job => job.department))];
   
@@ -103,24 +102,27 @@ export default function CareersPage() {
 
   return (
     <Layout>
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '48px 24px' }}>
+      <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>Join Our Team</h1>
-          <p style={{ fontSize: '16px', color: 'var(--text-secondary)', maxWidth: '700px', margin: '0 auto' }}>
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Join Our Team</h1>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Help us shape the future of tech education. We&apos;re looking for passionate individuals to join our mission.
           </p>
         </div>
 
         {/* Benefits */}
-        <div style={{ marginBottom: '48px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '24px', textAlign: 'center' }}>Why Join Us?</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">Why Join Us?</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {(benefits.length > 0 ? benefits : defaultBenefits).map((benefit, index) => (
-              <div key={index} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '28px', marginBottom: '10px' }}>{benefit.icon}</div>
-                <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '14px' }}>{benefit.title}</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{benefit.description}</p>
+              <div 
+                key={index} 
+                className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center"
+              >
+                <div className="text-3xl mb-3">{benefit.icon}</div>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{benefit.title}</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{benefit.description}</p>
               </div>
             ))}
           </div>
@@ -128,27 +130,21 @@ export default function CareersPage() {
 
         {/* Open Positions */}
         <div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)' }}>Open Positions</h2>
+          <div className="flex flex-col gap-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Open Positions</h2>
             
             {/* Department Filter */}
             {departments.length > 1 && (
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+              <div className="flex gap-2 overflow-x-auto pb-2">
                 {departments.map((dept) => (
                   <button
                     key={dept}
                     onClick={() => setSelectedDepartment(dept)}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: '500',
-                      whiteSpace: 'nowrap',
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: selectedDepartment === dept ? 'var(--bg-accent)' : 'var(--bg-secondary)',
-                      color: selectedDepartment === dept ? 'white' : 'var(--text-secondary)'
-                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                      selectedDepartment === dept
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+                    }`}
                   >
                     {dept === 'all' ? 'All Departments' : dept}
                   </button>
@@ -158,29 +154,36 @@ export default function CareersPage() {
           </div>
 
           {loading ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 0' }}>
-              <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-primary)', borderTop: '3px solid var(--bg-accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
           ) : filteredJobs.length === 0 ? (
-            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '48px 24px', textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>No positions available</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-12 px-6 text-center">
+              <div className="text-5xl mb-4">🔍</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No positions available</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 Check back later or subscribe to get notified about new openings.
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="space-y-3">
               {filteredJobs.map((job) => (
-                <div key={job._id} style={{ background: 'var(--bg-secondary)', border: job.isFeatured ? '2px solid var(--bg-accent)' : '1px solid var(--border-primary)', borderRadius: '6px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div 
+                  key={job._id} 
+                  className={`bg-white dark:bg-slate-800 border rounded-xl p-5 flex flex-col gap-3 ${
+                    job.isFeatured 
+                      ? 'border-2 border-blue-500' 
+                      : 'border-gray-200 dark:border-slate-700'
+                  }`}
+                >
                   <div>
                     {job.isFeatured && (
-                      <span style={{ display: 'inline-block', padding: '4px 8px', fontSize: '11px', fontWeight: '600', background: 'var(--bg-accent)', color: 'white', borderRadius: '4px', marginBottom: '8px' }}>
+                      <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-500 text-white rounded mb-2">
                         Featured
                       </span>
                     )}
-                    <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '15px' }}>{job.title}</h3>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{job.title}</h3>
+                    <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
                       <span>{job.department}</span>
                       <span>•</span>
                       <span>{job.location}</span>
@@ -189,12 +192,15 @@ export default function CareersPage() {
                       {formatSalary(job.salary) && (
                         <>
                           <span>•</span>
-                          <span style={{ color: '#22c55e' }}>{formatSalary(job.salary)}</span>
+                          <span className="text-green-500">{formatSalary(job.salary)}</span>
                         </>
                       )}
                     </div>
                   </div>
-                  <Link href={`/careers/${job.slug}`} style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--bg-accent)', color: 'white', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '13px', whiteSpace: 'nowrap', alignSelf: 'flex-start' }}>
+                  <Link 
+                    href={`/careers/${job.slug}`} 
+                    className="inline-block self-start px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm rounded-lg transition-colors"
+                  >
                     Apply Now
                   </Link>
                 </div>
@@ -204,10 +210,15 @@ export default function CareersPage() {
         </div>
 
         {/* CTA */}
-        <div style={{ marginTop: '48px', textAlign: 'center', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '32px 24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>Don&apos;t see a perfect fit?</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '14px' }}>We&apos;re always looking for talented individuals. Send us your resume and we&apos;ll keep you in mind.</p>
-          <Link href="/contact" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--bg-accent)', color: 'white', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '14px' }}>
+        <div className="mt-12 text-center bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Don&apos;t see a perfect fit?</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-5 text-sm">
+            We&apos;re always looking for talented individuals. Send us your resume and we&apos;ll keep you in mind.
+          </p>
+          <Link 
+            href="/contact" 
+            className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+          >
             Get in Touch
           </Link>
         </div>

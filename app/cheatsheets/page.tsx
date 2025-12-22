@@ -30,67 +30,65 @@ export default function CheatsheetsPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="section hero-gradient" style={{ paddingTop: '64px', paddingBottom: '64px' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
-            Cheatsheets <span style={{ color: 'rgba(255,255,255,0.8)' }}>Library</span>
+      <section className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 py-16 md:py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Cheatsheets <span className="text-blue-400">Library</span>
           </h1>
-          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px' }}>
+          <p className="text-lg text-gray-300 mb-8 max-w-xl mx-auto">
             Quick reference guides for all your programming needs. Download and keep them handy!
           </p>
           
-          <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <div className="navbar-search" style={{ background: 'white', borderRadius: 'var(--radius-lg)' }}>
-              <svg className="navbar-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search cheatsheets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: 'transparent', color: 'var(--text-primary)' }}
-              />
-            </div>
+          <div className="max-w-md mx-auto relative">
+            <svg 
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" 
+              width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search cheatsheets..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
       </section>
 
       {/* Cheatsheets Grid */}
-      <section className="section" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="container">
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>
+      <section className="py-12 bg-gray-50 dark:bg-slate-950">
+        <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {filteredSheets.length} Cheatsheets Available
             </h2>
           </div>
 
-          <div className="grid grid-4" style={{ gap: '24px' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredSheets.map((sheet) => (
-              <Link key={sheet.slug} href={`/cheatsheets/${sheet.slug}`} className="card" style={{ overflow: 'hidden' }}>
-                <div style={{ 
-                  height: '100px', 
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '48px'
-                }}>
+              <Link 
+                key={sheet.slug} 
+                href={`/cheatsheets/${sheet.slug}`} 
+                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                <div className="h-24 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-5xl">
                   {sheet.icon}
                 </div>
-                <div className="card-body">
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                <div className="p-5">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
                     {sheet.name}
                   </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
                     {sheet.description}
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                      📥 {sheet.downloads.toLocaleString()} downloads
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      📥 {sheet.downloads.toLocaleString()}
                     </span>
-                    <span style={{ color: 'var(--text-accent)', fontSize: '14px', fontWeight: 600 }}>
+                    <span className="text-blue-600 dark:text-blue-400 text-sm font-semibold">
                       View →
                     </span>
                   </div>

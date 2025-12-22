@@ -210,8 +210,8 @@ export const authAPI = {
       user: {
         id: string;
         email: string;
-        userType: string;
-        role: string;
+        userType: 'fresher' | 'experienced';
+        role: 'admin' | 'student' | 'instructor';
       };
       message: string;
     }>('/auth/login', {
@@ -232,8 +232,8 @@ export const authAPI = {
       user: {
         id: string;
         email: string;
-        userType: string;
-        role: string;
+        userType: 'fresher' | 'experienced';
+        role: 'admin' | 'student' | 'instructor';
       };
       message: string;
     }>('/auth/register', {

@@ -239,7 +239,7 @@ export default function ProfilePage() {
         // Use user data from auth context as fallback
         if (user) {
           setProfile({
-            _id: user._id,
+            _id: user._id || user.id || '',
             name: user.name || '',
             email: user.email,
             role: user.role,
@@ -254,7 +254,7 @@ export default function ProfilePage() {
       console.error('Failed to fetch profile:', error);
       if (user) {
         setProfile({
-          _id: user._id,
+          _id: user._id || user.id || '',
           name: user.name || '',
           email: user.email,
           role: user.role,

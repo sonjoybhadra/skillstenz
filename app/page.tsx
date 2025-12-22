@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../components/Layout';
 import { technologiesAPI, Technology } from '../lib/api';
 
@@ -25,25 +26,16 @@ export default function Home() {
     fetchTechnologies();
   }, []);
 
-  // Get icon for technology based on slug
   const getTechIcon = (slug: string): string => {
     const icons: Record<string, string> = {
-      'ai': '🤖',
-      'ai-agents': '🦾',
-      'machine-learning': '🧠',
-      'langchain': '🔗',
-      'prompt-engineering': '💬',
-      'rag-systems': '📚',
-      'nlp': '💭',
-      'computer-vision': '👁️',
-      'python-for-ai': '🐍',
-      'genai-applications': '✨',
-      'default': '📘'
+      'ai': '🤖', 'ai-agents': '🦾', 'machine-learning': '🧠', 'langchain': '🔗',
+      'prompt-engineering': '💬', 'rag-systems': '📚', 'nlp': '💭', 'computer-vision': '👁️',
+      'python-for-ai': '🐍', 'genai-applications': '✨', 'python': '🐍', 'javascript': '🟨',
+      'react': '⚛️', 'nextjs': '▲', 'nodejs': '🟢', 'typescript': '🔷', 'default': '📘'
     };
     return icons[slug] || icons['default'];
   };
 
-  // Featured technologies from database
   const featuredTech = technologies.filter(t => t.featured).slice(0, 8);
 
   const cheatsheets = [
@@ -90,97 +82,91 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Hero Section - AI Focused */}
-      <section className="hero hero-gradient" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)' }}>
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
-            <div className="hero-content">
-              <div className="hero-badge">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-slate-950 py-16 md:py-24">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="text-white">
+              <span className="inline-block px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm font-medium mb-6 border border-blue-500/30">
                 🚀 THE FUTURE IS AI - START YOUR JOURNEY
-              </div>
-              <h1 className="hero-title" style={{ color: 'white' }}>
-                Master <span className="hero-title-accent">AI & AI Agents</span>
-                <br />
-                Build Your Future
+              </span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                Master <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">AI & AI Agents</span>
+                <br />Build Your Future
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '18px', marginTop: '16px', lineHeight: 1.6 }}>
-                Learn to build intelligent AI Agents, LLM applications, and cutting-edge AI solutions. 
+              <p className="text-lg text-gray-300 mb-8 max-w-xl">
+                Learn to build intelligent AI agents, LLM applications, and cutting-edge AI solutions.
                 From LangChain to RAG systems, master the technologies that are reshaping the world.
               </p>
-              <div className="hero-stats" style={{ marginTop: '32px' }}>
-                <div className="hero-stat">
-                  <div className="hero-stat-value">10+</div>
-                  <div className="hero-stat-label" style={{ color: 'rgba(255,255,255,0.7)' }}>AI Technologies</div>
-                </div>
-                <div className="hero-stat">
-                  <div className="hero-stat-value">50+</div>
-                  <div className="hero-stat-label" style={{ color: 'rgba(255,255,255,0.7)' }}>AI Projects</div>
-                </div>
-                <div className="hero-stat">
-                  <div className="hero-stat-value">1:1</div>
-                  <div className="hero-stat-label" style={{ color: 'rgba(255,255,255,0.7)' }}>AI Mentorship</div>
-                </div>
-                <div className="hero-stat">
-                  <div className="hero-stat-value">24/7</div>
-                  <div className="hero-stat-label" style={{ color: 'rgba(255,255,255,0.7)' }}>AI Support</div>
-                </div>
+              
+              {/* Stats */}
+              <div className="grid grid-cols-4 gap-4 mb-8">
+                {[
+                  { value: '10+', label: 'AI Technologies' },
+                  { value: '50+', label: 'AI Projects' },
+                  { value: '1:1', label: 'AI Mentorship' },
+                  { value: '24/7', label: 'AI Support' },
+                ].map((stat, idx) => (
+                  <div key={idx} className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-white">{stat.value}</div>
+                    <div className="text-xs text-gray-400">{stat.label}</div>
+                  </div>
+                ))}
               </div>
-              <div className="hero-actions" style={{ marginTop: '32px' }}>
-                <Link href="/technologies/ai" className="btn btn-primary btn-lg">
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap gap-4">
+                <Link href="/technologies/ai" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
                   Start Learning AI
                 </Link>
-                <Link href="/technologies/ai-agents" className="btn btn-outline btn-lg" style={{ color: 'white', borderColor: 'white', marginLeft: '16px' }}>
+                <Link href="/technologies/ai-agents" className="px-6 py-3 border border-white/30 hover:bg-white/10 text-white font-semibold rounded-lg transition-colors">
                   Explore AI Agents
                 </Link>
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ 
-                width: '320px', 
-                height: '320px', 
-                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%)', 
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '140px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                border: '2px solid rgba(59, 130, 246, 0.2)'
-              }}>
-                🤖
+
+            {/* Right Image */}
+            <div className="relative hidden lg:flex justify-center items-center">
+              <div className="absolute w-80 h-80 bg-gradient-to-br from-blue-500/40 to-purple-500/40 rounded-full blur-2xl" />
+              <div className="relative w-80 h-56 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl bg-slate-900">
+                <Image
+                  src="/ai-resume-banner.png"
+                  alt="AI learning and resume building"
+                  fill
+                  priority
+                  className="object-cover opacity-90"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Membership & Certifications */}
-      <section className="section" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
-        <div className="container">
-          <div className="grid grid-2" style={{ gap: '24px' }}>
-            <div className="card" style={{ 
-              padding: '32px', 
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-              color: 'white'
-            }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>🎓 Annual Membership</h3>
-              <p style={{ opacity: 0.9, marginBottom: '24px' }}>
+      {/* CTA Cards */}
+      <section className="py-12 bg-gray-50 dark:bg-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+              <h3 className="text-2xl font-bold mb-3">🎓 Annual Membership</h3>
+              <p className="text-blue-100 mb-6">
                 Become a SkillStenz Pro member and enjoy unlimited access to all courses, projects, and exclusive content.
               </p>
-              <Link href="/membership" className="btn btn-dark">
+              <Link href="/membership" className="inline-block px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                 Subscribe Now
               </Link>
             </div>
-            <div className="card" style={{ 
-              padding: '32px', 
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-              color: 'white'
-            }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>🏆 Online Certifications</h3>
-              <p style={{ opacity: 0.9, marginBottom: '24px' }}>
+            <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white">
+              <h3 className="text-2xl font-bold mb-3">🏆 Online Certifications</h3>
+              <p className="text-blue-100 mb-6">
                 Stand out with industry-recognized certifications and receive valuable certificates and knowledge.
               </p>
-              <Link href="/certifications" className="btn btn-dark">
+              <Link href="/certifications" className="inline-block px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                 Get Certified
               </Link>
             </div>
@@ -189,33 +175,27 @@ export default function Home() {
       </section>
 
       {/* Latest Updates */}
-      <section className="section" style={{ paddingTop: '48px', paddingBottom: '32px' }}>
-        <div className="container">
-          <div className="card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <section className="py-12 bg-white dark:bg-slate-950">
+        <div className="container mx-auto px-4">
+          <div className="bg-gray-50 dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Latest <span style={{ color: 'var(--text-accent)' }}>Updates</span> - December, 2025
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Latest <span className="text-blue-600">Updates</span> - December, 2025
                 </h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Newly Added and Updated Tutorials</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Newly Added and Updated Tutorials</p>
               </div>
             </div>
-            <div className="grid grid-3" style={{ gap: '12px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {latestUpdates.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-md)',
-                  }}
-                >
-                  <span style={{ fontSize: '20px' }}>📚</span>
-                  <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.title}</span>
-                  {item.isNew && <span className="badge badge-success" style={{ marginLeft: 'auto' }}>NEW</span>}
+                <div key={idx} className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                  <span className="text-xl">📚</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{item.title}</span>
+                  {item.isNew && (
+                    <span className="ml-auto px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">
+                      NEW
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -223,36 +203,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Start Learning - Dynamic from Backend */}
-      <section className="section" style={{ paddingTop: '32px' }}>
-        <div className="container">
-          <div className="section-header">
+      {/* Start Learning AI */}
+      <section className="py-12 bg-white dark:bg-slate-950">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="section-title">
-                Start <span className="section-title-accent">Learning AI</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                Start <span className="text-blue-600">Learning AI</span>
               </h2>
-              <p className="section-subtitle">Master AI technologies from fundamentals to advanced</p>
+              <p className="text-gray-600 dark:text-gray-400">Master AI technologies from fundamentals to advanced</p>
             </div>
-            <div className="section-actions">
-              <Link href="/technologies" className="btn btn-outline btn-sm">
-                See all
-              </Link>
-            </div>
+            <Link href="/technologies" className="px-4 py-2 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">
+              See all
+            </Link>
           </div>
+          
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
-              <div style={{ fontSize: '16px', color: 'var(--text-muted)' }}>Loading technologies...</div>
+            <div className="flex justify-center py-12">
+              <span className="text-gray-500 dark:text-gray-400">Loading technologies...</span>
             </div>
           ) : (
-            <div className="grid grid-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(featuredTech.length > 0 ? featuredTech : technologies.slice(0, 8)).map((tech) => (
-                <Link key={tech._id} href={`/technologies/${tech.slug}`} className="category-card">
-                  <div className="category-card-icon">{getTechIcon(tech.slug || '')}</div>
-                  <div className="category-card-title">{tech.name}</div>
+                <Link
+                  key={tech._id}
+                  href={`/technologies/${tech.slug}`}
+                  className="flex flex-col items-center p-6 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-800 transition-colors text-center"
+                >
+                  <span className="text-3xl mb-3">{getTechIcon(tech.slug || '')}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{tech.name}</span>
                   {tech.courses && tech.courses.length > 0 && (
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {tech.courses.length} course{tech.courses.length > 1 ? 's' : ''}
-                    </div>
+                    </span>
                   )}
                 </Link>
               ))}
@@ -262,25 +245,27 @@ export default function Home() {
       </section>
 
       {/* Cheatsheets */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
+      <section className="py-12 bg-gray-50 dark:bg-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="section-title">
-                Cheatsheets <span className="section-title-accent">Instant Learning</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                Cheatsheets <span className="text-blue-600">Instant Learning</span>
               </h2>
             </div>
-            <div className="section-actions">
-              <Link href="/cheatsheets" className="btn btn-outline btn-sm">
-                See all
-              </Link>
-            </div>
+            <Link href="/cheatsheets" className="px-4 py-2 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">
+              See all
+            </Link>
           </div>
-          <div className="grid grid-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {cheatsheets.map((sheet, idx) => (
-              <Link key={idx} href={sheet.href} className="category-card">
-                <div className="category-card-icon">{sheet.icon}</div>
-                <div className="category-card-title">{sheet.name}</div>
+              <Link
+                key={idx}
+                href={sheet.href}
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-700 transition-colors text-center"
+              >
+                <span className="text-3xl mb-3">{sheet.icon}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">{sheet.name}</span>
               </Link>
             ))}
           </div>
@@ -288,25 +273,27 @@ export default function Home() {
       </section>
 
       {/* Roadmaps */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
+      <section className="py-12 bg-white dark:bg-slate-950">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="section-title">
-                Roadmaps <span className="section-title-accent">Mastery Blueprint</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                Roadmaps <span className="text-blue-600">Mastery Blueprint</span>
               </h2>
             </div>
-            <div className="section-actions">
-              <Link href="/roadmaps" className="btn btn-outline btn-sm">
-                See all
-              </Link>
-            </div>
+            <Link href="/roadmaps" className="px-4 py-2 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">
+              See all
+            </Link>
           </div>
-          <div className="grid grid-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {roadmaps.map((roadmap, idx) => (
-              <Link key={idx} href={roadmap.href} className="category-card">
-                <div className="category-card-icon">{roadmap.icon}</div>
-                <div className="category-card-title">{roadmap.name}</div>
+              <Link
+                key={idx}
+                href={roadmap.href}
+                className="flex flex-col items-center p-6 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-800 transition-colors text-center"
+              >
+                <span className="text-3xl mb-3">{roadmap.icon}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">{roadmap.name}</span>
               </Link>
             ))}
           </div>
@@ -314,83 +301,73 @@ export default function Home() {
       </section>
 
       {/* Build Your Career */}
-      <section className="section" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">
-              Build Your <span className="section-title-accent">Career</span> With Us
-            </h2>
-          </div>
-          <div className="grid grid-2" style={{ gap: '24px' }}>
+      <section className="py-12 bg-gray-50 dark:bg-slate-900">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white text-center mb-8">
+            Build Your <span className="text-blue-600">Career</span> With Us
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* AI & AI Agents */}
-            <div className="card">
-              <div className="card-header" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  AI & <span style={{ color: '#3b82f6' }}>AI Agents</span>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <div className="px-6 py-4 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-slate-700">
+                <h4 className="font-bold text-gray-900 dark:text-white">
+                  AI & <span className="text-blue-600">AI Agents</span>
                 </h4>
               </div>
-              <div className="card-body">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <Link href="/technologies/ai" className="tag">Artificial Intelligence</Link>
-                  <Link href="/technologies/ai-agents" className="tag">AI Agents</Link>
-                  <Link href="/technologies/langchain" className="tag">LangChain</Link>
-                  <Link href="/technologies/machine-learning" className="tag">Machine Learning</Link>
-                  <Link href="/technologies/genai" className="tag">GenAI</Link>
-                </div>
+              <div className="p-6 flex flex-wrap gap-2">
+                {['Artificial Intelligence', 'AI Agents', 'LangChain', 'Machine Learning', 'GenAI'].map((tag) => (
+                  <Link key={tag} href={`/technologies/${tag.toLowerCase().replace(/ /g, '-')}`} className="px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+                    {tag}
+                  </Link>
+                ))}
               </div>
             </div>
 
             {/* Full Stack Web Development */}
-            <div className="card">
-              <div className="card-header" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Full Stack <span style={{ color: '#ef4444' }}>Web Development</span>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <div className="px-6 py-4 bg-red-50 dark:bg-red-900/20 border-b border-gray-200 dark:border-slate-700">
+                <h4 className="font-bold text-gray-900 dark:text-white">
+                  Full Stack <span className="text-red-500">Web Development</span>
                 </h4>
               </div>
-              <div className="card-body">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <Link href="/technologies/react" className="tag">React.js</Link>
-                  <Link href="/technologies/nextjs" className="tag">Next.js</Link>
-                  <Link href="/technologies/nodejs" className="tag">Node.js</Link>
-                  <Link href="/technologies/typescript" className="tag">TypeScript</Link>
-                  <Link href="/technologies/mongodb" className="tag">MongoDB</Link>
-                </div>
+              <div className="p-6 flex flex-wrap gap-2">
+                {['React.js', 'Next.js', 'Node.js', 'TypeScript', 'MongoDB'].map((tag) => (
+                  <Link key={tag} href={`/technologies/${tag.toLowerCase().replace(/\./g, '')}`} className="px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+                    {tag}
+                  </Link>
+                ))}
               </div>
             </div>
 
             {/* Backend & DevOps */}
-            <div className="card">
-              <div className="card-header" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Backend & <span style={{ color: 'var(--text-accent)' }}>DevOps</span>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <div className="px-6 py-4 bg-green-50 dark:bg-green-900/20 border-b border-gray-200 dark:border-slate-700">
+                <h4 className="font-bold text-gray-900 dark:text-white">
+                  Backend & <span className="text-green-600">DevOps</span>
                 </h4>
               </div>
-              <div className="card-body">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <Link href="/technologies/python" className="tag">Python</Link>
-                  <Link href="/technologies/java" className="tag">Java</Link>
-                  <Link href="/technologies/go" className="tag">Go</Link>
-                  <Link href="/technologies/docker" className="tag">Docker</Link>
-                  <Link href="/technologies/kubernetes" className="tag">Kubernetes</Link>
-                </div>
+              <div className="p-6 flex flex-wrap gap-2">
+                {['Python', 'Java', 'Go', 'Docker', 'Kubernetes'].map((tag) => (
+                  <Link key={tag} href={`/technologies/${tag.toLowerCase()}`} className="px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+                    {tag}
+                  </Link>
+                ))}
               </div>
             </div>
 
             {/* Mobile & Modern Languages */}
-            <div className="card">
-              <div className="card-header" style={{ background: 'rgba(168, 85, 247, 0.1)' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Mobile & <span style={{ color: '#a855f7' }}>Modern Languages</span>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <div className="px-6 py-4 bg-purple-50 dark:bg-purple-900/20 border-b border-gray-200 dark:border-slate-700">
+                <h4 className="font-bold text-gray-900 dark:text-white">
+                  Mobile & <span className="text-purple-600">Modern Languages</span>
                 </h4>
               </div>
-              <div className="card-body">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <Link href="/technologies/flutter" className="tag">Flutter</Link>
-                  <Link href="/technologies/react-native" className="tag">React Native</Link>
-                  <Link href="/technologies/swift" className="tag">Swift</Link>
-                  <Link href="/technologies/kotlin" className="tag">Kotlin</Link>
-                  <Link href="/technologies/rust" className="tag">Rust</Link>
-                </div>
+              <div className="p-6 flex flex-wrap gap-2">
+                {['Flutter', 'React Native', 'Swift', 'Kotlin', 'Rust'].map((tag) => (
+                  <Link key={tag} href={`/technologies/${tag.toLowerCase().replace(/ /g, '-')}`} className="px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+                    {tag}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
@@ -398,67 +375,84 @@ export default function Home() {
       </section>
 
       {/* Start Coding in Seconds */}
-      <section className="section">
-        <div className="container">
-          <div className="card" style={{ padding: '48px', textAlign: 'center', background: 'var(--bg-tertiary)' }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>
-              Start Coding <span className="section-title-accent">in Seconds</span>
+      <section className="py-12 bg-white dark:bg-slate-950">
+        <div className="container mx-auto px-4">
+          <div className="bg-gray-100 dark:bg-slate-900 rounded-2xl p-8 md:p-12 text-center border border-gray-200 dark:border-slate-800">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Start Coding <span className="text-blue-600">in Seconds</span>
             </h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
               Coding Ground For Developers - An interactive online platform for hands-on learning
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
-              <Link href="/compiler/python" className="btn btn-secondary">🐍 Python</Link>
-              <Link href="/compiler/javascript" className="btn btn-secondary">🟨 JavaScript</Link>
-              <Link href="/compiler/typescript" className="btn btn-secondary">🔷 TypeScript</Link>
-              <Link href="/compiler/php" className="btn btn-secondary">🐘 PHP</Link>
-              <Link href="/compiler/java" className="btn btn-secondary">☕ Java</Link>
-              <Link href="/compiler/c" className="btn btn-secondary">©️ C</Link>
-              <Link href="/compiler/cpp" className="btn btn-secondary">⚡ C++</Link>
-              <Link href="/compiler/go" className="btn btn-secondary">🔵 Go</Link>
-              <Link href="/compiler/rust" className="btn btn-secondary">🦀 Rust</Link>
-              <Link href="/compiler/ruby" className="btn btn-secondary">💎 Ruby</Link>
+            
+            <div className="flex flex-wrap justify-center gap-3 mb-4">
+              {[
+                { name: '🐍 Python', href: '/compiler/python' },
+                { name: '🟨 JavaScript', href: '/compiler/javascript' },
+                { name: '🔷 TypeScript', href: '/compiler/typescript' },
+                { name: '🐘 PHP', href: '/compiler/php' },
+                { name: '☕ Java', href: '/compiler/java' },
+                { name: '©️ C', href: '/compiler/c' },
+                { name: '⚡ C++', href: '/compiler/cpp' },
+                { name: '🔵 Go', href: '/compiler/go' },
+                { name: '🦀 Rust', href: '/compiler/rust' },
+                { name: '💎 Ruby', href: '/compiler/ruby' },
+              ].map((lang) => (
+                <Link key={lang.name} href={lang.href} className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium">
+                  {lang.name}
+                </Link>
+              ))}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center', marginTop: '16px' }}>
-              <Link href="/compiler/react" className="btn btn-outline btn-sm">⚛️ React.js</Link>
-              <Link href="/compiler/nextjs" className="btn btn-outline btn-sm">▲ Next.js</Link>
-              <Link href="/compiler/nodejs" className="btn btn-outline btn-sm">🟢 Node.js</Link>
-              <Link href="/compiler/bunjs" className="btn btn-outline btn-sm">🥟 Bun.js</Link>
-              <Link href="/compiler/html" className="btn btn-outline btn-sm">📄 HTML/CSS</Link>
-              <Link href="/compiler/sql" className="btn btn-outline btn-sm">🗃️ SQL</Link>
-              <Link href="/compiler/mongodb" className="btn btn-outline btn-sm">🍃 MongoDB</Link>
-              <Link href="/compiler/swift" className="btn btn-outline btn-sm">🍎 Swift</Link>
-              <Link href="/compiler/kotlin" className="btn btn-outline btn-sm">🟣 Kotlin</Link>
-              <Link href="/compiler/dart" className="btn btn-outline btn-sm">🎯 Dart</Link>
+            
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
+              {[
+                { name: '⚛️ React.js', href: '/compiler/react' },
+                { name: '▲ Next.js', href: '/compiler/nextjs' },
+                { name: '🟢 Node.js', href: '/compiler/nodejs' },
+                { name: '🥟 Bun.js', href: '/compiler/bunjs' },
+                { name: '📄 HTML/CSS', href: '/compiler/html' },
+                { name: '🗃️ SQL', href: '/compiler/sql' },
+                { name: '🍃 MongoDB', href: '/compiler/mongodb' },
+                { name: '🍎 Swift', href: '/compiler/swift' },
+                { name: '🟣 Kotlin', href: '/compiler/kotlin' },
+                { name: '🎯 Dart', href: '/compiler/dart' },
+              ].map((lang) => (
+                <Link key={lang.name} href={lang.href} className="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-xs font-medium">
+                  {lang.name}
+                </Link>
+              ))}
             </div>
-            <div style={{ marginTop: '24px' }}>
-              <Link href="/compiler" className="btn btn-primary">View All Compilers →</Link>
-            </div>
+            
+            <Link href="/compiler" className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+              View All Compilers →
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Most Popular Tools */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
+      <section className="py-12 bg-gray-50 dark:bg-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="section-title">
-                Most Popular <span className="section-title-accent">Tools</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                Most Popular <span className="text-blue-600">Tools</span>
               </h2>
-              <p className="section-subtitle">Utilize the frequently used tools for your needs</p>
+              <p className="text-gray-600 dark:text-gray-400">Utilize the frequently used tools for your needs</p>
             </div>
-            <div className="section-actions">
-              <Link href="/tools" className="btn btn-outline btn-sm">
-                See all
-              </Link>
-            </div>
+            <Link href="/tools" className="px-4 py-2 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">
+              See all
+            </Link>
           </div>
-          <div className="grid grid-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {tools.map((tool, idx) => (
-              <Link key={idx} href={tool.href} className="tool-card">
-                <div className="tool-card-icon">{tool.icon}</div>
-                <div className="tool-card-title">{tool.name}</div>
+              <Link
+                key={idx}
+                href={tool.href}
+                className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-700 transition-colors text-center"
+              >
+                <span className="text-3xl mb-3">{tool.icon}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">{tool.name}</span>
               </Link>
             ))}
           </div>

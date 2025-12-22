@@ -155,7 +155,7 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
                       <span className={`badge ${course.level === 'Beginner' ? 'badge-success' : course.level === 'Intermediate' ? 'badge-warning' : 'badge-error'}`}>
                         {course.level}
                       </span>
-                      {(course.price === 'free' || course.price === 0) && <span className="badge badge-primary">Free</span>}
+                      {course.price === 'free' && <span className="badge badge-primary">Free</span>}
                     </div>
                     <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
                       {course.title}
@@ -173,7 +173,7 @@ export default function TechnologyPage({ params }: TechnologyPageProps) {
                         )}
                       </div>
                       <span style={{ color: 'var(--text-accent)', fontWeight: 600, fontSize: '14px' }}>
-                        {course.price === 'free' || course.price === 0 ? 'Free' : `$${course.price}`}
+                        {course.price === 'free' ? 'Free' : 'Premium'}
                       </span>
                     </div>
                   </div>

@@ -7,66 +7,64 @@ import Layout from '@/components/Layout';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+interface Tutorial {
+  _id: string;
+  title: string;
+  slug: string;
+  description: string;
+  technology: string;
+  chapters: Chapter[];
+  category: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  keywords: string[];
+  createdAt: string;
+}
+
 interface Chapter {
   _id: string;
   title: string;
   slug: string;
   description: string;
   order: number;
-  icon: string;
-  estimatedTime: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  keyPoints: string[];
-}
-
-interface Technology {
-  _id: string;
-  name: string;
-  slug: string;
-  icon: string;
-  description: string;
-  color: string;
+  icon?: string;
+  estimatedTime?: number;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  keyPoints?: string[];
+  content?: string;
+  codeExample?: string;
 }
 
 export default function TutorialDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   
-  const [technology, setTechnology] = useState<Technology | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [tutorial, setTutorial] = useState<Tutorial | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (slug) {
-      fetchTechnology();
-      fetchChapters();
+      fetchTutorial();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  const fetchTechnology = async () => {
+  const fetchTutorial = async () => {
     try {
-      const response = await fetch(`${API_URL}/technologies/${slug}`);
+      // Fetch tutorial by slug
+      const response = await fetch(`${API_URL}/tutorials/${slug}`);
       if (response.ok) {
         const data = await response.json();
-        setTechnology(data.technology);
+        setTutorial(data.tutorial || data);
+        // Expand first chapter by default
+        if (data.tutorial?.chapters?.length > 0) {
+          setExpandedChapters(new Set([data.tutorial.chapters[0]._id]));
+        }
+      } else {
+        console.error('Tutorial not found');
       }
     } catch (error) {
-      console.error('Failed to fetch technology:', error);
-    }
-  };
-
-  const fetchChapters = async () => {
-    try {
-      // Use the new tutorials API for chapters
-      const response = await fetch(`${API_URL}/tutorials/technology/${slug}`);
-      if (response.ok) {
-        const data = await response.json();
-        setChapters(data.chapters || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch chapters:', error);
+      console.error('Failed to fetch tutorial:', error);
     } finally {
       setLoading(false);
     }
@@ -85,6 +83,7 @@ export default function TutorialDetailPage() {
   };
 
   // Calculate total estimated time
+  const chapters = tutorial?.chapters || [];
   const totalTime = chapters.reduce((sum, ch) => sum + (ch.estimatedTime || 10), 0);
   const hours = Math.floor(totalTime / 60);
   const mins = totalTime % 60;
@@ -110,14 +109,14 @@ export default function TutorialDetailPage() {
         <section 
           style={{ 
             padding: '48px 0',
-            background: `linear-gradient(135deg, ${technology?.color || '#4f46e5'}20, ${technology?.color || '#4f46e5'}05)` 
+            background: `linear-gradient(135deg, #4f46e520, #4f46e505)` 
           }}
         >
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
               <Link href="/tutorials" style={{ color: 'inherit', textDecoration: 'none' }}>Tutorials</Link>
               <span>/</span>
-              <span style={{ color: 'var(--text-primary)' }}>{technology?.name || slug}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{tutorial?.title || 'Tutorial'}</span>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -131,20 +130,20 @@ export default function TutorialDetailPage() {
                     alignItems: 'center', 
                     justifyContent: 'center', 
                     fontSize: '36px',
-                    backgroundColor: (technology?.color || '#4f46e5') + '30' 
+                    backgroundColor: '#4f46e530' 
                   }}
                 >
-                  {technology?.icon || '📚'}
+                  📚
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
                     <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: '700', color: 'var(--text-primary)' }}>
-                      {technology?.name || slug} Tutorial
+                      {tutorial?.title || 'Tutorial'}
                     </h1>
                     <span style={{ padding: '4px 10px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', fontSize: '12px', fontWeight: '500', borderRadius: '4px' }}>FREE</span>
                   </div>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '18px', maxWidth: '700px' }}>
-                    {technology?.description || `Learn ${slug} from beginner to advanced with hands-on examples and exercises.`}
+                    {tutorial?.description || 'Learn with hands-on examples and exercises.'}
                   </p>
                 </div>
               </div>
@@ -244,7 +243,7 @@ export default function TutorialDetailPage() {
                 }}>
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
                   <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Coming Soon</h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>Tutorial chapters for {technology?.name || slug} are being created.</p>
+                  <p style={{ color: 'var(--text-secondary)' }}>Tutorial chapters are being created.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -325,7 +324,7 @@ export default function TutorialDetailPage() {
 
                       {expandedChapters.has(chapter._id) && (
                         <div style={{ borderTop: '1px solid var(--border-primary)', background: 'var(--bg-secondary)', padding: '20px' }}>
-                          {chapter.keyPoints?.length > 0 && (
+                          {chapter.keyPoints && chapter.keyPoints.length > 0 && (
                             <div style={{ marginBottom: '16px' }}>
                               <h4 style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '8px' }}>Key Points:</h4>
                               <ul style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

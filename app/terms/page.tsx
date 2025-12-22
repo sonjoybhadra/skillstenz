@@ -4,28 +4,28 @@ export default function TermsPage() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-[var(--foreground)] mb-8">Terms of Service</h1>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Terms of Service</h1>
         
-        <div className="prose prose-lg dark:prose-invert max-w-none space-y-8">
+        <div className="space-y-8">
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">1. Acceptance of Terms</h2>
-            <p className="text-[var(--muted-foreground)]">
-              By accessing and using LearnHub, you accept and agree to be bound by the terms and 
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">1. Acceptance of Terms</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              By accessing and using TechTooTalk, you accept and agree to be bound by the terms and 
               provisions of this agreement. If you do not agree to abide by these terms, please do not use this service.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">2. Use License</h2>
-            <div className="text-[var(--muted-foreground)] space-y-3">
-              <p>Permission is granted to temporarily access the materials on LearnHub for personal, non-commercial use only.</p>
-              <p>This license shall automatically terminate if you violate any of these restrictions and may be terminated by LearnHub at any time.</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">2. Use License</h2>
+            <div className="text-gray-600 dark:text-gray-400 space-y-3">
+              <p>Permission is granted to temporarily access the materials on TechTooTalk for personal, non-commercial use only.</p>
+              <p>This license shall automatically terminate if you violate any of these restrictions and may be terminated by TechTooTalk at any time.</p>
             </div>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">3. User Account</h2>
-            <div className="text-[var(--muted-foreground)] space-y-3">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">3. User Account</h2>
+            <div className="text-gray-600 dark:text-gray-400 space-y-3">
               <p>You are responsible for:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Maintaining the confidentiality of your account</li>
@@ -36,20 +36,20 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">4. Course Content</h2>
-            <p className="text-[var(--muted-foreground)]">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">4. Course Content</h2>
+            <p className="text-gray-600 dark:text-gray-400">
               All course content is protected by copyright and other intellectual property laws. 
               You may not reproduce, distribute, or create derivative works from any content without 
-              explicit permission from LearnHub.
+              explicit permission from TechTooTalk.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">5. Payment Terms</h2>
-            <div className="text-[var(--muted-foreground)] space-y-3">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">5. Payment Terms</h2>
+            <div className="text-gray-600 dark:text-gray-400 space-y-3">
               <p>For paid courses and subscriptions:</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>All fees are quoted in USD</li>
+                <li>All fees are quoted in INR/USD</li>
                 <li>Payments are processed securely through our payment partners</li>
                 <li>Refunds are available within 30 days of purchase</li>
                 <li>Subscription fees are billed on a recurring basis</li>
@@ -58,8 +58,8 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">6. Prohibited Activities</h2>
-            <div className="text-[var(--muted-foreground)] space-y-3">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">6. Prohibited Activities</h2>
+            <div className="text-gray-600 dark:text-gray-400 space-y-3">
               <p>You agree not to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Share your account credentials with others</li>
@@ -72,23 +72,23 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">7. Disclaimer</h2>
-            <p className="text-[var(--muted-foreground)]">
-              The materials on LearnHub are provided on an &apos;as is&apos; basis. LearnHub makes no 
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">7. Disclaimer</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              The materials on TechTooTalk are provided on an &apos;as is&apos; basis. TechTooTalk makes no 
               warranties, expressed or implied, and hereby disclaims and negates all other warranties 
               including, without limitation, implied warranties or conditions of merchantability.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-4">8. Modifications</h2>
-            <p className="text-[var(--muted-foreground)]">
-              LearnHub may revise these terms of service at any time without notice. By using this 
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">8. Modifications</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              TechTooTalk may revise these terms of service at any time without notice. By using this 
               website you are agreeing to be bound by the then current version of these terms of service.
             </p>
           </section>
 
-          <p className="text-sm text-[var(--muted-foreground)] mt-8">
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-8">
             Last updated: January 2025
           </p>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import Layout from '../../components/Layout';
+import Layout from '@/components/Layout';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -42,18 +42,18 @@ export default function RoadmapsPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="section hero-gradient" style={{ paddingTop: '64px', paddingBottom: '64px' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
-            Learning <span style={{ color: 'rgba(255,255,255,0.8)' }}>Roadmaps</span>
+      <section className="bg-gradient-to-r from-purple-600 to-purple-700 py-16">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Learning <span className="text-purple-200">Roadmaps</span>
           </h1>
-          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px' }}>
+          <p className="text-lg text-purple-100 mb-8 max-w-xl mx-auto">
             Step-by-step guides to master your chosen technology stack
           </p>
           
-          <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <div className="navbar-search" style={{ background: 'white', borderRadius: 'var(--radius-lg)' }}>
-              <svg className="navbar-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="max-w-md mx-auto">
+            <div className="relative">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
               </svg>
@@ -62,7 +62,7 @@ export default function RoadmapsPage() {
                 placeholder="Search roadmaps..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: 'transparent', color: 'var(--text-primary)' }}
+                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300"
               />
             </div>
           </div>
@@ -70,13 +70,17 @@ export default function RoadmapsPage() {
       </section>
 
       {/* Category Tabs */}
-      <section style={{ borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }}>
-        <div className="container">
-          <div className="tabs" style={{ justifyContent: 'center', padding: '16px 0', flexWrap: 'wrap' }}>
+      <section className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex justify-center gap-2 py-4 flex-wrap">
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                className={`tab ${selectedCategory === cat.id ? 'active' : ''}`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedCategory === cat.id
+                    ? 'bg-purple-500 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                }`}
                 onClick={() => setSelectedCategory(cat.id)}
               >
                 {cat.name}
@@ -87,43 +91,42 @@ export default function RoadmapsPage() {
       </section>
 
       {/* Roadmaps Grid */}
-      <section className="section" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="container">
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>
+      <section className="py-12 bg-gray-50 dark:bg-slate-900">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {filteredRoadmaps.length} Roadmaps Available
             </h2>
           </div>
 
-          <div className="grid grid-3" style={{ gap: '24px' }}>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRoadmaps.map((roadmap) => (
-              <Link key={roadmap.slug} href={`/roadmaps/${roadmap.slug}`} className="card" style={{ overflow: 'hidden' }}>
-                <div style={{ 
-                  height: '120px', 
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '56px'
-                }}>
+              <Link 
+                key={roadmap.slug} 
+                href={`/roadmaps/${roadmap.slug}`} 
+                className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
+              >
+                <div className="h-28 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-5xl">
                   {roadmap.icon}
                 </div>
-                <div className="card-body">
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                    <span className="badge badge-primary">{roadmap.steps} Steps</span>
-                    <span className="badge badge-secondary">{roadmap.duration}</span>
-                  </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                    {roadmap.name}
-                  </h3>
-                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-                    {roadmap.description}
-                  </p>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <span style={{ color: 'var(--text-accent)', fontSize: '14px', fontWeight: 600 }}>
-                      Start Learning →
+                <div className="p-5">
+                  <div className="flex gap-2 mb-3">
+                    <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded">
+                      {roadmap.steps} Steps
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded">
+                      {roadmap.duration}
                     </span>
                   </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-500 transition-colors">
+                    {roadmap.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                    {roadmap.description}
+                  </p>
+                  <span className="text-purple-500 text-sm font-medium">
+                    Start Learning →
+                  </span>
                 </div>
               </Link>
             ))}

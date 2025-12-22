@@ -2,7 +2,7 @@
 
 import { AuthProvider } from '../lib/auth';
 import { SettingsProvider } from '../lib/settings';
-import { DynamicSEO } from '../components/DynamicSEO';
+import DynamicSEO from '../components/DynamicSEO';
 import { ReactNode, Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
 import dynamic from 'next/dynamic';

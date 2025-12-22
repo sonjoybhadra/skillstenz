@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import Layout from '../../components/Layout';
-import { useAuth, ProtectedRoute } from '../../lib/auth';
+import Layout from '@/components/Layout';
+import { useAuth, ProtectedRoute } from '@/lib/auth';
 
 function DashboardContent() {
   const { user, logout } = useAuth();
@@ -22,35 +22,39 @@ function DashboardContent() {
   ];
 
   const stats = [
-    { label: 'Courses Enrolled', value: '5', icon: '📘', color: '#3b82f6' },
-    { label: 'Lessons Completed', value: '47', icon: '✅', color: '#10b981' },
-    { label: 'Hours Learned', value: '23', icon: '⏱️', color: '#f59e0b' },
-    { label: 'Certificates', value: '2', icon: '🏆', color: '#8b5cf6' },
+    { label: 'Courses Enrolled', value: '5', icon: '📘', color: 'text-blue-500' },
+    { label: 'Lessons Completed', value: '47', icon: '✅', color: 'text-green-500' },
+    { label: 'Hours Learned', value: '23', icon: '⏱️', color: 'text-amber-500' },
+    { label: 'Certificates', value: '2', icon: '🏆', color: 'text-purple-500' },
   ];
+
+  const tabs = ['overview', 'courses', 'certificates', 'bookmarks'];
 
   return (
     <Layout>
       {/* Dashboard Header */}
-      <section style={{
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        padding: '48px 0',
-        color: 'white'
-      }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px' }}>
+      <section className="bg-gradient-to-r from-emerald-500 to-emerald-600 py-12 text-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <h1 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '8px' }}>
+              <h1 className="text-3xl font-bold mb-2">
                 Welcome back, {user?.name || user?.email?.split('@')[0]}! 👋
               </h1>
-              <p style={{ opacity: 0.9, fontSize: '16px' }}>
+              <p className="text-emerald-100">
                 Continue your learning journey. You&apos;re doing great!
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <Link href="/courses" className="btn btn-dark">
+            <div className="flex gap-3">
+              <Link 
+                href="/courses" 
+                className="px-5 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+              >
                 Browse Courses
               </Link>
-              <button onClick={logout} className="btn" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+              <button 
+                onClick={logout} 
+                className="px-5 py-2.5 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
+              >
                 Logout
               </button>
             </div>
@@ -59,14 +63,14 @@ function DashboardContent() {
       </section>
 
       {/* Stats Cards */}
-      <section style={{ marginTop: '-40px', paddingBottom: '32px' }}>
-        <div className="container">
-          <div className="grid grid-4" style={{ gap: '20px' }}>
+      <section className="-mt-10 pb-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat, idx) => (
-              <div key={idx} className="card" style={{ padding: '24px', textAlign: 'center' }}>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>{stat.icon}</div>
-                <div style={{ fontSize: '28px', fontWeight: 700, color: stat.color }}>{stat.value}</div>
-                <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{stat.label}</div>
+              <div key={idx} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 text-center shadow-sm">
+                <div className="text-3xl mb-2">{stat.icon}</div>
+                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -74,99 +78,61 @@ function DashboardContent() {
       </section>
 
       {/* Main Dashboard Content */}
-      <section className="section" style={{ paddingTop: '16px' }}>
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '32px' }}>
-            {/* Left Column - Main Content */}
+      <section className="py-4 pb-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid lg:grid-cols-[1fr_350px] gap-8">
+            {/* Left Column */}
             <div>
               {/* Tabs */}
-              <div className="tabs" style={{ marginBottom: '24px' }}>
-                <button
-                  className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('overview')}
-                >
-                  Overview
-                </button>
-                <button
-                  className={`tab ${activeTab === 'courses' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('courses')}
-                >
-                  My Courses
-                </button>
-                <button
-                  className={`tab ${activeTab === 'certificates' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('certificates')}
-                >
-                  Certificates
-                </button>
-                <button
-                  className={`tab ${activeTab === 'bookmarks' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('bookmarks')}
-                >
-                  Bookmarks
-                </button>
+              <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    className={`px-4 py-2 rounded-lg font-medium capitalize whitespace-nowrap transition-colors ${
+                      activeTab === tab
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
 
               {/* Continue Learning */}
-              <div className="card" style={{ marginBottom: '24px' }}>
-                <div className="card-header">
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Continue Learning
-                  </h3>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl mb-6">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-700">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Continue Learning</h3>
                 </div>
-                <div className="card-body">
+                <div className="p-5 space-y-4">
                   {enrolledCourses.map((course) => (
                     <div
                       key={course.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        padding: '16px',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: '12px'
-                      }}
+                      className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-900 rounded-lg"
                     >
-                      <div style={{
-                        width: '60px',
-                        height: '60px',
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px'
-                      }}>
+                      <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
                         🤖
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                          {course.title}
-                        </h4>
-                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{course.title}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                           {course.technology} • {course.completed}/{course.lessons} lessons
                         </p>
-                        <div style={{
-                          height: '6px',
-                          background: 'var(--border-primary)',
-                          borderRadius: '3px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${course.progress}%`,
-                            height: '100%',
-                            background: 'var(--text-accent)',
-                            borderRadius: '3px'
-                          }}></div>
+                        <div className="h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-emerald-500 rounded-full" 
+                            style={{ width: `${course.progress}%` }}
+                          />
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-accent)' }}>
-                          {course.progress}%
-                        </span>
+                      <div className="text-right">
+                        <span className="text-sm font-semibold text-emerald-500">{course.progress}%</span>
                       </div>
-                      <Link href={`/courses/${course.id}`} className="btn btn-primary btn-sm">
+                      <Link 
+                        href={`/courses/${course.id}`} 
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
                         Continue
                       </Link>
                     </div>
@@ -175,38 +141,28 @@ function DashboardContent() {
               </div>
 
               {/* Recommended Courses */}
-              <div className="card">
-                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Recommended For You
-                  </h3>
-                  <Link href="/courses" style={{ color: 'var(--text-accent)', fontSize: '14px' }}>
-                    View All →
-                  </Link>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recommended For You</h3>
+                  <Link href="/courses" className="text-emerald-500 text-sm hover:underline">View All →</Link>
                 </div>
-                <div className="card-body">
-                  <div className="grid grid-3" style={{ gap: '16px' }}>
-                    {['RAG Systems', 'Prompt Engineering', 'Computer Vision'].map((title, idx) => (
-                      <div key={idx} className="card" style={{ overflow: 'hidden' }}>
-                        <div style={{
-                          height: '100px',
-                          background: `linear-gradient(135deg, ${['#3b82f6', '#8b5cf6', '#ec4899'][idx]}, ${['#1d4ed8', '#7c3aed', '#db2777'][idx]})`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '32px'
-                        }}>
-                          {['📚', '💬', '👁️'][idx]}
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      { title: 'RAG Systems', icon: '📚', gradient: 'from-blue-500 to-blue-600' },
+                      { title: 'Prompt Engineering', icon: '💬', gradient: 'from-purple-500 to-purple-600' },
+                      { title: 'Computer Vision', icon: '👁️', gradient: 'from-pink-500 to-pink-600' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-gray-50 dark:bg-slate-900 rounded-xl overflow-hidden">
+                        <div className={`h-24 bg-gradient-to-br ${item.gradient} flex items-center justify-center text-3xl`}>
+                          {item.icon}
                         </div>
-                        <div style={{ padding: '16px' }}>
-                          <h4 style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                            {title}
-                          </h4>
-                          <Link href={`/technologies/${title.toLowerCase().replace(' ', '-')}`} style={{
-                            color: 'var(--text-accent)',
-                            fontSize: '13px',
-                            fontWeight: 500
-                          }}>
+                        <div className="p-4">
+                          <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2">{item.title}</h4>
+                          <Link 
+                            href={`/technologies/${item.title.toLowerCase().replace(' ', '-')}`} 
+                            className="text-emerald-500 text-sm font-medium hover:underline"
+                          >
                             Start Learning →
                           </Link>
                         </div>
@@ -218,69 +174,52 @@ function DashboardContent() {
             </div>
 
             {/* Right Column - Sidebar */}
-            <div>
+            <div className="space-y-6">
               {/* Profile Card */}
-              <div className="card" style={{ marginBottom: '24px', textAlign: 'center', padding: '24px' }}>
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px',
-                  fontSize: '32px',
-                  color: 'white',
-                  fontWeight: 700
-                }}>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-white font-bold">
                   {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
                 </div>
-                <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                  {user?.name || 'User'}
-                </h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                  {user?.email}
-                </p>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px' }}>
-                  <span className="badge badge-primary">{user?.userType}</span>
-                  <span className="badge badge-success">{user?.role}</span>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">{user?.name || 'User'}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{user?.email}</p>
+                <div className="flex gap-2 justify-center mb-4">
+                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">
+                    {user?.userType}
+                  </span>
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">
+                    {user?.role}
+                  </span>
                 </div>
-                <Link href="/profile" className="btn btn-outline btn-sm" style={{ width: '100%' }}>
+                <Link 
+                  href="/profile" 
+                  className="block w-full py-2.5 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                >
                   Edit Profile
                 </Link>
               </div>
 
               {/* Recent Activity */}
-              <div className="card" style={{ marginBottom: '24px' }}>
-                <div className="card-header">
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Recent Activity
-                  </h3>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-900 dark:text-white">Recent Activity</h3>
                 </div>
-                <div className="card-body" style={{ padding: '0' }}>
+                <div>
                   {recentActivity.map((activity, idx) => (
                     <div
                       key={idx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '16px',
-                        borderBottom: idx < recentActivity.length - 1 ? '1px solid var(--border-primary)' : 'none'
-                      }}
+                      className={`flex items-center gap-3 p-4 ${
+                        idx < recentActivity.length - 1 ? 'border-b border-gray-200 dark:border-slate-700' : ''
+                      }`}
                     >
-                      <span style={{ fontSize: '24px' }}>{activity.icon}</span>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                          {activity.title}
-                        </p>
-                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {activity.time}
-                        </p>
+                      <span className="text-2xl">{activity.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{activity.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{activity.time}</p>
                       </div>
                       {activity.score && (
-                        <span className="badge badge-success">{activity.score}</span>
+                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">
+                          {activity.score}
+                        </span>
                       )}
                     </div>
                   ))}
@@ -288,13 +227,11 @@ function DashboardContent() {
               </div>
 
               {/* Quick Links */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Quick Links
-                  </h3>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+                <div className="p-5 border-b border-gray-200 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-900 dark:text-white">Quick Links</h3>
                 </div>
-                <div className="card-body" style={{ padding: '8px 16px' }}>
+                <div className="p-2">
                   {[
                     { icon: '📚', label: 'My Courses', href: '/my-courses' },
                     { icon: '🔖', label: 'Bookmarks', href: '/bookmarks' },
@@ -305,15 +242,7 @@ function DashboardContent() {
                     <Link
                       key={idx}
                       href={link.href}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '12px 0',
-                        borderBottom: idx < 4 ? '1px solid var(--border-primary)' : 'none',
-                        color: 'var(--text-primary)',
-                        fontSize: '14px'
-                      }}
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <span>{link.icon}</span>
                       {link.label}

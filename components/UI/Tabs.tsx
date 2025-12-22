@@ -11,86 +11,60 @@ export interface Tab {
 
 export interface TabsProps {
   tabs: Tab[];
-  defaultTab?: string;
+  activeTab?: string;
   onChange?: (tabId: string) => void;
   variant?: 'default' | 'pills' | 'underline';
-  fullWidth?: boolean;
+  className?: string;
 }
 
 export default function Tabs({
   tabs,
-  defaultTab,
+  activeTab,
   onChange,
   variant = 'default',
-  fullWidth = false,
+  className = '',
 }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+  const [internalActive, setInternalActive] = useState(tabs[0]?.id || '');
+  const active = activeTab || internalActive;
 
-  const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId);
-    onChange?.(tabId);
+  const handleClick = (tabId: string) => {
+    if (onChange) {
+      onChange(tabId);
+    } else {
+      setInternalActive(tabId);
+    }
   };
 
-  const getTabStyles = (isActive: boolean, isDisabled: boolean): React.CSSProperties => {
-    const baseStyles: React.CSSProperties = {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '8px',
-      padding: variant === 'underline' ? '12px 16px' : '10px 20px',
-      fontSize: '14px',
-      fontWeight: 600,
-      border: 'none',
-      background: 'transparent',
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      opacity: isDisabled ? 0.5 : 1,
-      transition: 'all 0.2s ease',
-      flex: fullWidth ? 1 : 'none',
-      justifyContent: 'center',
-    };
-
-    if (variant === 'pills') {
-      return {
-        ...baseStyles,
-        background: isActive ? 'var(--bg-accent)' : 'transparent',
-        color: isActive ? 'white' : 'var(--text-secondary)',
-        borderRadius: 'var(--radius-md)',
-      };
-    }
-
-    if (variant === 'underline') {
-      return {
-        ...baseStyles,
-        color: isActive ? 'var(--text-accent)' : 'var(--text-secondary)',
-        borderBottom: isActive ? '2px solid var(--bg-accent)' : '2px solid transparent',
-        marginBottom: '-1px',
-      };
-    }
-
-    return {
-      ...baseStyles,
-      background: isActive ? 'var(--bg-secondary)' : 'transparent',
-      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-      borderRadius: 'var(--radius-md)',
-    };
+  const baseClasses = 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200';
+  
+  const variantClasses: Record<string, { wrapper: string; active: string; inactive: string }> = {
+    default: {
+      wrapper: 'flex gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg',
+      active: 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow rounded-md',
+      inactive: 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-md',
+    },
+    pills: {
+      wrapper: 'flex gap-2',
+      active: 'bg-blue-500 text-white rounded-full',
+      inactive: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full',
+    },
+    underline: {
+      wrapper: 'flex border-b border-gray-200 dark:border-slate-700',
+      active: 'text-blue-500 border-b-2 border-blue-500 -mb-px',
+      inactive: 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+    },
   };
+
+  const styles = variantClasses[variant];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: variant === 'pills' ? '8px' : '0',
-        borderBottom: variant === 'underline' ? '1px solid var(--border-primary)' : 'none',
-        background: variant === 'default' ? 'var(--bg-tertiary)' : 'transparent',
-        padding: variant === 'default' ? '4px' : '0',
-        borderRadius: variant === 'default' ? 'var(--radius-lg)' : '0',
-      }}
-    >
+    <div className={`${styles.wrapper} ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          style={getTabStyles(activeTab === tab.id, !!tab.disabled)}
-          onClick={() => !tab.disabled && handleTabClick(tab.id)}
+          onClick={() => !tab.disabled && handleClick(tab.id)}
           disabled={tab.disabled}
+          className={`${baseClasses} ${active === tab.id ? styles.active : styles.inactive} ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {tab.icon}
           {tab.label}

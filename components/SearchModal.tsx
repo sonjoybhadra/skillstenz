@@ -44,16 +44,12 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
-
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
-
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
@@ -68,7 +64,6 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         setResults([]);
       }
     }, 300);
-
     return () => clearTimeout(searchTimeout);
   }, [query]);
 
@@ -80,24 +75,13 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         const data = await response.json();
         setResults(data.results || []);
       } else {
-        // Fallback to local search
         const localResults: SearchResult[] = [];
-        
-        // Sample technologies
         const technologies = ['JavaScript', 'Python', 'React', 'Node.js', 'TypeScript', 'Java', 'C++', 'Go', 'Rust', 'SQL'];
         technologies.forEach(tech => {
           if (tech.toLowerCase().includes(searchQuery.toLowerCase())) {
-            localResults.push({
-              type: 'technology',
-              id: tech.toLowerCase(),
-              title: tech,
-              description: `Learn ${tech} from scratch`,
-              url: `/technologies/${tech.toLowerCase()}`
-            });
+            localResults.push({ type: 'technology', id: tech.toLowerCase(), title: tech, description: `Learn ${tech} from scratch`, url: `/technologies/${tech.toLowerCase()}` });
           }
         });
-
-        // Sample courses
         const courses = [
           { title: 'Complete Web Development', slug: 'web-development' },
           { title: 'React Masterclass', slug: 'react-masterclass' },
@@ -106,19 +90,12 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         ];
         courses.forEach(course => {
           if (course.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-            localResults.push({
-              type: 'course',
-              id: course.slug,
-              title: course.title,
-              url: `/courses/${course.slug}`
-            });
+            localResults.push({ type: 'course', id: course.slug, title: course.title, url: `/courses/${course.slug}` });
           }
         });
-
         setResults(localResults);
       }
-    } catch (error) {
-      console.error('Search error:', error);
+    } catch {
       setResults([]);
     } finally {
       setLoading(false);
@@ -126,60 +103,32 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   };
 
   const handleSelect = (result: SearchResult) => {
-    // Save to recent searches
     const updated = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
     localStorage.setItem('recentSearches', JSON.stringify(updated));
-    
     router.push(result.url);
     onClose();
   };
 
-  const handleRecentSearch = (search: string) => {
-    setQuery(search);
-  };
-
-  const clearRecentSearches = () => {
-    localStorage.removeItem('recentSearches');
-    setRecentSearches([]);
-  };
-
   const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'technology': return '💻';
-      case 'course': return '📚';
-      case 'topic': return '📖';
-      case 'tutorial': return '📝';
-      case 'tool': return '🔧';
-      default: return '📄';
-    }
+    const icons: Record<string, string> = { technology: '💻', course: '📚', topic: '📖', tutorial: '📝', tool: '🔧' };
+    return icons[type] || '📄';
   };
 
   const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'technology': return 'Technology';
-      case 'course': return 'Course';
-      case 'topic': return 'Topic';
-      case 'tutorial': return 'Tutorial';
-      case 'tool': return 'Tool';
-      default: return 'Result';
-    }
+    const labels: Record<string, string> = { technology: 'Technology', course: 'Course', topic: 'Topic', tutorial: 'Tutorial', tool: 'Tool' };
+    return labels[type] || 'Result';
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh]">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      {/* Modal */}
-      <div className="relative w-full max-w-2xl mx-4 bg-[var(--bg-primary)] rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-2xl mx-4 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
         {/* Search Input */}
-        <div className="flex items-center gap-4 p-4 border-b border-[var(--border-primary)]">
-          <svg className="w-6 h-6 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-slate-800">
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
@@ -189,37 +138,32 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search tutorials, courses, technologies..."
-            className="flex-1 text-lg bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none"
+            className="flex-1 text-lg bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
           />
           {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            >
+            <button onClick={() => setQuery('')} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           )}
-          <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] rounded">
-            ESC
-          </kbd>
+          <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-medium text-gray-400 bg-gray-100 dark:bg-slate-800 rounded">ESC</kbd>
         </div>
 
-        {/* Results Area */}
+        {/* Results */}
         <div className="max-h-[60vh] overflow-y-auto">
           {loading && (
             <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--border-primary)] border-t-[var(--bg-accent)] mx-auto"></div>
-              <p className="text-[var(--text-muted)] mt-3">Searching...</p>
+              <div className="w-8 h-8 border-2 border-gray-200 dark:border-slate-700 border-t-blue-500 rounded-full animate-spin mx-auto" />
+              <p className="text-gray-500 dark:text-gray-400 mt-3">Searching...</p>
             </div>
           )}
 
           {!loading && query.length >= 2 && results.length === 0 && (
             <div className="p-8 text-center">
               <div className="text-4xl mb-3">🔍</div>
-              <p className="text-[var(--text-secondary)]">No results found for &quot;{query}&quot;</p>
-              <p className="text-sm text-[var(--text-muted)] mt-1">Try different keywords</p>
+              <p className="text-gray-600 dark:text-gray-300">No results found for &quot;{query}&quot;</p>
+              <p className="text-sm text-gray-400 mt-1">Try different keywords</p>
             </div>
           )}
 
@@ -229,20 +173,14 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 <button
                   key={`${result.type}-${result.id}`}
                   onClick={() => handleSelect(result)}
-                  className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--bg-hover)] transition-colors text-left"
+                  className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-left"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-[var(--bg-tertiary)] flex items-center justify-center text-xl">
-                    {result.icon || getTypeIcon(result.type)}
-                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-xl">{result.icon || getTypeIcon(result.type)}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-[var(--text-primary)] truncate">{result.title}</p>
-                    {result.description && (
-                      <p className="text-sm text-[var(--text-muted)] truncate">{result.description}</p>
-                    )}
+                    <p className="font-medium text-gray-900 dark:text-white truncate">{result.title}</p>
+                    {result.description && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{result.description}</p>}
                   </div>
-                  <span className="px-2 py-1 text-xs font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] rounded">
-                    {getTypeLabel(result.type)}
-                  </span>
+                  <span className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 rounded">{getTypeLabel(result.type)}</span>
                 </button>
               ))}
             </div>
@@ -253,30 +191,19 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
               {recentSearches.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-[var(--text-muted)]">Recent Searches</p>
-                    <button
-                      onClick={clearRecentSearches}
-                      className="text-xs text-[var(--text-accent)] hover:underline"
-                    >
-                      Clear
-                    </button>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Recent Searches</p>
+                    <button onClick={() => { localStorage.removeItem('recentSearches'); setRecentSearches([]); }} className="text-xs text-blue-500 hover:underline">Clear</button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {recentSearches.map((search, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleRecentSearch(search)}
-                        className="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-full text-sm hover:bg-[var(--bg-hover)] transition-colors"
-                      >
-                        {search}
-                      </button>
+                      <button key={i} onClick={() => setQuery(search)} className="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">{search}</button>
                     ))}
                   </div>
                 </div>
               )}
 
               <div>
-                <p className="text-sm font-medium text-[var(--text-muted)] mb-3">Quick Links</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Quick Links</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { label: 'Technologies', icon: '💻', url: '/technologies' },
@@ -286,14 +213,9 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     { label: 'Tools', icon: '🔧', url: '/tools' },
                     { label: 'Compiler', icon: '⚡', url: '/compiler' }
                   ].map((link) => (
-                    <Link
-                      key={link.url}
-                      href={link.url}
-                      onClick={onClose}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--bg-hover)] transition-colors"
-                    >
+                    <Link key={link.url} href={link.url} onClick={onClose} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
                       <span className="text-xl">{link.icon}</span>
-                      <span className="text-[var(--text-primary)]">{link.label}</span>
+                      <span className="text-gray-900 dark:text-white">{link.label}</span>
                     </Link>
                   ))}
                 </div>
@@ -303,14 +225,10 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-3 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs text-[var(--text-muted)]">
+        <div className="flex items-center justify-between p-3 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 text-xs text-gray-400">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded">↑↓</kbd> Navigate
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded">↵</kbd> Select
-            </span>
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-800 rounded">↑↓</kbd> Navigate</span>
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-800 rounded">↵</kbd> Select</span>
           </div>
           <span>Powered by TechTooTalk</span>
         </div>

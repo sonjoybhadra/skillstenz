@@ -77,7 +77,7 @@ export default function AdminCoursesPage() {
     learningObjectives: '', requirements: '', targetAudience: ''
   });
   const [sectionData, setSectionData] = useState({ title: '', description: '' });
-  const [lessonData, setLessonData] = useState({ title: '', contentType: 'video' as const, videoUrl: '', videoProvider: 'youtube' as const, videoDuration: 0, content: '', isFree: false });
+  const [lessonData, setLessonData] = useState<{ title: string; contentType: 'video' | 'article' | 'quiz' | 'code'; videoUrl: string; videoProvider: string; videoDuration: number; content: string; isFree: boolean }>({ title: '', contentType: 'video', videoUrl: '', videoProvider: 'youtube', videoDuration: 0, content: '', isFree: false });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [searchQuery, setSearchQuery] = useState('');
@@ -333,12 +333,12 @@ export default function AdminCoursesPage() {
 
       {/* Course Modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-          <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflow: 'auto' }}>
-            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-primary)' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>{editingCourse ? 'Edit Course' : 'Add Course'}</h3>
+        <div className="modal-overlay open" onClick={() => setShowModal(false)}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{editingCourse ? 'Edit Course' : 'Add Course'}</h3>
             </div>
-            <div style={{ padding: '24px' }}>
+            <div className="p-6">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
                 <div style={{ gridColumn: 'span 2' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Title *</label><input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-') })} placeholder="Python for Beginners" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
                 <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Slug</label><input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
@@ -358,9 +358,20 @@ export default function AdminCoursesPage() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><input type="checkbox" checked={formData.isPublished} onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })} style={{ width: '18px', height: '18px' }} /><span style={{ color: 'var(--text-primary)' }}>Published</span></label>
               </div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-primary)', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowModal(false)} className="btn" style={{ background: 'transparent', border: '1px solid var(--border-primary)' }}>Cancel</button>
-              <button onClick={handleSave} disabled={saving} className="btn btn-primary">{saving ? 'Saving...' : (editingCourse ? 'Update' : 'Create')}</button>
+            <div className="flex items-center justify-end gap-3 border-t border-[var(--border-primary)] px-6 py-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="btn border border-[var(--border-primary)] bg-transparent"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="btn btn-primary"
+              >
+                {saving ? 'Saving...' : editingCourse ? 'Update' : 'Create'}
+              </button>
             </div>
           </div>
         </div>
@@ -368,12 +379,12 @@ export default function AdminCoursesPage() {
 
       {/* Lesson Modal */}
       {showContentModal && editingSection && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-          <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflow: 'auto' }}>
-            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-primary)' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>Add Lesson</h3>
+        <div className="modal-overlay open" onClick={() => setShowContentModal(false)}>
+          <div className="modal modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Add Lesson</h3>
             </div>
-            <div style={{ padding: '24px' }}>
+            <div className="p-6">
               <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Lesson Title *</label><input type="text" value={lessonData.title} onChange={(e) => setLessonData({ ...lessonData, title: e.target.value })} placeholder="Introduction to Variables" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
               <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Content Type</label><div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>{CONTENT_TYPES.map(ct => (<button key={ct.value} onClick={() => setLessonData({ ...lessonData, contentType: ct.value as 'video' | 'article' | 'quiz' | 'code' })} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: lessonData.contentType === ct.value ? 'var(--accent-primary)' : 'transparent', color: lessonData.contentType === ct.value ? 'white' : 'var(--text-muted)', cursor: 'pointer' }}>{ct.label}</button>))}</div></div>
               {lessonData.contentType === 'video' && (
@@ -390,9 +401,19 @@ export default function AdminCoursesPage() {
               )}
               <div style={{ marginTop: '20px' }}><label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><input type="checkbox" checked={lessonData.isFree} onChange={(e) => setLessonData({ ...lessonData, isFree: e.target.checked })} style={{ width: '18px', height: '18px' }} /><span style={{ color: 'var(--text-primary)' }}>Free Preview (available without enrollment)</span></label></div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-primary)', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowContentModal(false)} className="btn" style={{ background: 'transparent', border: '1px solid var(--border-primary)' }}>Cancel</button>
-              <button onClick={() => addLesson(editingSection.courseId, editingSection.sectionIndex)} className="btn btn-primary">Add Lesson</button>
+            <div className="flex items-center justify-end gap-3 border-t border-[var(--border-primary)] px-6 py-4">
+              <button
+                onClick={() => setShowContentModal(false)}
+                className="btn border border-[var(--border-primary)] bg-transparent"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => addLesson(editingSection.courseId, editingSection.sectionIndex)}
+                className="btn btn-primary"
+              >
+                Add Lesson
+              </button>
             </div>
           </div>
         </div>

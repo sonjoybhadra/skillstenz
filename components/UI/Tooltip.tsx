@@ -4,69 +4,38 @@ import React, { useState } from 'react';
 
 export interface TooltipProps {
   content: string;
-  position?: 'top' | 'bottom' | 'left' | 'right';
   children: React.ReactNode;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  className?: string;
 }
 
 export default function Tooltip({
   content,
-  position = 'top',
   children,
+  position = 'top',
+  className = '',
 }: TooltipProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  const positionStyles: Record<string, React.CSSProperties> = {
-    top: {
-      bottom: '100%',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      marginBottom: '8px',
-    },
-    bottom: {
-      top: '100%',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      marginTop: '8px',
-    },
-    left: {
-      right: '100%',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      marginRight: '8px',
-    },
-    right: {
-      left: '100%',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      marginLeft: '8px',
-    },
+  const positionClasses: Record<string, string> = {
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
   };
 
   return (
     <div
-      style={{ position: 'relative', display: 'inline-flex' }}
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
+      className={`relative inline-block ${className}`}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
     >
       {children}
-      {isVisible && (
-        <div
-          style={{
-            position: 'absolute',
-            padding: '8px 12px',
-            background: 'var(--text-primary)',
-            color: 'var(--bg-primary)',
-            fontSize: '12px',
-            fontWeight: 500,
-            borderRadius: 'var(--radius-md)',
-            whiteSpace: 'nowrap',
-            zIndex: 100,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            animation: 'fadeIn 0.15s ease',
-            ...positionStyles[position],
-          }}
-        >
-          {content}
+      {visible && (
+        <div className={`absolute z-50 ${positionClasses[position]}`}>
+          <div className="px-3 py-2 text-sm text-white bg-gray-900 dark:bg-slate-700 rounded-lg shadow-lg whitespace-nowrap">
+            {content}
+          </div>
         </div>
       )}
     </div>

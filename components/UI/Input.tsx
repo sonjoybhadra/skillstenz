@@ -1,121 +1,63 @@
 'use client';
 
-import React, { forwardRef } from 'react';
+import React from 'react';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  hint?: string;
+  helperText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  inputSize?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  (
-    {
-      label,
-      error,
-      hint,
-      leftIcon,
-      rightIcon,
-      inputSize = 'md',
-      fullWidth = true,
-      className = '',
-      style,
-      ...props
-    },
-    ref
-  ) => {
-    const sizeStyles: Record<string, React.CSSProperties> = {
-      sm: { padding: '8px 12px', fontSize: '13px' },
-      md: { padding: '12px 16px', fontSize: '14px' },
-      lg: { padding: '16px 20px', fontSize: '16px' },
-    };
+export default function Input({
+  label,
+  error,
+  helperText,
+  leftIcon,
+  rightIcon,
+  fullWidth = false,
+  className = '',
+  id,
+  ...props
+}: InputProps) {
+  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
-    const inputStyles: React.CSSProperties = {
-      width: fullWidth ? '100%' : 'auto',
-      background: 'var(--bg-secondary)',
-      border: error ? '2px solid #ef4444' : '2px solid var(--border-primary)',
-      borderRadius: 'var(--radius-md)',
-      color: 'var(--text-primary)',
-      outline: 'none',
-      transition: 'all 0.2s ease',
-      paddingLeft: leftIcon ? '44px' : sizeStyles[inputSize].padding,
-      paddingRight: rightIcon ? '44px' : sizeStyles[inputSize].padding,
-      ...sizeStyles[inputSize],
-      ...style,
-    };
+  const baseClasses = 'w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors';
+  const errorClasses = error ? 'border-red-500 focus:ring-red-500' : '';
+  const iconClasses = leftIcon ? 'pl-11' : '';
 
-    return (
-      <div style={{ marginBottom: '16px', width: fullWidth ? '100%' : 'auto' }}>
-        {label && (
-          <label
-            style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-            }}
-          >
-            {label}
-          </label>
+  return (
+    <div className={`${fullWidth ? 'w-full' : ''} ${className}`}>
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        {leftIcon && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            {leftIcon}
+          </span>
         )}
-        <div style={{ position: 'relative' }}>
-          {leftIcon && (
-            <span
-              style={{
-                position: 'absolute',
-                left: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              {leftIcon}
-            </span>
-          )}
-          <input
-            ref={ref}
-            style={inputStyles}
-            className={`ui-input ui-input-${inputSize} ${error ? 'ui-input-error' : ''} ${className}`}
-            {...props}
-          />
-          {rightIcon && (
-            <span
-              style={{
-                position: 'absolute',
-                right: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              {rightIcon}
-            </span>
-          )}
-        </div>
-        {error && (
-          <p style={{ marginTop: '6px', fontSize: '13px', color: '#ef4444' }}>
-            {error}
-          </p>
-        )}
-        {hint && !error && (
-          <p style={{ marginTop: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>
-            {hint}
-          </p>
+        <input
+          id={inputId}
+          className={`${baseClasses} ${errorClasses} ${iconClasses}`}
+          {...props}
+        />
+        {rightIcon && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            {rightIcon}
+          </span>
         )}
       </div>
-    );
-  }
-);
-
-Input.displayName = 'Input';
-
-export default Input;
+      {error && (
+        <p className="mt-1.5 text-sm text-red-500">{error}</p>
+      )}
+      {helperText && !error && (
+        <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">{helperText}</p>
+      )}
+    </div>
+  );
+}

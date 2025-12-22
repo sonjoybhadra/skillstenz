@@ -9,8 +9,8 @@ export default function FAQPage() {
 
   const faqs = [
     {
-      question: 'What is LearnHub?',
-      answer: 'LearnHub is a comprehensive online learning platform that offers courses, tutorials, and resources for programming and technology. We provide free and premium content to help you learn at your own pace.'
+      question: 'What is TechTooTalk?',
+      answer: 'TechTooTalk is a comprehensive online learning platform that offers courses, tutorials, and resources for programming and technology. We provide free and premium content to help you learn at your own pace.'
     },
     {
       question: 'Are the courses free?',
@@ -26,7 +26,7 @@ export default function FAQPage() {
     },
     {
       question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for certain regions. All payments are processed securely.'
+      answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, UPI, and bank transfers for certain regions. All payments are processed securely.'
     },
     {
       question: 'Is there a refund policy?',
@@ -46,7 +46,7 @@ export default function FAQPage() {
     },
     {
       question: 'Can I become an instructor?',
-      answer: 'Yes! We\'re always looking for qualified instructors. Visit our Careers page or contact us to learn about becoming a LearnHub instructor.'
+      answer: 'Yes! We\'re always looking for qualified instructors. Visit our Careers page or contact us to learn about becoming a TechTooTalk instructor.'
     },
   ];
 
@@ -55,23 +55,23 @@ export default function FAQPage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-4">Frequently Asked Questions</h1>
-          <p className="text-lg text-[var(--text-secondary)]">
-            Find answers to common questions about LearnHub
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Find answers to common questions about TechTooTalk
           </p>
         </div>
 
         {/* FAQ List */}
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="card overflow-hidden">
+            <div key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex items-center justify-between text-left"
+                className="w-full flex items-center justify-between text-left p-5 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               >
-                <h3 className="font-medium text-[var(--text-primary)] pr-4">{faq.question}</h3>
+                <h3 className="font-medium text-gray-900 dark:text-white pr-4">{faq.question}</h3>
                 <svg
-                  className={`w-5 h-5 text-[var(--text-muted)] transition-transform ${
+                  className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0 ${
                     openIndex === index ? 'rotate-180' : ''
                   }`}
                   fill="none"
@@ -82,21 +82,26 @@ export default function FAQPage() {
                 </svg>
               </button>
               {openIndex === index && (
-                <p className="mt-4 text-[var(--text-secondary)] border-t border-[var(--border-primary)] pt-4">
-                  {faq.answer}
-                </p>
+                <div className="px-5 pb-5">
+                  <p className="text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-slate-700 pt-4">
+                    {faq.answer}
+                  </p>
+                </div>
               )}
             </div>
           ))}
         </div>
 
         {/* Still have questions */}
-        <div className="mt-12 text-center card bg-[var(--bg-secondary)]">
-          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Still have questions?</h2>
-          <p className="text-[var(--text-secondary)] mb-4">
+        <div className="mt-12 text-center bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Still have questions?</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Can&apos;t find the answer you&apos;re looking for? Contact our support team.
           </p>
-          <Link href="/contact" className="btn-primary inline-block">
+          <Link 
+            href="/contact" 
+            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+          >
             Contact Support
           </Link>
         </div>

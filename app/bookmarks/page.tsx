@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Bookmark {
   _id: string;
   itemType: 'course' | 'topic' | 'article' | 'mcq';
@@ -93,11 +95,11 @@ export default function BookmarksPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'course': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'topic': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'article': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'mcq': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+      case 'course': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'topic': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+      case 'article': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'mcq': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
+      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300';
     }
   };
 
@@ -106,7 +108,7 @@ export default function BookmarksPage() {
       <Layout>
         <div className="max-w-5xl mx-auto px-4 py-12">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
         </div>
       </Layout>
@@ -118,8 +120,8 @@ export default function BookmarksPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">My Bookmarks</h1>
-          <p className="text-[var(--muted-foreground)]">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Bookmarks</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Save courses, topics, and articles for quick access later.
           </p>
         </div>
@@ -132,8 +134,8 @@ export default function BookmarksPage() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--border)]'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}s
@@ -144,15 +146,18 @@ export default function BookmarksPage() {
 
         {/* Bookmarks List */}
         {filteredBookmarks.length === 0 ? (
-          <div className="card text-center py-16">
+          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-center py-16 px-6">
             <div className="text-6xl mb-4">📑</div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No bookmarks yet
             </h2>
-            <p className="text-[var(--muted-foreground)] mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               Start exploring courses and save items you want to revisit later.
             </p>
-            <Link href="/" className="btn-primary">
+            <Link 
+              href="/" 
+              className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+            >
               Browse Courses
             </Link>
           </div>
@@ -161,30 +166,30 @@ export default function BookmarksPage() {
             {filteredBookmarks.map((bookmark) => (
               <div
                 key={bookmark._id}
-                className="card flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(bookmark.itemType)}`}>
                       {bookmark.itemType}
                     </span>
-                    <span className="text-sm text-[var(--muted-foreground)]">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {new Date(bookmark.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                   <Link 
                     href={getItemLink(bookmark)}
-                    className="text-lg font-semibold text-[var(--foreground)] hover:text-[var(--color-primary)] transition-colors"
+                    className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                   >
                     {bookmark.itemId?.title || bookmark.itemId?.name || 'Untitled'}
                   </Link>
                   {bookmark.itemId?.description && (
-                    <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                       {bookmark.itemId.description}
                     </p>
                   )}
                   {bookmark.notes && (
-                    <p className="text-sm text-[var(--color-primary)] mt-2 italic">
+                    <p className="text-sm text-blue-500 mt-2 italic">
                       Note: {bookmark.notes}
                     </p>
                   )}
@@ -192,13 +197,13 @@ export default function BookmarksPage() {
                 <div className="flex gap-2">
                   <Link
                     href={getItemLink(bookmark)}
-                    className="btn-primary"
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     View
                   </Link>
                   <button
                     onClick={() => removeBookmark(bookmark._id)}
-                    className="px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm font-medium"
                   >
                     Remove
                   </button>
@@ -211,21 +216,21 @@ export default function BookmarksPage() {
         {/* Stats */}
         {bookmarks.length > 0 && (
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="card text-center">
-              <div className="text-3xl font-bold text-[var(--color-primary)]">{bookmarks.length}</div>
-              <div className="text-sm text-[var(--muted-foreground)]">Total Bookmarks</div>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
+              <div className="text-3xl font-bold text-blue-500">{bookmarks.length}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Total Bookmarks</div>
             </div>
-            <div className="card text-center">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
               <div className="text-3xl font-bold text-blue-500">{bookmarks.filter(b => b.itemType === 'course').length}</div>
-              <div className="text-sm text-[var(--muted-foreground)]">Courses</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Courses</div>
             </div>
-            <div className="card text-center">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
               <div className="text-3xl font-bold text-green-500">{bookmarks.filter(b => b.itemType === 'topic').length}</div>
-              <div className="text-sm text-[var(--muted-foreground)]">Topics</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Topics</div>
             </div>
-            <div className="card text-center">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
               <div className="text-3xl font-bold text-purple-500">{bookmarks.filter(b => b.itemType === 'article').length}</div>
-              <div className="text-sm text-[var(--muted-foreground)]">Articles</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Articles</div>
             </div>
           </div>
         )}

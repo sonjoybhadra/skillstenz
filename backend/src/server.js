@@ -62,6 +62,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/bookmarks', require('./routes/bookmarks'));
 app.use('/api/careers', require('./routes/careers'));
+app.use('/api/blog', require('./routes/blog'));
 
 // Health check
 app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));

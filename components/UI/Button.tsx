@@ -23,93 +23,32 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    fontWeight: 600,
-    borderRadius: 'var(--radius-md)',
-    cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    transition: 'all 0.2s ease',
-    border: 'none',
-    outline: 'none',
-    opacity: disabled ? 0.6 : 1,
-    width: fullWidth ? '100%' : 'auto',
-    whiteSpace: 'nowrap',
+  const baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap';
+
+  const sizeClasses: Record<string, string> = {
+    xs: 'px-3 py-1.5 text-xs rounded',
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-5 py-2.5 text-sm',
+    lg: 'px-7 py-3.5 text-base',
+    xl: 'px-9 py-4 text-lg rounded-xl',
   };
 
-  const sizeStyles: Record<string, React.CSSProperties> = {
-    xs: { padding: '6px 12px', fontSize: '12px', borderRadius: 'var(--radius-sm)' },
-    sm: { padding: '8px 16px', fontSize: '13px' },
-    md: { padding: '10px 20px', fontSize: '14px' },
-    lg: { padding: '14px 28px', fontSize: '16px' },
-    xl: { padding: '18px 36px', fontSize: '18px', borderRadius: 'var(--radius-lg)' },
+  const variantClasses: Record<string, string> = {
+    primary: 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/25 focus:ring-blue-500',
+    secondary: 'bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white focus:ring-gray-500',
+    outline: 'bg-transparent border-2 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-white focus:ring-gray-500',
+    ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-gray-400 focus:ring-gray-500',
+    danger: 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/25 focus:ring-red-500',
+    success: 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25 focus:ring-green-500',
+    dark: 'bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 focus:ring-gray-900',
   };
 
-  const variantStyles: Record<string, React.CSSProperties> = {
-    primary: {
-      background: 'var(--bg-accent)',
-      color: 'white',
-      boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.4)',
-    },
-    secondary: {
-      background: 'var(--bg-tertiary)',
-      color: 'var(--text-primary)',
-      boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
-    },
-    outline: {
-      background: 'transparent',
-      color: 'var(--text-primary)',
-      border: '2px solid var(--border-primary)',
-      boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.06)',
-    },
-    ghost: {
-      background: 'transparent',
-      color: 'var(--text-secondary)',
-      boxShadow: 'none',
-    },
-    danger: {
-      background: '#ef4444',
-      color: 'white',
-      boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.4)',
-    },
-    success: {
-      background: '#22c55e',
-      color: 'white',
-      boxShadow: '0 4px 14px 0 rgba(34, 197, 94, 0.4)',
-    },
-    dark: {
-      background: 'var(--text-primary)',
-      color: 'var(--bg-primary)',
-      boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.25)',
-    },
-  };
-
-  const combinedStyles = {
-    ...baseStyles,
-    ...sizeStyles[size],
-    ...variantStyles[variant],
-  };
+  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${fullWidth ? 'w-full' : ''} ${className}`;
 
   return (
-    <button
-      style={combinedStyles}
-      className={`ui-button ui-button-${variant} ui-button-${size} ${className}`}
-      disabled={disabled || loading}
-      {...props}
-    >
+    <button className={classes} disabled={disabled || loading} {...props}>
       {loading && (
-        <span
-          style={{
-            width: size === 'xs' ? '12px' : size === 'sm' ? '14px' : '16px',
-            height: size === 'xs' ? '12px' : size === 'sm' ? '14px' : '16px',
-            border: '2px solid currentColor',
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-          }}
-        />
+        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
       )}
       {!loading && leftIcon}
       {children}

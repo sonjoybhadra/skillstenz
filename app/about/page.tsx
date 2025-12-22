@@ -3,10 +3,10 @@ import Layout from '@/components/Layout';
 
 export default function AboutPage() {
   const team = [
-    { name: 'John Doe', role: 'Founder & CEO', image: '/team/john.jpg' },
-    { name: 'Jane Smith', role: 'CTO', image: '/team/jane.jpg' },
-    { name: 'Mike Johnson', role: 'Lead Developer', image: '/team/mike.jpg' },
-    { name: 'Sarah Williams', role: 'Content Lead', image: '/team/sarah.jpg' },
+    { name: 'John Doe', role: 'Founder & CEO' },
+    { name: 'Jane Smith', role: 'CTO' },
+    { name: 'Mike Johnson', role: 'Lead Developer' },
+    { name: 'Sarah Williams', role: 'Content Lead' },
   ];
 
   const stats = [
@@ -18,52 +18,40 @@ export default function AboutPage() {
 
   return (
     <Layout>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px' }}>
+      <div className="max-w-5xl mx-auto px-6 py-12">
         {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '20px' }}>
-            About LearnHub
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-5">
+            About TechTooTalk
           </h1>
-          <p style={{ fontSize: '18px', color: 'var(--text-secondary)', maxWidth: '700px', margin: '0 auto', lineHeight: '1.7' }}>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
             We&apos;re on a mission to make quality tech education accessible to everyone, everywhere.
           </p>
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '48px' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {stats.map((stat, index) => (
             <div 
               key={index} 
-              style={{ 
-                background: 'var(--bg-secondary)', 
-                border: '1px solid var(--border-primary)', 
-                borderRadius: '6px', 
-                padding: '24px 20px', 
-                textAlign: 'center'
-              }}
+              className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 text-center"
             >
-              <div style={{ fontSize: '28px', marginBottom: '8px' }}>{stat.icon}</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-accent)', marginBottom: '4px' }}>{stat.value}</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{stat.label}</div>
+              <div className="text-3xl mb-2">{stat.icon}</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">{stat.value}</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* Mission */}
-        <div style={{ 
-          background: 'var(--bg-secondary)', 
-          border: '1px solid var(--border-primary)', 
-          borderRadius: '6px', 
-          padding: '28px', 
-          marginBottom: '48px'
-        }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>Our Mission</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.7' }}>
-            LearnHub was founded with a simple belief: that education should be accessible to everyone. 
+        <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8 mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+            TechTooTalk was founded with a simple belief: that education should be accessible to everyone. 
             We provide high-quality programming courses, tutorials, and resources to help learners 
             at all levels achieve their goals.
           </p>
-          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7' }}>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
             Whether you&apos;re just starting your coding journey or looking to advance your career, 
             we have the resources to help you succeed. Our platform offers interactive learning 
             experiences, hands-on projects, and a supportive community of learners.
@@ -71,48 +59,43 @@ export default function AboutPage() {
         </div>
 
         {/* Team */}
-        <div style={{ marginBottom: '48px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '24px', textAlign: 'center' }}>Our Team</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Our Team</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {team.map((member, index) => (
               <div 
                 key={index} 
-                style={{ 
-                  background: 'var(--bg-secondary)', 
-                  border: '1px solid var(--border-primary)', 
-                  borderRadius: '6px', 
-                  padding: '24px 20px', 
-                  textAlign: 'center'
-                }}
+                className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 text-center"
               >
-                <div style={{ 
-                  width: '64px', 
-                  height: '64px', 
-                  margin: '0 auto 12px', 
-                  background: 'var(--bg-primary)', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <div className="w-16 h-16 mx-auto mb-3 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h3 style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '15px' }}>{member.name}</h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{member.role}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{member.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* CTA */}
-        <div style={{ textAlign: 'center', background: 'var(--bg-accent)', borderRadius: '6px', padding: '40px 24px', color: 'white' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '10px' }}>Ready to Start Learning?</h2>
-          <p style={{ opacity: 0.9, marginBottom: '20px', fontSize: '15px' }}>Join thousands of learners who are already building their future with LearnHub.</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/courses" style={{ background: 'white', color: 'var(--bg-accent)', padding: '10px 24px', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '14px' }}>Browse Courses</Link>
-            <Link href="/contact" style={{ background: 'transparent', border: '2px solid white', color: 'white', padding: '10px 24px', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '14px' }}>Contact Us</Link>
+        <div className="text-center bg-blue-600 rounded-xl p-10 text-white">
+          <h2 className="text-2xl font-bold mb-3">Ready to Start Learning?</h2>
+          <p className="text-blue-100 mb-6">Join thousands of learners who are already building their future with TechTooTalk.</p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link 
+              href="/courses" 
+              className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Browse Courses
+            </Link>
+            <Link 
+              href="/contact" 
+              className="px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors"
+            >
+              Contact Us
+            </Link>
           </div>
         </div>
       </div>

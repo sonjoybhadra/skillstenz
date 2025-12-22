@@ -3,37 +3,32 @@
 import React from 'react';
 
 export interface SpinnerProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  color?: string;
-  thickness?: number;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  color?: 'primary' | 'white' | 'gray';
+  className?: string;
 }
 
 export default function Spinner({
   size = 'md',
-  color = 'var(--text-accent)',
-  thickness = 2,
+  color = 'primary',
+  className = '',
 }: SpinnerProps) {
-  const sizeStyles: Record<string, number> = {
-    xs: 14,
-    sm: 18,
-    md: 24,
-    lg: 32,
-    xl: 48,
+  const sizeClasses: Record<string, string> = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+    xl: 'w-12 h-12',
   };
 
-  const dimension = sizeStyles[size];
+  const colorClasses: Record<string, string> = {
+    primary: 'border-blue-500 border-t-transparent',
+    white: 'border-white border-t-transparent',
+    gray: 'border-gray-300 dark:border-slate-600 border-t-gray-500 dark:border-t-slate-400',
+  };
 
   return (
-    <span
-      style={{
-        display: 'inline-block',
-        width: `${dimension}px`,
-        height: `${dimension}px`,
-        border: `${thickness}px solid var(--border-primary)`,
-        borderTopColor: color,
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-      }}
+    <div
+      className={`rounded-full border-2 animate-spin ${sizeClasses[size]} ${colorClasses[color]} ${className}`}
     />
   );
 }

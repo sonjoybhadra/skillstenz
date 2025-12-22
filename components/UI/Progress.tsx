@@ -6,89 +6,48 @@ export interface ProgressProps {
   value: number;
   max?: number;
   size?: 'sm' | 'md' | 'lg';
-  color?: 'primary' | 'success' | 'warning' | 'danger';
+  variant?: 'primary' | 'success' | 'warning' | 'danger';
   showLabel?: boolean;
-  animated?: boolean;
+  className?: string;
 }
 
 export default function Progress({
   value,
   max = 100,
   size = 'md',
-  color = 'primary',
+  variant = 'primary',
   showLabel = false,
-  animated = false,
+  className = '',
 }: ProgressProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
-  const sizeStyles: Record<string, string> = {
-    sm: '4px',
-    md: '8px',
-    lg: '12px',
+  const sizeClasses: Record<string, string> = {
+    sm: 'h-1.5',
+    md: 'h-2.5',
+    lg: 'h-4',
   };
 
-  const colorStyles: Record<string, string> = {
-    primary: 'var(--bg-accent)',
-    success: '#22c55e',
-    warning: '#f59e0b',
-    danger: '#ef4444',
+  const variantClasses: Record<string, string> = {
+    primary: 'bg-blue-500',
+    success: 'bg-green-500',
+    warning: 'bg-yellow-500',
+    danger: 'bg-red-500',
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        width: '100%',
-      }}
-    >
-      <div
-        style={{
-          flex: 1,
-          height: sizeStyles[size],
-          background: 'var(--bg-tertiary)',
-          borderRadius: '9999px',
-          overflow: 'hidden',
-        }}
-      >
+    <div className={className}>
+      {showLabel && (
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{Math.round(percentage)}%</span>
+        </div>
+      )}
+      <div className={`w-full bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden ${sizeClasses[size]}`}>
         <div
-          style={{
-            width: `${percentage}%`,
-            height: '100%',
-            background: colorStyles[color],
-            borderRadius: '9999px',
-            transition: 'width 0.3s ease',
-            ...(animated && {
-              backgroundImage: `linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0.15) 25%,
-                transparent 25%,
-                transparent 50%,
-                rgba(255, 255, 255, 0.15) 50%,
-                rgba(255, 255, 255, 0.15) 75%,
-                transparent 75%,
-                transparent
-              )`,
-              backgroundSize: '1rem 1rem',
-              animation: 'progress-stripes 1s linear infinite',
-            }),
-          }}
+          className={`h-full rounded-full transition-all duration-300 ${variantClasses[variant]}`}
+          style={{ width: `${percentage}%` }}
         />
       </div>
-      {showLabel && (
-        <span
-          style={{
-            fontSize: size === 'sm' ? '12px' : '14px',
-            fontWeight: 600,
-            color: 'var(--text-secondary)',
-            minWidth: '40px',
-            textAlign: 'right',
-          }}
-        >
-          {Math.round(percentage)}%
-        </span>
-      )}
     </div>
   );
 }

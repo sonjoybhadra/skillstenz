@@ -3,8 +3,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 interface User {
-  _id: string;
+  _id?: string;
+  id?: string;
   name?: string;
   email: string;
   role: 'admin' | 'student' | 'instructor';

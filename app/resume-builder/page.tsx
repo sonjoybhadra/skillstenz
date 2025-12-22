@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
 import Layout from '@/components/Layout';
@@ -80,7 +81,7 @@ const defaultResume: ResumeData = {
 };
 
 export default function ResumeBuilderPage() {
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resume, setResume] = useState<ResumeData>(defaultResume);
@@ -88,16 +89,6 @@ export default function ResumeBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'contact' | 'professional' | 'education' | 'skills' | 'experience'>('contact');
   const [uploadingImage, setUploadingImage] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/login?redirect=/resume-builder');
-        return;
-      }
-      fetchResume();
-    }
-  }, [isAuthenticated, authLoading, router]);
 
   const fetchResume = useCallback(async () => {
     try {
@@ -154,6 +145,16 @@ export default function ResumeBuilderPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        router.push('/login?redirect=/resume-builder');
+        return;
+      }
+      fetchResume();
+    }
+  }, [isAuthenticated, authLoading, router, fetchResume]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -363,6 +364,30 @@ export default function ResumeBuilderPage() {
     <Layout showSidebar>
        <div className="container">
       <div className="max-w-7xl mx-auto p-4 py-8 m-4">
+        <div className="mb-8 overflow-hidden rounded-2xl border border-[var(--border-primary)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-accent)]/20 to-transparent">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="flex flex-col justify-center px-6 py-6 md:px-8">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-2">
+                Build a job-ready resume with AI
+              </h1>
+              <p className="text-[var(--text-secondary)] mb-4">
+                Use our interactive builder to create a professional, ATS-friendly resume in minutes.
+              </p>
+              <p className="text-sm text-[var(--text-muted)]">
+                Start filling in your details below — your changes are saved securely to your account.
+              </p>
+            </div>
+            <div className="relative h-56 md:h-64 lg:h-72">
+              <Image
+                src="/ai-resume-banner.png"
+                alt="AI powered resume builder"
+                fill
+                priority
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </div>
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-[var(--text-primary)]">Resume Builder</h1>
@@ -388,9 +413,11 @@ export default function ResumeBuilderPage() {
               <div className="p-6 text-center border-b border-[var(--border-primary)]" style={{ backgroundColor: selectedTemplate.color + '10' }}>
                 <div className="relative inline-block mb-4">
                   {resume.profileImage ? (
-                    <img
+                    <Image
                       src={resume.profileImage}
                       alt={resume.fullName}
+                      width={96}
+                      height={96}
                       className="w-24 h-24 rounded-full object-cover border-4 mx-auto"
                       style={{ borderColor: selectedTemplate.color }}
                     />

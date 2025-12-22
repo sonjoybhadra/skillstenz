@@ -15,7 +15,6 @@ interface Technology {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// Default technologies if API fails
 const defaultTechnologies: Technology[] = [
   { _id: '1', name: 'Python', slug: 'python', icon: '🐍', color: '#3776AB', category: 'programming' },
   { _id: '2', name: 'JavaScript', slug: 'javascript', icon: '🟨', color: '#F7DF1E', category: 'programming' },
@@ -36,7 +35,6 @@ export default function TechnologyBar() {
   const [showAll, setShowAll] = useState(false);
   const { settings } = useSettings();
 
-  // Check if tech bar should be visible from settings
   const isVisible = settings.showTechBar !== false;
   const barTitle = settings.techBarTitle || 'Explore';
 
@@ -54,7 +52,6 @@ export default function TechnologyBar() {
         console.error('Failed to fetch technologies:', error);
       }
     };
-    
     fetchTechnologies();
   }, []);
 
@@ -63,35 +60,21 @@ export default function TechnologyBar() {
   if (!isVisible) return null;
 
   return (
-    <div className="technology-bar">
-      <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ 
-          fontSize: '12px', 
-          fontWeight: 600, 
-          color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          whiteSpace: 'nowrap'
-        }}>
+    <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-2 sticky top-16 z-40">
+      <div className="max-w-7xl mx-auto px-4 flex items-center gap-3">
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide whitespace-nowrap">
           {barTitle}:
         </span>
         
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '6px', 
-          flex: 1,
-          overflow: 'hidden',
-          flexWrap: 'wrap'
-        }}>
+        <div className="flex items-center gap-1.5 flex-1 overflow-hidden flex-wrap">
           {displayedTechs.map((tech) => (
             <Link
               key={tech._id}
               href={`/${tech.slug}`}
-              className="tech-bar-item"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-200 whitespace-nowrap"
               title={tech.name}
             >
-              <span style={{ fontSize: '14px' }}>{tech.icon}</span>
+              <span>{tech.icon}</span>
               <span>{tech.name}</span>
             </Link>
           ))}
@@ -99,85 +82,20 @@ export default function TechnologyBar() {
           {technologies.length > 12 && (
             <button 
               onClick={() => setShowAll(!showAll)}
-              className="tech-bar-toggle"
+              className="px-2.5 py-1 text-xs font-medium text-blue-500 bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-colors"
             >
               {showAll ? '◀ Less' : `+${technologies.length - 12} More`}
             </button>
           )}
         </div>
 
-        <Link href="/technologies" className="tech-bar-view-all">
+        <Link 
+          href="/technologies" 
+          className="text-xs font-medium text-blue-500 hover:text-blue-600 whitespace-nowrap"
+        >
           View All →
         </Link>
       </div>
-
-      <style jsx>{`
-        .technology-bar {
-          background: var(--bg-secondary);
-          border-bottom: 1px solid var(--border-primary);
-          padding: 8px 0;
-          position: sticky;
-          top: var(--navbar-height);
-          z-index: var(--z-sticky);
-        }
-        
-        .tech-bar-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 4px 10px;
-          font-size: 12px;
-          font-weight: 500;
-          color: var(--text-secondary);
-          background: var(--bg-card);
-          border: 1px solid var(--border-primary);
-          border-radius: 20px;
-          transition: all 0.2s;
-          white-space: nowrap;
-        }
-        
-        .tech-bar-item:hover {
-          background: var(--bg-accent);
-          color: white;
-          border-color: var(--bg-accent);
-          transform: translateY(-1px);
-        }
-        
-        .tech-bar-toggle {
-          padding: 4px 10px;
-          font-size: 12px;
-          font-weight: 500;
-          color: var(--text-accent);
-          background: transparent;
-          border: 1px dashed var(--border-accent);
-          border-radius: 20px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .tech-bar-toggle:hover {
-          background: var(--bg-accent);
-          color: white;
-          border-style: solid;
-        }
-        
-        .tech-bar-view-all {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-accent);
-          white-space: nowrap;
-        }
-        
-        .tech-bar-view-all:hover {
-          text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-          .technology-bar {
-            display: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

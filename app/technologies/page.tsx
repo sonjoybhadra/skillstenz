@@ -36,28 +36,17 @@ export default function TechnologiesPage() {
     fetchData();
   }, []);
 
-  // Get icon for technology - use category icon or fallback
   const getTechIcon = (tech: Technology): string => {
     if (tech.icon) return tech.icon;
     if (tech.category?.icon) return tech.category.icon;
-    
     const icons: Record<string, string> = {
-      'ai': '🤖',
-      'ai-agents': '🦾',
-      'machine-learning': '🧠',
-      'langchain': '🔗',
-      'prompt-engineering': '💬',
-      'rag-systems': '📚',
-      'nlp': '💭',
-      'computer-vision': '👁️',
-      'python-for-ai': '🐍',
-      'genai-applications': '✨',
-      'default': '📘'
+      'ai': '🤖', 'ai-agents': '🦾', 'machine-learning': '🧠', 'langchain': '🔗',
+      'python': '🐍', 'javascript': '🟨', 'react': '⚛️', 'nodejs': '🟢',
+      'java': '☕', 'typescript': '🔷', 'default': '📘'
     };
     return icons[tech.slug || ''] || icons['default'];
   };
 
-  // Filter technologies based on search and category
   const filteredTechnologies = useMemo(() => {
     return technologies.filter(tech => {
       const matchesSearch = tech.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -65,29 +54,23 @@ export default function TechnologiesPage() {
       
       if (selectedCategory === 'all') return matchesSearch;
       
-      // Match by category ID or slug
-      const techCategoryId = tech.category?._id || (tech as { categoryId?: string }).categoryId;
+      const techCategoryId = tech.category?._id;
       const techCategorySlug = tech.category?.slug;
       
       return matchesSearch && (techCategoryId === selectedCategory || techCategorySlug === selectedCategory);
     });
   }, [technologies, searchQuery, selectedCategory]);
 
-  // Group technologies by category
   const groupedTechnologies = useMemo(() => {
     const groups: Record<string, { category: TechnologyCategory | null; technologies: Technology[] }> = {};
     
-    // Initialize groups for all categories
     categories.forEach(cat => {
       groups[cat._id] = { category: cat, technologies: [] };
     });
-    
-    // Add uncategorized group
     groups['uncategorized'] = { category: null, technologies: [] };
     
-    // Assign technologies to groups
     filteredTechnologies.forEach(tech => {
-      const categoryId = tech.category?._id || (tech as { categoryId?: string }).categoryId;
+      const categoryId = tech.category?._id;
       if (categoryId && groups[categoryId]) {
         groups[categoryId].technologies.push(tech);
       } else {
@@ -95,7 +78,6 @@ export default function TechnologiesPage() {
       }
     });
     
-    // Filter out empty groups and sort by category order
     return Object.values(groups)
       .filter(group => group.technologies.length > 0)
       .sort((a, b) => {
@@ -105,7 +87,6 @@ export default function TechnologiesPage() {
       });
   }, [filteredTechnologies, categories]);
 
-  // Category tabs including "All"
   const categoryTabs = useMemo(() => {
     return [
       { _id: 'all', name: 'All Technologies', icon: '🔥', slug: 'all' },
@@ -113,297 +94,156 @@ export default function TechnologiesPage() {
     ];
   }, [categories]);
 
-  // Technology Card Component
-  const TechnologyCard = ({ technology, getTechIcon }: { technology: Technology; getTechIcon: (tech: Technology) => string }) => (
-    <Link
-      href={`/technologies/${technology.slug}`}
-      className="card"
-      style={{ 
-        overflow: 'hidden', 
-        transition: 'all 0.3s ease',
-        cursor: 'pointer'
-      }}
-    >
-      {/* Icon Header */}
-      <div style={{ 
-        height: '120px', 
-        background: technology.color || technology.category?.color || 'linear-gradient(135deg, var(--bg-accent) 0%, #059669 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '48px',
-        position: 'relative'
-      }}>
-        <span style={{ filter: 'grayscale(0)' }}>
-          {getTechIcon(technology)}
-        </span>
-        {/* Category Badge */}
-        {technology.category && (
-          <span style={{
-            position: 'absolute',
-            top: '8px',
-            right: '8px',
-            background: 'rgba(255,255,255,0.2)',
-            padding: '4px 8px',
-            borderRadius: '12px',
-            fontSize: '11px',
-            color: 'white',
-            fontWeight: 500,
-            backdropFilter: 'blur(4px)'
-          }}>
-            {technology.category.name}
-          </span>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="card-body">
-        <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-          {technology.name}
-        </h3>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-          {technology.description ? technology.description.slice(0, 80) + '...' : 'Learn this technology'}
-        </p>
-        
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-            </svg>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              {technology.courseCount || technology.courses?.length || 0} Courses
-            </span>
-          </div>
-          <span style={{ color: 'var(--text-accent)', fontSize: '14px', fontWeight: 600 }}>
-            Explore →
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="section hero-gradient" style={{ paddingTop: '64px', paddingBottom: '64px' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
-            Explore <span style={{ color: 'rgba(255,255,255,0.8)' }}>AI Technologies</span>
+      <section className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 py-16 md:py-20 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm mb-6">
+            <span className="text-blue-400">●</span>
+            <span>Explore All Technologies</span>
+          </span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Master <span className="text-blue-400">Technologies</span>
           </h1>
-          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px' }}>
-            Master AI, AI Agents, LangChain, RAG Systems, and cutting-edge AI technologies
+          <p className="text-lg text-gray-300 mb-8 max-w-xl mx-auto">
+            Explore our comprehensive collection of programming languages, frameworks, and tools
           </p>
           
-          {/* Search Bar */}
-          <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <div className="navbar-search" style={{ background: 'white', borderRadius: 'var(--radius-lg)' }}>
-              <svg
-                className="navbar-search-icon"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search technologies..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: 'transparent', color: 'var(--text-primary)' }}
-              />
-            </div>
+          <div className="max-w-lg mx-auto relative">
+            <svg 
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" 
+              width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search technologies..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
       </section>
 
-      {/* Category Tabs */}
-      <section style={{ borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }}>
-        <div className="container">
-          <div className="tabs" style={{ justifyContent: 'flex-start', padding: '16px 0', overflowX: 'auto', gap: '8px' }}>
-            {categoryTabs.map((cat) => (
+      {/* Category Tabs & View Toggle */}
+      <section className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 sticky top-16 z-30">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex gap-2 overflow-x-auto">
+              {categoryTabs.map((cat) => (
+                <button
+                  key={cat._id}
+                  onClick={() => setSelectedCategory(cat._id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+                    selectedCategory === cat._id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <span>{cat.icon || '📘'}</span>
+                  <span>{cat.name}</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1 ml-4">
               <button
-                key={cat._id}
-                className={`tab ${selectedCategory === cat._id ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat._id)}
-                style={{
-                  whiteSpace: 'nowrap',
-                  borderRadius: '20px',
-                  padding: '8px 16px',
-                  border: selectedCategory === cat._id ? 'none' : '1px solid var(--border-primary)',
-                  background: selectedCategory === cat._id 
-                    ? ('color' in cat && cat.color ? cat.color : 'var(--bg-accent)') 
-                    : 'transparent',
-                  color: selectedCategory === cat._id ? 'white' : 'var(--text-secondary)'
-                }}
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-gray-200 dark:bg-slate-700' : 'hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                title="Grid View"
               >
-                <span style={{ marginRight: '8px' }}>{cat.icon}</span>
-                {cat.name}
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
               </button>
-            ))}
+              <button
+                onClick={() => setViewMode('grouped')}
+                className={`p-2 rounded-lg transition-colors ${viewMode === 'grouped' ? 'bg-gray-200 dark:bg-slate-700' : 'hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                title="Grouped View"
+              >
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Technologies Grid */}
-      <section className="section" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="container">
-          {/* Stats Bar */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
-            marginBottom: '32px',
-            flexWrap: 'wrap',
-            gap: '16px'
-          }}>
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                {filteredTechnologies.length} Technologies
-              </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                Start learning with our curated collection
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {/* View Mode Toggle */}
-              <div style={{ display: 'flex', border: '1px solid var(--border-primary)', borderRadius: '8px', overflow: 'hidden' }}>
-                <button 
-                  className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
-                  onClick={() => setViewMode('grid')}
-                  style={{ borderRadius: 0, border: 'none' }}
-                  title="Grid View"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                    <rect x="14" y="14" width="7" height="7" />
-                  </svg>
-                </button>
-                <button 
-                  className={`btn btn-sm ${viewMode === 'grouped' ? 'btn-primary' : 'btn-ghost'}`}
-                  onClick={() => setViewMode('grouped')}
-                  style={{ borderRadius: 0, border: 'none' }}
-                  title="Grouped View"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 6h18" />
-                    <path d="M3 12h18" />
-                    <path d="M3 18h18" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Content */}
+      {/* Content */}
+      <section className="py-12 bg-gray-50 dark:bg-slate-950 min-h-screen">
+        <div className="container mx-auto px-4">
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '64px' }}>
-              <div style={{ fontSize: '16px', color: 'var(--text-muted)' }}>Loading technologies...</div>
+            <div className="flex justify-center py-16">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
-          ) : viewMode === 'grouped' && selectedCategory === 'all' ? (
-            /* Grouped View - Show technologies organized by category */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
-              {groupedTechnologies.map((group) => (
-                <div key={group.category?._id || 'uncategorized'}>
-                  {/* Category Header */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    marginBottom: '24px',
-                    paddingBottom: '16px',
-                    borderBottom: '2px solid var(--border-primary)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ 
-                        fontSize: '32px',
-                        background: group.category?.color || 'var(--bg-accent)',
-                        padding: '12px',
-                        borderRadius: '12px'
-                      }}>
-                        {group.category?.icon || '📂'}
-                      </span>
-                      <div>
-                        <h3 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                          {group.category?.name || 'Other Technologies'}
-                        </h3>
-                        <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                          {group.category?.description || 'Additional technologies'}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ 
-                      padding: '6px 12px', 
-                      background: group.category?.color || 'var(--bg-accent)', 
-                      color: 'white', 
-                      borderRadius: '20px',
-                      fontSize: '14px',
-                      fontWeight: 600
-                    }}>
-                      {group.technologies.length} {group.technologies.length === 1 ? 'Technology' : 'Technologies'}
-                    </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {filteredTechnologies.map((tech) => (
+                <Link
+                  key={tech._id}
+                  href={`/technologies/${tech.slug}`}
+                  className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-700 transition-all hover:shadow-lg text-center group"
+                >
+                  <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">{getTechIcon(tech)}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white text-sm">{tech.name}</span>
+                  {tech.category && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{tech.category.name}</span>
+                  )}
+                  {tech.courseCount && tech.courseCount > 0 && (
+                    <span className="mt-2 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                      {tech.courseCount} courses
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-10">
+              {groupedTechnologies.map((group, idx) => (
+                <div key={group.category?._id || `group-${idx}`}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-2xl">{group.category?.icon || '📂'}</span>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      {group.category?.name || 'Other Technologies'}
+                    </h2>
+                    <span className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-full">
+                      {group.technologies.length}
+                    </span>
                   </div>
-
-                  {/* Technologies Grid within Category */}
-                  <div className="grid grid-4" style={{ gap: '24px' }}>
-                    {group.technologies.map((technology) => (
-                      <TechnologyCard key={technology._id} technology={technology} getTechIcon={getTechIcon} />
+                  {group.category?.description && (
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">{group.category.description}</p>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {group.technologies.map((tech) => (
+                      <Link
+                        key={tech._id}
+                        href={`/technologies/${tech.slug}`}
+                        className="flex flex-col items-center p-5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-700 transition-all hover:shadow-lg text-center group"
+                      >
+                        <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">{getTechIcon(tech)}</span>
+                        <span className="font-medium text-gray-900 dark:text-white text-sm">{tech.name}</span>
+                        {tech.courseCount && tech.courseCount > 0 && (
+                          <span className="mt-1 text-xs text-gray-500 dark:text-gray-400">{tech.courseCount} courses</span>
+                        )}
+                      </Link>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            /* Grid View - Flat list */
-            <div className="grid grid-4" style={{ gap: '24px' }}>
-              {filteredTechnologies.map((technology) => (
-                <TechnologyCard key={technology._id} technology={technology} getTechIcon={getTechIcon} />
-              ))}
-            </div>
           )}
 
-          {/* Empty State */}
-          {filteredTechnologies.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '64px 24px' }}>
-              <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔍</div>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                No technologies found
-              </h3>
-              <p style={{ color: 'var(--text-muted)' }}>
-                Try adjusting your search or filter criteria
-              </p>
+          {!loading && filteredTechnologies.length === 0 && (
+            <div className="text-center py-16">
+              <span className="text-6xl mb-4 block">🔍</span>
+              <p className="text-gray-500 dark:text-gray-400 text-lg">No technologies found matching your search</p>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="section" style={{ background: 'var(--bg-primary)' }}>
-        <div className="container">
-          <div className="card" style={{ 
-            padding: '48px', 
-            textAlign: 'center',
-            background: 'linear-gradient(135deg, var(--bg-accent) 0%, #059669 100%)',
-            color: 'white'
-          }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '12px' }}>
-              Can&apos;t find what you&apos;re looking for?
-            </h2>
-            <p style={{ fontSize: '18px', opacity: 0.9, marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>
-              Request a new technology or course and we&apos;ll consider adding it to our platform
-            </p>
-            <button className="btn btn-dark btn-lg">
-              Request a Technology
-            </button>
-          </div>
         </div>
       </section>
     </Layout>

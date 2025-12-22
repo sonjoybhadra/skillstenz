@@ -1,25 +1,23 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthModal from './AuthModal';
 import SearchModal from './SearchModal';
 import { useSettings } from '../lib/settings';
 
-// Primary navigation (after logo)
+// Navigation items
 const primaryNav = [
   { name: 'Technologies', href: '/technologies', icon: '🔧' },
   { name: 'Tutorials', href: '/tutorials', icon: '📖', badge: 'FREE' },
 ];
 
-// Secondary navigation (after search)
 const secondaryNav = [
   { name: 'Courses', href: '/courses', icon: '🎓' },
   { name: 'Tools', href: '/tools', icon: '🛠️' },
 ];
 
-// Bottom menu bar items with icons
 const bottomMenuItems = [
   { name: 'Home', href: '/', icon: '🏠' },
   { name: 'Roadmaps', href: '/roadmaps', icon: '🗺️' },
@@ -33,7 +31,6 @@ const bottomMenuItems = [
 
 export default function Header() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
@@ -43,11 +40,8 @@ export default function Header() {
   const router = useRouter();
   const { settings } = useSettings();
 
-  // Check login status on mount and listen for auth changes
   useEffect(() => {
-    const checkAuth = () => {
-      setIsLoggedIn(!!localStorage.getItem('accessToken'));
-    };
+    const checkAuth = () => setIsLoggedIn(!!localStorage.getItem('accessToken'));
     checkAuth();
     window.addEventListener('storage', checkAuth);
     window.addEventListener('authChange', checkAuth);
@@ -57,24 +51,18 @@ export default function Header() {
     };
   }, []);
 
-  // Apply theme to document on mount
   useEffect(() => {
     const saved = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const initialTheme = saved || 'light';
     setTheme(initialTheme);
-    document.documentElement.setAttribute('data-theme', initialTheme);
+    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
   }, []);
-
-  // Apply theme changes
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   const toggleSidebar = () => {
@@ -83,14 +71,15 @@ export default function Header() {
 
   return (
     <>
-      <header className="navbar navbar-full-width">
-        <div className="navbar-inner">
-          {/* Left Section: Toggle + Logo + Primary Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Main Header */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 z-50">
+        <div className="h-full max-w-full mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
+          {/* Left: Toggle + Logo + Primary Nav */}
+          <div className="flex items-center gap-3">
             {isLoggedIn && (
               <button
                 onClick={toggleSidebar}
-                className="sidebar-toggle-btn"
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                 aria-label="Toggle menu"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -99,54 +88,69 @@ export default function Header() {
               </button>
             )}
 
-            <Link href="/" className="navbar-logo">
-              <div className="navbar-logo-icon">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                 {settings.logo ? (
-                  <img src={theme === 'dark' && settings.logoDark ? settings.logoDark : settings.logo} alt={settings.siteName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={theme === 'dark' && settings.logoDark ? settings.logoDark : settings.logo} alt={settings.siteName} className="w-full h-full object-cover rounded-lg" />
                 ) : (
                   settings.logoIcon || 'T'
                 )}
               </div>
-              <span className="desktop-only">
+              <span className="hidden md:inline text-lg font-bold text-gray-900 dark:text-white">
                 {settings.logoText?.replace(settings.logoAccentText, '') || 'TechToo'}
-                <span style={{ color: 'var(--text-accent)' }}>{settings.logoAccentText || 'Talk'}</span>
+                <span className="text-blue-500">{settings.logoAccentText || 'Talk'}</span>
               </span>
             </Link>
 
-            {/* Primary Nav Links (After Logo) */}
-            <nav className="primary-nav desktop-only">
+            {/* Primary Nav - Desktop */}
+            <nav className="hidden lg:flex items-center gap-1 ml-6 pl-6 border-l border-gray-200 dark:border-slate-700">
               {primaryNav.map((item) => (
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
-                  className={`primary-nav-link ${pathname === item.href || pathname.startsWith(item.href + '/') ? 'active' : ''}`}
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                    pathname === item.href || pathname?.startsWith(item.href + '/')
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <span>{item.icon}</span>
                   <span>{item.name}</span>
-                  {item.badge && <span className="nav-badge">{item.badge}</span>}
+                  {item.badge && (
+                    <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>
           </div>
 
-          {/* Center: Search */}
-          <div className="navbar-search desktop-only" onClick={() => setSearchModalOpen(true)} style={{ cursor: 'pointer', flex: '0 1 400px' }}>
-            <svg className="navbar-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {/* Center: Search - Desktop */}
+          <div
+            onClick={() => setSearchModalOpen(true)}
+            className="hidden md:flex items-center gap-2 flex-1 max-w-md px-4 py-2.5 bg-gray-100 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <input type="text" placeholder="Search courses, tutorials..." value={searchQuery} readOnly style={{ cursor: 'pointer' }} />
+            <span className="text-sm text-gray-500 dark:text-gray-400">Search courses, tutorials...</span>
           </div>
 
-          {/* Right Section: Secondary Nav + Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Secondary Nav Links (After Search) */}
-            <nav className="secondary-nav desktop-only">
+          {/* Right: Secondary Nav + Actions */}
+          <div className="flex items-center gap-4">
+            {/* Secondary Nav - Desktop */}
+            <nav className="hidden lg:flex items-center gap-1">
               {secondaryNav.map((item) => (
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
-                  className={`secondary-nav-link ${pathname === item.href ? 'active' : ''}`}
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    pathname === item.href
+                      ? 'text-blue-500'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <span>{item.icon}</span>
                   <span>{item.name}</span>
@@ -154,8 +158,13 @@ export default function Header() {
               ))}
             </nav>
 
-            <div className="navbar-actions">
-              <button onClick={toggleTheme} className="theme-toggle" aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
+            <div className="flex items-center gap-2">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
                 {theme === 'light' ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -168,18 +177,35 @@ export default function Header() {
                 )}
               </button>
 
+              {/* Auth Buttons */}
               {isLoggedIn ? (
-                <button className="avatar" onClick={() => router.push('/dashboard')}>U</button>
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="w-9 h-9 rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center hover:bg-blue-600 transition-colors"
+                >
+                  U
+                </button>
               ) : (
                 <>
-                  <button onClick={() => { setAuthModalMode('login'); setAuthModalOpen(true); }} className="btn btn-ghost btn-sm desktop-only">Login</button>
-                  <button onClick={() => { setAuthModalMode('register'); setAuthModalOpen(true); }} className="btn btn-primary btn-sm">Sign Up</button>
+                  <button
+                    onClick={() => { setAuthModalMode('login'); setAuthModalOpen(true); }}
+                    className="hidden md:block px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => { setAuthModalMode('register'); setAuthModalOpen(true); }}
+                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                  >
+                    Sign Up
+                  </button>
                 </>
               )}
 
+              {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="mobile-only mobile-menu-btn"
+                className="md:hidden p-2 text-gray-500 dark:text-gray-400"
                 aria-label="Toggle mobile menu"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -192,52 +218,77 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="mobile-menu">
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {/* Primary Nav */}
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 shadow-lg max-h-[70vh] overflow-y-auto">
+            <nav className="flex flex-col gap-1">
               {primaryNav.map((item) => (
-                <Link key={item.href} href={item.href} className={`navbar-nav-item ${pathname === item.href ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>
-                  {item.icon} {item.name}
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-colors ${
+                    pathname === item.href ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>{item.icon}</span>
+                  <span>{item.name}</span>
                 </Link>
               ))}
-              <div style={{ borderTop: '1px solid var(--border-primary)', margin: '8px 0', paddingTop: '8px' }}>
-                {/* Secondary Nav */}
+              
+              <div className="border-t border-gray-200 dark:border-slate-700 my-2 pt-2">
                 {secondaryNav.map((item) => (
-                  <Link key={item.href} href={item.href} className="navbar-nav-item" onClick={() => setIsMenuOpen(false)}>
-                    {item.icon} {item.name}
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
                   </Link>
                 ))}
               </div>
-              <div style={{ borderTop: '1px solid var(--border-primary)', margin: '8px 0', paddingTop: '8px' }}>
-                {/* Bottom Menu Items */}
+              
+              <div className="border-t border-gray-200 dark:border-slate-700 my-2 pt-2">
                 {bottomMenuItems.map((item) => (
-                  <Link key={item.href} href={item.href} className="navbar-nav-item" onClick={() => setIsMenuOpen(false)}>
-                    {item.icon} {item.name}
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
                   </Link>
                 ))}
               </div>
             </nav>
-            <div style={{ marginTop: '16px' }}>
-              <div className="navbar-search" onClick={() => { setSearchModalOpen(true); setIsMenuOpen(false); }} style={{ cursor: 'pointer' }}>
-                <svg className="navbar-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                <input type="text" placeholder="Search..." readOnly style={{ cursor: 'pointer' }} />
-              </div>
+            
+            <div
+              onClick={() => { setSearchModalOpen(true); setIsMenuOpen(false); }}
+              className="mt-4 flex items-center gap-2 px-4 py-3 bg-gray-100 dark:bg-slate-800 rounded-lg cursor-pointer"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Search...</span>
             </div>
           </div>
         )}
       </header>
 
-      {/* Secondary Menu Bar */}
-      <div className="secondary-menu-bar desktop-only">
-        <div className="secondary-menu-inner">
+      {/* Secondary Menu Bar - Desktop */}
+      <div className="hidden lg:block fixed top-16 left-0 right-0 h-10 bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 z-40">
+        <div className="h-full max-w-full mx-auto px-6 flex items-center gap-1 overflow-x-auto scrollbar-hide">
           {bottomMenuItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`secondary-menu-item ${pathname === item.href ? 'active' : ''}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                pathname === item.href
+                  ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+              }`}
             >
               <span>{item.icon}</span>
               <span>{item.name}</span>
@@ -246,201 +297,8 @@ export default function Header() {
         </div>
       </div>
 
-      <style jsx global>{`
-        .navbar-full-width {
-          width: 100%;
-          max-width: 100%;
-        }
-        
-        .navbar-inner {
-          max-width: 100%;
-          margin: 0 auto;
-          padding: 0 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          height: 100%;
-          gap: 16px;
-        }
-        
-        .sidebar-toggle-btn {
-          padding: 8px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: var(--text-secondary);
-          border-radius: var(--radius-md);
-          transition: all 0.2s;
-        }
-        
-        .sidebar-toggle-btn:hover {
-          background: var(--bg-hover);
-          color: var(--text-primary);
-        }
-        
-        /* Primary Nav (After Logo) */
-        .primary-nav {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          margin-left: 24px;
-          padding-left: 24px;
-          border-left: 1px solid var(--border-primary);
-        }
-        
-        .primary-nav-link {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          border-radius: var(--radius-md);
-          transition: all 0.2s;
-        }
-        
-        .primary-nav-link:hover {
-          background: var(--bg-hover);
-          color: var(--text-primary);
-        }
-        
-        .primary-nav-link.active {
-          background: var(--bg-accent);
-          color: white;
-        }
-        
-        /* Secondary Nav (After Search) */
-        .secondary-nav {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-        
-        .secondary-nav-link {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 12px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text-secondary);
-          border-radius: var(--radius-md);
-          transition: all 0.2s;
-        }
-        
-        .secondary-nav-link:hover {
-          background: var(--bg-hover);
-          color: var(--text-primary);
-        }
-        
-        .secondary-nav-link.active {
-          color: var(--text-accent);
-        }
-        
-        /* Secondary Menu Bar */
-        .secondary-menu-bar {
-          background: var(--bg-secondary);
-          border-bottom: 1px solid var(--border-primary);
-          position: fixed;
-          top: var(--navbar-height);
-          left: 0;
-          right: 0;
-          height: var(--secondary-menu-height);
-          z-index: 99;
-        }
-        
-        .secondary-menu-inner {
-          max-width: 100%;
-          margin: 0 auto;
-          padding: 0 24px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          height: 100%;
-          overflow-x: auto;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        
-        .secondary-menu-inner::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .secondary-menu-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text-secondary);
-          white-space: nowrap;
-          transition: all 0.2s;
-          border-radius: var(--radius-md);
-        }
-        
-        .secondary-menu-item:hover {
-          color: var(--text-primary);
-          background: var(--bg-hover);
-        }
-        
-        .secondary-menu-item.active {
-          color: var(--text-accent);
-          background: rgba(var(--accent-rgb, 34, 197, 94), 0.1);
-        }
-        
-        .mobile-menu {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: var(--bg-primary);
-          border-bottom: 1px solid var(--border-primary);
-          padding: 16px;
-          z-index: 999;
-          box-shadow: var(--shadow-lg);
-          max-height: 70vh;
-          overflow-y: auto;
-        }
-        
-        .mobile-menu-btn {
-          padding: 8px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: var(--text-secondary);
-        }
-        
-        .desktop-only {
-          display: none !important;
-        }
-        
-        .mobile-only {
-          display: flex !important;
-        }
-        
-        @media (min-width: 768px) {
-          .desktop-only {
-            display: flex !important;
-          }
-          .mobile-only {
-            display: none !important;
-          }
-        }
-        
-        @media (max-width: 1024px) {
-          .primary-nav {
-            display: none !important;
-          }
-          .secondary-nav {
-            display: none !important;
-          }
-          .secondary-menu-bar {
-            display: none !important;
-          }
-        }
-      `}</style>
+      {/* Spacer for fixed headers */}
+      <div className="h-16 lg:h-26" />
 
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} initialMode={authModalMode} />
       <SearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />

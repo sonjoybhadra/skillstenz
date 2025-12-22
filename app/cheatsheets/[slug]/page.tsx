@@ -97,8 +97,8 @@ export default function CheatsheetPage() {
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-[var(--foreground)] mb-4">Cheatsheet Not Found</h1>
-            <p className="text-[var(--muted-foreground)] mb-6">The cheatsheet you&apos;re looking for doesn&apos;t exist.</p>
+            <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-4">Cheatsheet Not Found</h1>
+            <p className="text-[var(--text-secondary)] mb-6">The cheatsheet you&apos;re looking for doesn&apos;t exist.</p>
             <Link href="/cheatsheets" className="btn-primary">
               Browse All Cheatsheets
             </Link>
@@ -113,17 +113,17 @@ export default function CheatsheetPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm mb-6">
-          <Link href="/" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Home</Link>
-          <span className="text-[var(--muted-foreground)]">/</span>
-          <Link href="/cheatsheets" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Cheatsheets</Link>
-          <span className="text-[var(--muted-foreground)]">/</span>
-          <span className="text-[var(--foreground)]">{cheatsheet.title}</span>
+          <Link href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Home</Link>
+          <span className="text-[var(--text-secondary)]">/</span>
+          <Link href="/cheatsheets" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Cheatsheets</Link>
+          <span className="text-[var(--text-secondary)]">/</span>
+          <span className="text-[var(--text-primary)]">{cheatsheet.title}</span>
         </nav>
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-4">{cheatsheet.title}</h1>
-          <p className="text-lg text-[var(--muted-foreground)]">{cheatsheet.description}</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">{cheatsheet.title}</h1>
+          <p className="text-lg text-[var(--text-secondary)]">{cheatsheet.description}</p>
         </div>
 
         {/* Actions */}
@@ -146,9 +146,9 @@ export default function CheatsheetPage() {
         <div className="space-y-6">
           {cheatsheet.sections.map((section, index) => (
             <div key={index} className="card">
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-3">{section.title}</h2>
-              <div className="bg-[var(--muted)] rounded-lg p-4">
-                <code className="text-sm text-[var(--foreground)]">{section.content}</code>
+              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">{section.title}</h2>
+              <div className="bg-[var(--bg-secondary)] rounded-lg p-4">
+                <code className="text-sm text-[var(--text-primary)]">{section.content}</code>
               </div>
             </div>
           ))}
@@ -156,14 +156,14 @@ export default function CheatsheetPage() {
 
         {/* Related Cheatsheets */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Related Cheatsheets</h2>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Related Cheatsheets</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(cheatsheetsData)
               .filter(([key]) => key !== slug)
               .slice(0, 4)
               .map(([key, cs]) => (
-                <Link key={key} href={`/cheatsheets/${key}`} className="card hover:border-[var(--primary)] transition-colors">
-                  <h3 className="font-medium text-[var(--foreground)]">{cs.title.replace(' Cheatsheet', '')}</h3>
+                <Link key={key} href={`/cheatsheets/${key}`} className="card hover:border-[var(--bg-accent)] transition-colors">
+                  <h3 className="font-medium text-[var(--text-primary)]">{cs.title.replace(' Cheatsheet', '')}</h3>
                 </Link>
               ))}
           </div>

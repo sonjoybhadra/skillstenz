@@ -14,7 +14,6 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
     setSubmitted(true);
     setTimeout(() => {
       setFormData({ name: '', email: '', subject: '', message: '' });
@@ -23,7 +22,7 @@ export default function ContactPage() {
   };
 
   const contactInfo = [
-    { icon: '📧', label: 'Email', value: 'support@learnhub.com' },
+    { icon: '📧', label: 'Email', value: 'support@techtootalk.com' },
     { icon: '📍', label: 'Address', value: '123 Tech Street, San Francisco, CA' },
     { icon: '📞', label: 'Phone', value: '+1 (555) 123-4567' },
     { icon: '⏰', label: 'Hours', value: 'Mon-Fri: 9AM - 6PM PST' },
@@ -31,114 +30,124 @@ export default function ContactPage() {
 
   return (
     <Layout>
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '48px 24px' }}>
+      <div className="max-w-5xl mx-auto px-6 py-12">
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Contact Us</h1>
-          <p style={{ fontSize: '16px', color: 'var(--text-secondary)' }}>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">Contact Us</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Have questions? We&apos;d love to hear from you.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+        <div className="grid md:grid-cols-2 gap-8">
           {/* Contact Form */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '24px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>Send us a message</h2>
+          <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-5">Send us a message</h2>
             {submitted ? (
-              <div style={{ padding: '32px', textAlign: 'center' }}>
-                <div style={{ width: '56px', height: '56px', margin: '0 auto 16px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              <div className="py-12 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                  <svg className="w-7 h-7 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: '500', color: 'var(--text-primary)' }}>Message Sent!</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>We&apos;ll get back to you shortly.</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Message Sent!</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">We&apos;ll get back to you shortly.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Name</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px' }}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px' }}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Subject</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
                   <input
                     type="text"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px' }}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' }}>Message</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Message</label>
                   <textarea
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     rows={5}
-                    style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: '6px', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     required
                   />
                 </div>
-                <button type="submit" style={{ width: '100%', padding: '12px', background: 'var(--bg-accent)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>Send Message</button>
+                <button 
+                  type="submit" 
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Send Message
+                </button>
               </form>
             )}
           </div>
 
           {/* Contact Info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>Contact Information</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="space-y-6">
+            <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-5">Contact Information</h2>
+              <div className="space-y-4">
                 {contactInfo.map((info, index) => (
-                  <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '24px' }}>{info.icon}</span>
+                  <div key={index} className="flex items-start gap-4">
+                    <span className="text-2xl">{info.icon}</span>
                     <div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{info.label}</div>
-                      <div style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{info.value}</div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{info.label}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{info.value}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', padding: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '16px' }}>Follow Us</h2>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                {['🐦', '💼', '📘', '📺'].map((icon, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    style={{ width: '40px', height: '40px', borderRadius: '6px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', textDecoration: 'none' }}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Need Quick Help?</h3>
+              <p className="text-blue-700 dark:text-blue-400 text-sm mb-4">
+                Check out our FAQ section for instant answers to common questions.
+              </p>
+              <a 
+                href="/faq" 
+                className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                View FAQ
+              </a>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Follow Us</h3>
+              <div className="flex gap-3">
+                {['Twitter', 'LinkedIn', 'GitHub', 'YouTube'].map((platform) => (
+                  <a 
+                    key={platform} 
+                    href="#" 
+                    className="w-10 h-10 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 transition-colors"
                   >
-                    {icon}
+                    {platform[0]}
                   </a>
                 ))}
               </div>
-            </div>
-
-            <div style={{ background: 'var(--bg-accent)', borderRadius: '6px', padding: '24px', color: 'white' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>Need Quick Help?</h2>
-              <p style={{ opacity: 0.9, marginBottom: '16px', fontSize: '14px' }}>Check out our FAQ or documentation for instant answers.</p>
-              <a href="/faq" style={{ display: 'inline-block', padding: '10px 20px', background: 'white', color: 'var(--bg-accent)', borderRadius: '6px', fontWeight: '600', textDecoration: 'none', fontSize: '14px' }}>
-                View FAQ
-              </a>
             </div>
           </div>
         </div>

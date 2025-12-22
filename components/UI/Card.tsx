@@ -16,116 +16,53 @@ export default function Card({
   hoverable = false,
   clickable = false,
   className = '',
-  style,
   ...props
 }: CardProps) {
-  const paddingStyles: Record<string, string> = {
-    none: '0',
-    sm: '12px',
-    md: '20px',
-    lg: '32px',
+  const paddingClasses: Record<string, string> = {
+    none: '',
+    sm: 'p-3',
+    md: 'p-5',
+    lg: 'p-8',
   };
 
-  const variantStyles: Record<string, React.CSSProperties> = {
-    default: {
-      background: 'var(--bg-primary)',
-      border: '1px solid var(--border-primary)',
-      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-    },
-    elevated: {
-      background: 'var(--bg-primary)',
-      border: 'none',
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
-    },
-    outlined: {
-      background: 'transparent',
-      border: '2px solid var(--border-primary)',
-      boxShadow: 'none',
-    },
-    filled: {
-      background: 'var(--bg-secondary)',
-      border: 'none',
-      boxShadow: 'none',
-    },
+  const variantClasses: Record<string, string> = {
+    default: 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm',
+    elevated: 'bg-white dark:bg-slate-800 shadow-lg',
+    outlined: 'bg-transparent border-2 border-gray-200 dark:border-slate-700',
+    filled: 'bg-gray-50 dark:bg-slate-900',
   };
 
-  const baseStyles: React.CSSProperties = {
-    borderRadius: 'var(--radius-lg)',
-    padding: paddingStyles[padding],
-    transition: 'all 0.3s ease',
-    cursor: clickable ? 'pointer' : 'default',
-    ...variantStyles[variant],
-    ...style,
-  };
+  const hoverClasses = hoverable ? 'hover:shadow-lg hover:-translate-y-1 transition-all duration-300' : '';
+  const clickableClasses = clickable ? 'cursor-pointer' : '';
+
+  const classes = `rounded-xl ${paddingClasses[padding]} ${variantClasses[variant]} ${hoverClasses} ${clickableClasses} ${className}`;
 
   return (
-    <div
-      style={baseStyles}
-      className={`ui-card ui-card-${variant} ${hoverable ? 'ui-card-hoverable' : ''} ${className}`}
-      {...props}
-    >
+    <div className={classes} {...props}>
       {children}
     </div>
   );
 }
 
-export function CardHeader({
-  children,
-  className = '',
-  style,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function CardHeader({ children, className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      style={{
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border-primary)',
-        ...style,
-      }}
-      className={`ui-card-header ${className}`}
-      {...props}
-    >
+    <div className={`px-5 py-4 border-b border-gray-200 dark:border-slate-700 ${className}`} {...props}>
       {children}
     </div>
   );
 }
 
-export function CardBody({
-  children,
-  className = '',
-  style,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function CardBody({ children, className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      style={{
-        padding: '20px',
-        ...style,
-      }}
-      className={`ui-card-body ${className}`}
-      {...props}
-    >
+    <div className={`p-5 ${className}`} {...props}>
       {children}
     </div>
   );
 }
 
-export function CardFooter({
-  children,
-  className = '',
-  style,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function CardFooter({ children, className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      style={{
-        padding: '16px 20px',
-        borderTop: '1px solid var(--border-primary)',
-        ...style,
-      }}
-      className={`ui-card-footer ${className}`}
-      {...props}
-    >
+    <div className={`px-5 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 rounded-b-xl ${className}`} {...props}>
       {children}
     </div>
   );

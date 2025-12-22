@@ -1,6 +1,6 @@
 'use client';
 
-import React, { forwardRef } from 'react';
+import React from 'react';
 
 export interface SelectOption {
   value: string;
@@ -8,115 +8,65 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
+  options: SelectOption[];
   label?: string;
   error?: string;
-  hint?: string;
-  options: SelectOption[];
-  selectSize?: 'sm' | 'md' | 'lg';
+  helperText?: string;
   fullWidth?: boolean;
-  placeholder?: string;
+  onChange?: (value: string) => void;
 }
 
-const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  (
-    {
-      label,
-      error,
-      hint,
-      options,
-      selectSize = 'md',
-      fullWidth = true,
-      placeholder,
-      className = '',
-      style,
-      ...props
-    },
-    ref
-  ) => {
-    const sizeStyles: Record<string, React.CSSProperties> = {
-      sm: { padding: '8px 36px 8px 12px', fontSize: '13px' },
-      md: { padding: '12px 40px 12px 16px', fontSize: '14px' },
-      lg: { padding: '16px 44px 16px 20px', fontSize: '16px' },
-    };
+export default function Select({
+  options,
+  label,
+  error,
+  helperText,
+  fullWidth = false,
+  onChange,
+  className = '',
+  id,
+  ...props
+}: SelectProps) {
+  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
 
-    const selectStyles: React.CSSProperties = {
-      width: fullWidth ? '100%' : 'auto',
-      background: 'var(--bg-secondary)',
-      border: error ? '2px solid #ef4444' : '2px solid var(--border-primary)',
-      borderRadius: 'var(--radius-md)',
-      color: 'var(--text-primary)',
-      outline: 'none',
-      transition: 'all 0.2s ease',
-      appearance: 'none',
-      cursor: 'pointer',
-      ...sizeStyles[selectSize],
-      ...style,
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (onChange) {
+      onChange(e.target.value);
+    }
+  };
 
-    return (
-      <div style={{ marginBottom: '16px', width: fullWidth ? '100%' : 'auto' }}>
-        {label && (
-          <label
-            style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-            }}
-          >
-            {label}
-          </label>
-        )}
-        <div style={{ position: 'relative' }}>
-          <select
-            ref={ref}
-            style={selectStyles}
-            className={`ui-select ui-select-${selectSize} ${error ? 'ui-select-error' : ''} ${className}`}
-            {...props}
-          >
-            {placeholder && (
-              <option value="" disabled>
-                {placeholder}
-              </option>
-            )}
-            {options.map((option) => (
-              <option key={option.value} value={option.value} disabled={option.disabled}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <span
-            style={{
-              position: 'absolute',
-              right: '14px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              pointerEvents: 'none',
-              color: 'var(--text-muted)',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </span>
-        </div>
-        {error && (
-          <p style={{ marginTop: '6px', fontSize: '13px', color: '#ef4444' }}>
-            {error}
-          </p>
-        )}
-        {hint && !error && (
-          <p style={{ marginTop: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>
-            {hint}
-          </p>
-        )}
+  const baseClasses = 'w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none cursor-pointer';
+  const errorClasses = error ? 'border-red-500 focus:ring-red-500' : '';
+
+  return (
+    <div className={`${fullWidth ? 'w-full' : ''} ${className}`}>
+      {label && (
+        <label htmlFor={selectId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <select
+          id={selectId}
+          className={`${baseClasses} ${errorClasses}`}
+          onChange={handleChange}
+          {...props}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
       </div>
-    );
-  }
-);
-
-Select.displayName = 'Select';
-
-export default Select;
+      {error && <p className="mt-1.5 text-sm text-red-500">{error}</p>}
+      {helperText && !error && <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">{helperText}</p>}
+    </div>
+  );
+}

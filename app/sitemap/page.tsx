@@ -6,8 +6,8 @@ export default function SitemapPage() {
     {
       category: 'Main Pages',
       pages: [
-        { path: '/', name: 'Home', description: 'LearnHub homepage' },
-        { path: '/about', name: 'About Us', description: 'Learn about LearnHub' },
+        { path: '/', name: 'Home', description: 'TechTooTalk homepage' },
+        { path: '/about', name: 'About Us', description: 'Learn about TechTooTalk' },
         { path: '/contact', name: 'Contact', description: 'Get in touch with us' },
         { path: '/careers', name: 'Careers', description: 'Join our team' },
         { path: '/faq', name: 'FAQ', description: 'Frequently asked questions' },
@@ -17,6 +17,7 @@ export default function SitemapPage() {
       category: 'Learning Resources',
       pages: [
         { path: '/courses', name: 'Courses', description: 'Browse all courses' },
+        { path: '/tutorials', name: 'Tutorials', description: 'Step-by-step guides' },
         { path: '/cheatsheets', name: 'Cheatsheets', description: 'Quick reference guides' },
         { path: '/roadmaps', name: 'Roadmaps', description: 'Learning paths' },
         { path: '/technologies', name: 'Technologies', description: 'Browse by technology' },
@@ -30,12 +31,8 @@ export default function SitemapPage() {
         { path: '/compiler/python', name: 'Python Compiler', description: 'Online Python IDE' },
         { path: '/compiler/javascript', name: 'JavaScript Compiler', description: 'Online JavaScript IDE' },
         { path: '/compiler/java', name: 'Java Compiler', description: 'Online Java IDE' },
-        { path: '/compiler/cpp', name: 'C++ Compiler', description: 'Online C++ IDE' },
         { path: '/code-editor', name: 'Code Editor', description: 'Multi-file code editor' },
         { path: '/whiteboard', name: 'Whiteboard', description: 'Digital whiteboard' },
-        { path: '/tools/qr-generator', name: 'QR Generator', description: 'Generate QR codes' },
-        { path: '/tools/json-formatter', name: 'JSON Formatter', description: 'Format JSON data' },
-        { path: '/tools/base64', name: 'Base64 Tool', description: 'Encode/decode Base64' },
       ]
     },
     {
@@ -46,11 +43,11 @@ export default function SitemapPage() {
         { path: '/progress', name: 'Progress', description: 'Track your progress' },
         { path: '/bookmarks', name: 'Bookmarks', description: 'Saved resources' },
         { path: '/notes', name: 'Notes', description: 'Your notes' },
-        { path: '/profile-setup', name: 'Profile Setup', description: 'Complete your profile' },
+        { path: '/certificates', name: 'Certificates', description: 'Your earned certificates' },
       ]
     },
     {
-      category: 'AI & Assistance',
+      category: 'AI & Tools',
       pages: [
         { path: '/ai-assistant', name: 'AI Assistant', description: 'Get AI-powered help' },
         { path: '/resume-builder', name: 'Resume Builder', description: 'Build your resume' },
@@ -59,7 +56,10 @@ export default function SitemapPage() {
     {
       category: 'Account',
       pages: [
+        { path: '/login', name: 'Login', description: 'Sign in to your account' },
+        { path: '/register', name: 'Register', description: 'Create a new account' },
         { path: '/membership', name: 'Membership', description: 'Upgrade your account' },
+        { path: '/profile', name: 'Profile', description: 'Manage your profile' },
       ]
     },
     {
@@ -72,86 +72,40 @@ export default function SitemapPage() {
     },
   ];
 
-  const dynamicRoutes = [
-    {
-      category: 'Dynamic Course Pages',
-      examples: [
-        '/courses/react',
-        '/courses/javascript',
-        '/courses/python',
-        '/courses/dsa',
-        '/courses/machine-learning',
-      ]
-    },
-    {
-      category: 'Dynamic Cheatsheet Pages',
-      examples: [
-        '/cheatsheets/python',
-        '/cheatsheets/javascript',
-        '/cheatsheets/html',
-        '/cheatsheets/java',
-        '/cheatsheets/cpp',
-      ]
-    },
-    {
-      category: 'Dynamic Roadmap Pages',
-      examples: [
-        '/roadmaps/react',
-        '/roadmaps/javascript',
-        '/roadmaps/typescript',
-        '/roadmaps/php',
-        '/roadmaps/tailwind',
-      ]
-    },
-    {
-      category: 'Dynamic Tool Pages',
-      examples: [
-        '/tools/qr-generator',
-        '/tools/image-optimizer',
-        '/tools/python-formatter',
-        '/tools/whiteboard',
-      ]
-    },
-    {
-      category: 'Technology Pages',
-      examples: [
-        '/dsa',
-        '/javascript',
-        '/python',
-        '/react',
-        '/machine-learning',
-      ]
-    },
-  ];
-
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[var(--foreground)] mb-4">Sitemap</h1>
-          <p className="text-lg text-[var(--muted-foreground)]">
-            Complete list of all pages on LearnHub
+        <div className="mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Sitemap</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Find all the pages and resources available on TechTooTalk.
           </p>
         </div>
 
-        {/* Static Pages */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {siteStructure.map((section) => (
-            <div key={section.category} className="card">
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--border)]">
+        <div className="grid md:grid-cols-2 gap-6">
+          {siteStructure.map((section, idx) => (
+            <div key={idx} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 {section.category}
               </h2>
-              <ul className="space-y-2">
-                {section.pages.map((page) => (
-                  <li key={page.path}>
-                    <Link
-                      href={page.path}
-                      className="flex justify-between items-center py-2 hover:bg-[var(--muted)] px-2 rounded-lg transition-colors group"
+              <ul className="space-y-3">
+                {section.pages.map((page, pageIdx) => (
+                  <li key={pageIdx}>
+                    <Link 
+                      href={page.path} 
+                      className="flex items-start gap-2 group"
                     >
-                      <span className="text-[var(--foreground)] group-hover:text-[var(--primary)]">
-                        {page.name}
-                      </span>
-                      <span className="text-sm text-[var(--muted-foreground)]">{page.path}</span>
+                      <svg className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      <div>
+                        <span className="text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors font-medium text-sm">
+                          {page.name}
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {page.description}
+                        </p>
+                      </div>
                     </Link>
                   </li>
                 ))}
@@ -160,53 +114,13 @@ export default function SitemapPage() {
           ))}
         </div>
 
-        {/* Dynamic Routes */}
-        <div className="card bg-[var(--muted)]">
-          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Dynamic Routes</h2>
-          <p className="text-[var(--muted-foreground)] mb-6">
-            These pages are generated dynamically based on content. Here are some examples:
+        <div className="mt-10 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Can&apos;t find what you&apos;re looking for?{' '}
+            <Link href="/contact" className="text-blue-500 hover:underline">
+              Contact us
+            </Link>
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {dynamicRoutes.map((section) => (
-              <div key={section.category}>
-                <h3 className="font-semibold text-[var(--foreground)] mb-3">{section.category}</h3>
-                <ul className="space-y-1">
-                  {section.examples.map((path) => (
-                    <li key={path}>
-                      <Link
-                        href={path}
-                        className="text-sm text-[var(--primary)] hover:underline"
-                      >
-                        {path}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="mt-12 grid grid-cols-3 gap-4">
-          <div className="card text-center">
-            <div className="text-3xl font-bold text-[var(--primary)]">
-              {siteStructure.reduce((acc, s) => acc + s.pages.length, 0)}
-            </div>
-            <div className="text-sm text-[var(--muted-foreground)]">Static Pages</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-3xl font-bold text-[var(--primary)]">
-              {dynamicRoutes.reduce((acc, s) => acc + s.examples.length, 0)}+
-            </div>
-            <div className="text-sm text-[var(--muted-foreground)]">Dynamic Pages</div>
-          </div>
-          <div className="card text-center">
-            <div className="text-3xl font-bold text-[var(--primary)]">
-              {siteStructure.length}
-            </div>
-            <div className="text-sm text-[var(--muted-foreground)]">Categories</div>
-          </div>
         </div>
       </div>
     </Layout>

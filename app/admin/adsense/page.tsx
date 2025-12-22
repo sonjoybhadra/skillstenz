@@ -19,9 +19,14 @@ export default function AdSenseManagementPage() {
   const [autoAds, setAutoAds] = useState(false);
   const [adUnits, setAdUnits] = useState<AdUnit[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newUnit, setNewUnit] = useState({
+  const [newUnit, setNewUnit] = useState<{
+    name: string;
+    type: 'display' | 'infeed' | 'inArticle' | 'multiplex';
+    placement: string;
+    code: string;
+  }>({
     name: '',
-    type: 'display' as const,
+    type: 'display',
     placement: 'header',
     code: ''
   });

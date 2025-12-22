@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface CourseProgress {
   _id: string;
   courseId: {
@@ -57,7 +59,6 @@ export default function ProgressPage() {
         const enrollments = data.enrollments || [];
         setCourses(enrollments);
         
-        // Calculate stats
         const completed = enrollments.filter((c: CourseProgress) => c.progress >= 100).length;
         setStats({
           totalCourses: enrollments.length,
@@ -96,40 +97,40 @@ export default function ProgressPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>My Progress</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Track your learning journey</p>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">My Progress</h1>
+          <p className="text-gray-600 dark:text-gray-400">Track your learning journey</p>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--bg-accent)' }}></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
           <>
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="card text-center">
-                <div className="text-3xl font-bold" style={{ color: 'var(--bg-accent)' }}>{stats.totalCourses}</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Enrolled Courses</div>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
+                <div className="text-3xl font-bold text-blue-500">{stats.totalCourses}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Enrolled Courses</div>
               </div>
-              <div className="card text-center">
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
                 <div className="text-3xl font-bold text-green-500">{stats.completedCourses}</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Completed</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
               </div>
-              <div className="card text-center">
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
                 <div className="text-3xl font-bold text-blue-500">{stats.totalHours}h</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Learning Time</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Learning Time</div>
               </div>
-              <div className="card text-center">
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 text-center">
                 <div className="text-3xl font-bold text-orange-500">{stats.streak}🔥</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Day Streak</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Day Streak</div>
               </div>
             </div>
 
             {/* Courses Progress */}
             {courses.length > 0 ? (
-              <div className="card mb-8">
-                <h2 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>Course Progress</h2>
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">Course Progress</h2>
                 <div className="space-y-6">
                   {courses.map((course) => (
                     <Link 
@@ -140,18 +141,18 @@ export default function ProgressPage() {
                       className="block group"
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-medium group-hover:opacity-80" style={{ color: 'var(--text-primary)' }}>
+                        <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">
                           {course.courseId?.title || 'Untitled Course'}
                         </h3>
-                        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{Math.round(course.progress || 0)}%</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">{Math.round(course.progress || 0)}%</span>
                       </div>
-                      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-secondary)' }}>
+                      <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${course.progress || 0}%`, background: 'var(--bg-accent)' }}
+                          className="h-full bg-blue-500 rounded-full transition-all"
+                          style={{ width: `${course.progress || 0}%` }}
                         />
                       </div>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                      <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">
                         Last accessed {formatLastAccessed(course.lastAccessedAt)}
                       </p>
                     </Link>
@@ -159,33 +160,36 @@ export default function ProgressPage() {
                 </div>
               </div>
             ) : (
-              <div className="card text-center py-12 mb-8">
+              <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-center py-12 mb-8 px-6">
                 <div className="text-5xl mb-4">📊</div>
-                <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
                   No Progress Yet
                 </h2>
-                <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
+                <p className="mb-4 text-gray-600 dark:text-gray-400">
                   Start learning to track your progress!
                 </p>
-                <Link href="/technologies" className="btn btn-primary">
+                <Link 
+                  href="/technologies" 
+                  className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+                >
                   Browse Courses
                 </Link>
               </div>
             )}
 
             {/* Weekly Activity */}
-            <div className="card">
-              <h2 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>Weekly Activity</h2>
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">Weekly Activity</h2>
               <div className="flex justify-between items-end h-32">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
                   const heights = [60, 80, 45, 90, 70, 30, 50];
                   return (
                     <div key={day} className="flex flex-col items-center gap-2">
                       <div
-                        className="w-8 rounded-t-lg transition-all hover:opacity-80"
-                        style={{ height: `${heights[idx]}%`, background: 'var(--bg-accent)' }}
+                        className="w-8 bg-blue-500 rounded-t-lg transition-all hover:bg-blue-600"
+                        style={{ height: `${heights[idx]}%` }}
                       />
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{day}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{day}</span>
                     </div>
                   );
                 })}

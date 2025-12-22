@@ -1,10 +1,57 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 
-const coursesData: Record<string, { title: string; description: string; instructor: string; duration: string; lessons: number; level: string; topics: { title: string; lessons: { title: string; duration: string }[] }[] }> = {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+interface Lesson {
+  _id: string;
+  title: string;
+  slug: string;
+  content?: string;
+  duration: number;
+  order: number;
+}
+
+interface Section {
+  _id: string;
+  title: string;
+  description: string;
+  lessons: Lesson[];
+  order: number;
+}
+
+interface Course {
+  _id: string;
+  title: string;
+  slug: string;
+  description: string;
+  technology: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  estimatedHours: number;
+  instructor?: string;
+  objectives?: string[];
+  sections: Section[];
+  isFree: boolean;
+  keywords: string[];
+  createdAt: string;
+}
+
+interface FallbackCourse {
+  title: string;
+  description: string;
+  instructor: string;
+  duration: string;
+  lessons: number;
+  level: string;
+  topics: { title: string; lessons: { title: string; duration: string }[] }[];
+}
+
+// Fallback data
+const coursesData: Record<string, FallbackCourse> = {
   'dsa': {
     title: 'Data Structures & Algorithms',
     description: 'Master DSA for coding interviews and competitive programming',
@@ -80,7 +127,62 @@ const coursesData: Record<string, { title: string; description: string; instruct
 export default function CoursePage() {
   const params = useParams();
   const slug = params.slug as string;
-  const course = coursesData[slug];
+  
+  const [course, setCourse] = useState<Course | FallbackCourse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (slug) {
+      fetchCourse();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  const fetchCourse = async () => {
+    try {
+      const response = await fetch(`${API_URL}/courses/${slug}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCourse(data.course || data);
+        // Expand first section by default
+        if ((data.course?.sections || data.sections)?.length > 0) {
+          setExpandedSections(new Set([(data.course?.sections || data.sections)[0]._id]));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch course:', error);
+      // Try fallback data
+      const fallbackCourse = coursesData[slug];
+      if (fallbackCourse) {
+        setCourse(fallbackCourse);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="spinner"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!course) {
     return (
@@ -98,6 +200,13 @@ export default function CoursePage() {
     );
   }
 
+  const isCourseFromDB = course && 'sections' in course;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sections = (isCourseFromDB ? (course as Course).sections : (course as FallbackCourse).topics || []) as any[];
+  const totalLessons = isCourseFromDB 
+    ? (course as Course).sections.reduce((sum, s) => sum + s.lessons.length, 0)
+    : (course as FallbackCourse).lessons || 0;
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -113,13 +222,17 @@ export default function CoursePage() {
         {/* Header */}
         <div className="card mb-8">
           <div className="flex flex-wrap gap-3 mb-4">
-            <span className="px-3 py-1 bg-[var(--primary)] text-white text-sm rounded-full">{course.level}</span>
-            <span className="px-3 py-1 bg-[var(--muted)] text-[var(--foreground)] text-sm rounded-full">{course.duration}</span>
-            <span className="px-3 py-1 bg-[var(--muted)] text-[var(--foreground)] text-sm rounded-full">{course.lessons} Lessons</span>
+            <span className="px-3 py-1 bg-[var(--primary)] text-white text-sm rounded-full">
+              {isCourseFromDB ? (course as Course).level : (course as FallbackCourse).level}
+            </span>
+            {!isCourseFromDB && <span className="px-3 py-1 bg-[var(--muted)] text-[var(--foreground)] text-sm rounded-full">{(course as FallbackCourse).duration}</span>}
+            <span className="px-3 py-1 bg-[var(--muted)] text-[var(--foreground)] text-sm rounded-full">{totalLessons} Lessons</span>
+            {isCourseFromDB && <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">FREE</span>}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-4">{course.title}</h1>
           <p className="text-lg text-[var(--muted-foreground)] mb-4">{course.description}</p>
-          <p className="text-sm text-[var(--muted-foreground)]">Instructor: <span className="text-[var(--foreground)] font-medium">{course.instructor}</span></p>
+          {!isCourseFromDB && <p className="text-sm text-[var(--muted-foreground)]">Instructor: <span className="text-[var(--foreground)] font-medium">{(course as FallbackCourse).instructor}</span></p>}
+          {isCourseFromDB && <p className="text-sm text-[var(--muted-foreground)]">Technology: <span className="text-[var(--foreground)] font-medium">{(course as Course).technology}</span></p>}
         </div>
 
         {/* Actions */}
@@ -143,30 +256,44 @@ export default function CoursePage() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Course Content</h2>
           <div className="space-y-4">
-            {course.topics.map((topic, index) => (
-              <div key={index} className="card">
-                <button className="w-full flex justify-between items-center">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {sections.map((section: any, index: number) => (
+              <div key={isCourseFromDB ? (section as Section)._id : index} className="card">
+                <button 
+                  onClick={() => toggleSection(isCourseFromDB ? (section as Section)._id : index.toString())}
+                  className="w-full flex justify-between items-center"
+                >
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-sm font-medium">
                       {index + 1}
                     </span>
-                    <h3 className="text-lg font-semibold text-[var(--foreground)]">{topic.title}</h3>
+                    <h3 className="text-lg font-semibold text-[var(--foreground)]">{section.title}</h3>
                   </div>
-                  <span className="text-sm text-[var(--muted-foreground)]">{topic.lessons.length} lessons</span>
+                  <span className="text-sm text-[var(--muted-foreground)]">
+                    {isCourseFromDB ? (section as Section).lessons.length : (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (section as any).lessons.length
+                    )} lessons
+                  </span>
                 </button>
-                <div className="mt-4 pl-11 space-y-2">
-                  {topic.lessons.map((lesson, lessonIndex) => (
-                    <div key={lessonIndex} className="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-0">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        </svg>
-                        <span className="text-[var(--foreground)]">{lesson.title}</span>
+                {expandedSections.has(isCourseFromDB ? (section as Section)._id : index.toString()) && (
+                  <div className="mt-4 pl-11 space-y-2">
+                    {(isCourseFromDB ? (section as Section).lessons : (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (section as any).lessons
+                    )).map((lesson: Record<string, unknown>, lessonIndex: number) => (
+                      <div key={lessonIndex} className="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-0">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          </svg>
+                          <span className="text-[var(--foreground)]">{String(lesson.title || '')}</span>
+                        </div>
+                        <span className="text-sm text-[var(--muted-foreground)]">{String(lesson.duration || '')}m</span>
                       </div>
-                      <span className="text-sm text-[var(--muted-foreground)]">{lesson.duration}</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

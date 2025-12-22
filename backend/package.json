@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "jest",
+    "seed": "node scripts/seedUsers.js && node scripts/seedPlans.js && node scripts/seedCourseContent.js",
+    "seed:users": "node scripts/seedUsers.js",
+    "seed:plans": "node scripts/seedPlans.js",
+    "seed:content": "node scripts/seedCourseContent.js"
   },
   "dependencies": {
     "axios": "^1.5.0",

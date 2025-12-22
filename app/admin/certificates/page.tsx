@@ -14,7 +14,11 @@ export default function AdminCertificatesPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [certificates, setCertificates] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<{ 
+    stats: { total: number; active: number; expired: number; revoked: number; byType: Array<{ _id: string; count: number }> };
+    topPerformers?: Array<{ name: string; email: string; count: number }>;
+    recentCertificates?: Array<{ _id: string; userId: { name: string }; certificateType: string; createdAt: string }>;
+  } | null>(null);
   const [filters, setFilters] = useState({
     status: '',
     type: '',

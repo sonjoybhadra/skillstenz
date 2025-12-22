@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface PlanFeature {
   title: string;
   included: boolean;
@@ -44,17 +46,9 @@ interface RazorpayOptions {
   description: string;
   order_id: string;
   handler: (response: RazorpayResponse) => void;
-  prefill: {
-    name?: string;
-    email?: string;
-    contact?: string;
-  };
-  theme: {
-    color: string;
-  };
-  modal?: {
-    ondismiss?: () => void;
-  };
+  prefill: { name?: string; email?: string; contact?: string };
+  theme: { color: string };
+  modal?: { ondismiss?: () => void };
 }
 
 interface RazorpayResponse {
@@ -94,9 +88,7 @@ export default function MembershipPage() {
       if (!token) return;
 
       const response = await fetch(`${API_URL}/memberships`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -114,9 +106,7 @@ export default function MembershipPage() {
       if (!token) return;
 
       const response = await fetch(`${API_URL}/users/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -135,7 +125,6 @@ export default function MembershipPage() {
       return;
     }
 
-    // Load Razorpay script
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
@@ -147,7 +136,7 @@ export default function MembershipPage() {
 
     return () => {
       const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-      if (existingScript && existingScript.parentNode) {
+      if (existingScript?.parentNode) {
         existingScript.parentNode.removeChild(existingScript);
       }
     };
@@ -201,7 +190,7 @@ export default function MembershipPage() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'SkillStenz',
+        name: 'TechTooTalk',
         description: `${plan.name} Plan - ${plan.duration} ${plan.durationType}`,
         order_id: orderData.orderId,
         handler: async (response: RazorpayResponse) => {
@@ -216,7 +205,7 @@ export default function MembershipPage() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                paymentId: orderData.paymentId
+                paymentId: orderData.paymentId,
               }),
             });
 
@@ -234,8 +223,8 @@ export default function MembershipPage() {
           }
         },
         prefill: { name: user?.name || '', email: user?.email || '' },
-        theme: { color: '#2563eb' },
-        modal: { ondismiss: () => setProcessing(null) }
+        theme: { color: '#3b82f6' },
+        modal: { ondismiss: () => setProcessing(null) },
       };
 
       const razorpay = new window.Razorpay(options);
@@ -272,7 +261,7 @@ export default function MembershipPage() {
     return (
       <Layout>
         <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: 'var(--bg-accent)' }}></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       </Layout>
     );
@@ -282,22 +271,22 @@ export default function MembershipPage() {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Choose Your Plan</h1>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
+          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">Choose Your Plan</h1>
+          <p className="text-lg max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
             Unlock your full potential with our premium plans. Get access to all courses, unlimited AI assistance, and more.
           </p>
         </div>
 
         {currentMembership && currentMembership.status === 'active' && (
-          <div className="card mb-8 p-6 border-l-4" style={{ borderLeftColor: 'var(--bg-accent)' }}>
-            <div className="flex justify-between items-center">
+          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl mb-8 p-6 border-l-4 border-l-blue-500">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <p className="text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Current Plan</p>
-                <h3 className="text-xl font-bold capitalize" style={{ color: 'var(--text-primary)' }}>{currentMembership.planType}</h3>
+                <p className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-400">Current Plan</p>
+                <h3 className="text-xl font-bold capitalize text-gray-900 dark:text-white">{currentMembership.planType}</h3>
               </div>
-              <div className="text-right">
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Expires</p>
-                <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+              <div className="sm:text-right">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Expires</p>
+                <p className="font-medium text-gray-900 dark:text-white">
                   {currentMembership.expiryDate ? formatExpiryDate(currentMembership.expiryDate) : 'Never'}
                 </p>
               </div>
@@ -307,21 +296,40 @@ export default function MembershipPage() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => (
-            <div key={plan._id} className={`card relative overflow-hidden transition-all hover:shadow-lg ${plan.isPopular ? 'ring-2 ring-blue-500' : ''} ${isCurrentPlan(plan.slug) ? 'ring-2 ring-green-500' : ''}`}>
+            <div 
+              key={plan._id} 
+              className={`bg-white dark:bg-slate-800 border rounded-xl relative overflow-hidden transition-all hover:shadow-lg ${
+                plan.isPopular 
+                  ? 'border-blue-500 ring-2 ring-blue-500' 
+                  : isCurrentPlan(plan.slug) 
+                    ? 'border-green-500 ring-2 ring-green-500' 
+                    : 'border-gray-200 dark:border-slate-700'
+              }`}
+            >
               {plan.isPopular && (
-                <div className="absolute top-0 right-0 text-white text-xs font-bold px-3 py-1 rounded-bl-lg" style={{ background: 'var(--bg-accent)' }}>POPULAR</div>
+                <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  POPULAR
+                </div>
               )}
               {isCurrentPlan(plan.slug) && (
-                <div className="absolute top-0 left-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-br-lg">CURRENT</div>
+                <div className="absolute top-0 left-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-br-lg">
+                  CURRENT
+                </div>
               )}
 
               <div className="p-6">
-                <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{plan.name}</h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>{plan.description}</p>
+                <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{plan.name}</h3>
+                <p className="text-sm mb-4 text-gray-600 dark:text-gray-400">{plan.description}</p>
 
                 <div className="mb-6">
-                  <span className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>{formatPrice(plan.price, plan.currency)}</span>
-                  {plan.price > 0 && <span className="text-sm ml-1" style={{ color: 'var(--text-muted)' }}>/{formatDuration(plan.duration, plan.durationType)}</span>}
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                    {formatPrice(plan.price, plan.currency)}
+                  </span>
+                  {plan.price > 0 && (
+                    <span className="text-sm ml-1 text-gray-500 dark:text-gray-400">
+                      /{formatDuration(plan.duration, plan.durationType)}
+                    </span>
+                  )}
                 </div>
 
                 <ul className="space-y-3 mb-6">
@@ -336,7 +344,11 @@ export default function MembershipPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       )}
-                      <span className={`text-sm ${feature.included ? '' : 'line-through opacity-50'}`} style={{ color: feature.included ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                      <span className={`text-sm ${
+                        feature.included 
+                          ? 'text-gray-900 dark:text-white' 
+                          : 'line-through opacity-50 text-gray-500 dark:text-gray-400'
+                      }`}>
                         {feature.title}
                       </span>
                     </li>
@@ -346,8 +358,13 @@ export default function MembershipPage() {
                 <button
                   onClick={() => handleSubscribe(plan)}
                   disabled={processing === plan._id || isCurrentPlan(plan.slug)}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${isCurrentPlan(plan.slug) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : plan.isPopular ? 'btn btn-primary' : 'border-2 hover:opacity-80'}`}
-                  style={!isCurrentPlan(plan.slug) && !plan.isPopular ? { borderColor: 'var(--bg-accent)', color: 'var(--bg-accent)' } : {}}
+                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
+                    isCurrentPlan(plan.slug) 
+                      ? 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
+                      : plan.isPopular 
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                        : 'border-2 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                  }`}
                 >
                   {processing === plan._id ? (
                     <span className="flex items-center justify-center gap-2">
@@ -365,9 +382,9 @@ export default function MembershipPage() {
         </div>
 
         <div className="mt-16 text-center">
-          <div className="card inline-block p-6 max-w-2xl">
-            <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>🔒 Secure Payment</h3>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+          <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl inline-block p-6 max-w-2xl">
+            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">🔒 Secure Payment</h3>
+            <p className="text-sm mb-4 text-gray-600 dark:text-gray-400">
               All payments are processed securely through Razorpay. We support UPI, Credit/Debit Cards, Net Banking, and Wallets.
             </p>
             <div className="flex justify-center gap-4 opacity-60">
@@ -379,7 +396,7 @@ export default function MembershipPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <p style={{ color: 'var(--text-muted)' }}>💯 30-day money-back guarantee • Cancel anytime</p>
+          <p className="text-gray-500 dark:text-gray-400">💯 30-day money-back guarantee • Cancel anytime</p>
         </div>
       </div>
     </Layout>

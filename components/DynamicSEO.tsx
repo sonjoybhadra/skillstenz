@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
+import Head from 'next/head';
 
 interface SeoData {
   googleAnalyticsId: string;
@@ -12,9 +13,18 @@ interface SeoData {
   bingVerification: string;
 }
 
+interface DynamicSEOProps {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  ogImage?: string;
+  ogType?: string;
+  canonicalUrl?: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-export function DynamicSEO() {
+export default function DynamicSEO({ title, description, keywords, ogImage, ogType, canonicalUrl }: DynamicSEOProps = {}) {
   const [seoData, setSeoData] = useState<SeoData | null>(null);
 
   useEffect(() => {
