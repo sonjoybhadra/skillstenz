@@ -15,6 +15,10 @@ router.use(checkAuth);
 router.get('/profile', userController.getProfile);
 router.put('/profile', userController.updateProfile);
 
+// Profile image upload
+const uploadProfileImage = require('../middlewares/uploadProfileImage');
+router.post('/profile/image', uploadProfileImage.single('image'), userController.uploadProfileImage);
+
 // Admin only routes
 router.get('/', checkRole(['admin']), userController.getAllUsers);
 router.put('/:userId/status', checkRole(['admin']), userController.updateUserStatus);

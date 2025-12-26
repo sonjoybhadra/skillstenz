@@ -12,8 +12,23 @@ interface LayoutProps {
   showFooter?: boolean;
 }
 
-// Pages that should show sidebar when logged in
-const sidebarPages = ['/dashboard', '/ai-assistant', '/my-courses', '/progress', '/bookmarks', '/certificates', '/resume-builder', '/membership', '/notes', '/my-profile'];
+// Authenticated pages that SHOULD show sidebar (user-specific pages only)
+const authenticatedPages = [
+  '/dashboard',
+  '/my-courses',
+  '/my-profile',
+  '/profile',
+  '/progress',
+  '/bookmarks',
+  '/certificates',
+  '/notes',
+  '/resume-builder',
+  '/ai-assistant',
+  '/membership',
+  '/whiteboard',
+  '/code-editor',
+  '/profile-setup',
+];
 
 // Footer Component
 function Footer() {
@@ -115,10 +130,20 @@ export default function Layout({ children, showSidebar: showSidebarProp, showFoo
       setIsMounted(true);
     };
     checkAuth();
+    
+    // Listen for auth changes
+    window.addEventListener('storage', checkAuth);
+    window.addEventListener('authChange', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('authChange', checkAuth);
+    };
   }, []);
 
-  // Determine if sidebar should show based on path and auth
-  const shouldShowSidebar = showSidebarProp !== false && isLoggedIn && sidebarPages.some(page => pathname?.startsWith(page));
+  // Show sidebar only on authenticated user-specific pages
+  const isAuthenticatedPage = authenticatedPages.some(page => pathname?.startsWith(page));
+  const shouldShowSidebar = showSidebarProp !== false && isLoggedIn && isAuthenticatedPage;
 
   const handleToggle = useCallback(() => {
     setSidebarOpen((prev) => !prev);
@@ -134,13 +159,19 @@ export default function Layout({ children, showSidebar: showSidebarProp, showFoo
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
       <Header />
-      {isMounted && shouldShowSidebar && (
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      )}
-      <main className={`flex-1 ${isMounted && shouldShowSidebar && sidebarOpen ? 'ml-64' : ''}`}>
-        {children}
-      </main>
-      {showFooter && <Footer />}
+      <div className={`flex-1 flex pt-16`}>
+        {isMounted && shouldShowSidebar && (
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        )}
+        <main 
+          className={`flex-1 transition-all duration-300 ${
+            isMounted && shouldShowSidebar && sidebarOpen ? 'lg:ml-64' : ''
+          }`}
+        >
+          {children}
+        </main>
+      </div>
+      {showFooter && !shouldShowSidebar && <Footer />}
     </div>
   );
 }

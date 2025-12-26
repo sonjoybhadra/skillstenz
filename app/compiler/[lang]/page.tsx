@@ -3,9 +3,11 @@
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth';
 import toast from 'react-hot-toast';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const languageConfig: Record<string, { name: string; extension: string; template: string; icon: string }> = {
   'python': {
@@ -83,11 +85,11 @@ const languageConfig: Record<string, { name: string; extension: string; template
   'react': {
     name: 'React.js',
     extension: '.jsx',
-    template: `import React, { useState } from 'react';
+    template: `const { useState } = React;
 
 function App() {
   const [count, setCount] = useState(0);
-  
+
   return (
     <div style={{ padding: '40px', textAlign: 'center' }}>
       <h1>Hello from React! 🚀</h1>
@@ -99,7 +101,8 @@ function App() {
   );
 }
 
-export default App;`,
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);`,
     icon: '⚛️'
   },
   'nextjs': {
@@ -107,11 +110,11 @@ export default App;`,
     extension: '.tsx',
     template: `'use client';
 
-import { useState } from 'react';
+const { useState } = React;
 
-export default function Home() {
+function Home() {
   const [message, setMessage] = useState('Hello from Next.js!');
-  
+
   return (
     <main style={{ padding: '40px', textAlign: 'center' }}>
       <h1>{message}</h1>
@@ -120,7 +123,10 @@ export default function Home() {
       </button>
     </main>
   );
-}`,
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<Home />);`,
     icon: '▲'
   },
   'html': {
@@ -210,6 +216,74 @@ db.users.updateOne(
   },
 };
 
+const previewableLanguages = ['html', 'react', 'nextjs'];
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+const ensureHtmlDocument = (source: string) =>
+  /<html[\s\S]*<\/html>/i.test(source)
+    ? source
+    : `<!DOCTYPE html><html><head><meta charset="utf-8" /></head><body>${source}</body></html>`;
+
+const buildPreviewDocument = (language: string, source: string) => {
+  if (language === 'html') {
+    return ensureHtmlDocument(source);
+  }
+
+  if (language === 'react' || language === 'nextjs') {
+    return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      body { margin: 0; font-family: 'Inter', sans-serif; background: #f5f5f5; }
+      #root { min-height: 100vh; }
+    </style>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel" data-presets="env,react">
+      try {
+        ${source}
+      } catch (error) {
+        const root = document.getElementById('root');
+        if (root) {
+          root.innerHTML = '<pre style="padding:24px;color:#b91c1c;background:#fee2e2;border-radius:12px;">' + (error?.message || error) + '</pre>';
+        }
+      }
+      if (typeof ReactDOM !== 'undefined' && typeof React !== 'undefined') {
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+          if (typeof App !== 'undefined') {
+            const root = ReactDOM.createRoot(rootElement);
+            root.render(React.createElement(App));
+          } else if (typeof Home !== 'undefined') {
+            const root = ReactDOM.createRoot(rootElement);
+            root.render(React.createElement(Home));
+          } else {
+            rootElement.innerHTML = '<p style="padding:24px;text-align:center;">Add an App component to render the preview.</p>';
+          }
+        }
+      }
+    </script>
+  </body>
+</html>`;
+  }
+
+  return `<!DOCTYPE html><html><body><pre style="padding:16px;white-space:pre-wrap;">${escapeHtml(source)}</pre></body></html>`;
+};
+
 export default function CompilerPage() {
   const params = useParams();
   const router = useRouter();
@@ -217,13 +291,19 @@ export default function CompilerPage() {
   const lang = params.lang as string;
   const config = languageConfig[lang];
   const [code, setCode] = useState(config?.template || '');
+  const [previewCode, setPreviewCode] = useState(config?.template || '');
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [showAllLangs, setShowAllLangs] = useState(false);
   const [activeTab, setActiveTab] = useState<'output' | 'preview'>('output');
+  const [previewVersion, setPreviewVersion] = useState(0);
+  const [stdinValue, setStdinValue] = useState('');
 
   // Popular languages to show in quick access
   const popularLanguages = ['python', 'javascript', 'react', 'html', 'java', 'cpp', 'go', 'rust'];
+
+  const canPreview = previewableLanguages.includes(lang);
+  const previewDocument = useMemo(() => buildPreviewDocument(lang, previewCode), [lang, previewCode]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -234,36 +314,62 @@ export default function CompilerPage() {
   useEffect(() => {
     if (config) {
       setCode(config.template);
+      setPreviewCode(config.template);
       setOutput('');
+      setPreviewVersion(0);
+      setActiveTab(previewableLanguages.includes(lang) ? 'preview' : 'output');
+      setStdinValue('');
     }
-  }, [lang]);
+  }, [lang, config]);
 
   const runCode = async () => {
-    setIsRunning(true);
-    setOutput('⏳ Running...\n');
-    
-    // Simulate code execution with realistic output
-    setTimeout(() => {
-      let result = '';
-      
-      if (lang === 'html' || lang === 'react' || lang === 'nextjs') {
-        setActiveTab('preview');
-        result = '✅ Preview updated! Check the Preview tab.';
-      } else if (lang === 'python') {
-        result = 'Hello, World!\nWelcome to SkillStenz!\n\n✅ Process exited with code 0';
-      } else if (lang === 'javascript' || lang === 'typescript' || lang === 'nodejs') {
-        result = 'Hello, World!\nWelcome to SkillStenz!\n\n✅ Process exited with code 0';
-      } else if (lang === 'java') {
-        result = 'Hello, World!\nWelcome to SkillStenz!\n\n✅ Process exited with code 0';
-      } else if (lang === 'sql' || lang === 'mongodb') {
-        result = '┌─────────────────────────────┐\n│ Query executed successfully │\n└─────────────────────────────┘\n\n✅ 1 row(s) returned';
-      } else {
-        result = 'Hello, World!\nWelcome to SkillStenz!\n\n✅ Process exited with code 0';
-      }
-      
-      setOutput(result);
+    if (canPreview) {
+      setIsRunning(true);
+      setPreviewCode(code);
+      setPreviewVersion((prev) => prev + 1);
+      setActiveTab('preview');
+      setOutput('✅ Preview updated! Check the Preview tab to see your latest changes.');
       setIsRunning(false);
-    }, 1200);
+      return;
+    }
+
+    try {
+      setIsRunning(true);
+      setOutput('⏳ Running...\n');
+
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/compiler/run`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          language: lang,
+          code,
+          stdin: stdinValue ? stdinValue : undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Failed to execute code.');
+      }
+
+      const stdout = data.stdout || '';
+      const stderrSection = data.stderr ? `\n\nstderr:\n${data.stderr}` : '';
+      const summary = `\n\nExit code: ${data.exitCode ?? '—'}  |  Time: ${data.executionTime ?? '—'}s  |  Memory: ${data.memory ?? '—'} KB`;
+
+      setOutput(`${stdout}${stderrSection}${summary}`.trimStart());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Execution failed.';
+      setOutput(`❌ ${message}`);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const copyCode = () => {
@@ -307,8 +413,6 @@ export default function CompilerPage() {
       </Layout>
     );
   }
-
-  const canPreview = ['html', 'react', 'nextjs'].includes(lang);
 
   return (
     <Layout showSidebar>
@@ -383,6 +487,29 @@ export default function CompilerPage() {
               }}
               spellCheck={false}
             />
+            <div style={{ borderTop: '1px solid #2d2d2d', padding: '12px 16px', background: '#151515' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
+                Standard Input (optional)
+              </label>
+              <textarea
+                value={stdinValue}
+                onChange={(e) => setStdinValue(e.target.value)}
+                placeholder="Values passed to stdin during execution"
+                style={{
+                  width: '100%',
+                  minHeight: '80px',
+                  borderRadius: '8px',
+                  border: '1px solid #374151',
+                  background: '#0f172a',
+                  color: '#e2e8f0',
+                  fontFamily: 'monospace',
+                  fontSize: '13px',
+                  padding: '12px',
+                  resize: 'vertical',
+                }}
+                spellCheck={false}
+              />
+            </div>
           </div>
 
           {/* Output/Preview */}
@@ -430,10 +557,11 @@ export default function CompilerPage() {
                     </pre>
                   ) : (
                     <iframe
+                      key={`preview-${lang}-${previewVersion}`}
                       title="Preview"
-                      srcDoc={lang === 'html' ? code : `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:20px;}</style></head><body><div id="root">${code.includes('export default') ? '<p>React preview - Run code to see output</p>' : code}</div></body></html>`}
+                      srcDoc={previewDocument}
                       style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
-                      sandbox="allow-scripts"
+                      sandbox="allow-scripts allow-same-origin"
                     />
                   )}
                 </div>

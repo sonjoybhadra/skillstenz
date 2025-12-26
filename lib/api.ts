@@ -97,6 +97,100 @@ export interface User {
   lastLogin?: string;
 }
 
+// Homepage Section Types
+export interface HomeSectionItem {
+  _id?: string;
+  name: string;
+  title?: string;
+  icon?: string;
+  href?: string;
+  description?: string;
+  image?: string;
+  isNew?: boolean;
+  tags?: string[];
+  order?: number;
+}
+
+export interface HomeSectionCtaButton {
+  text: string;
+  href: string;
+  variant?: 'primary' | 'secondary' | 'outline';
+}
+
+export interface HomeSectionStat {
+  value: string;
+  label: string;
+}
+
+export interface HomeSectionCtaCard {
+  _id?: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  buttonText?: string;
+  buttonHref?: string;
+  gradient?: string;
+  order?: number;
+}
+
+export interface HomeSectionCareerCategory {
+  _id?: string;
+  title: string;
+  colorClass?: string;
+  tags?: string[];
+  order?: number;
+}
+
+export interface HomeSectionCompilerLanguage {
+  _id?: string;
+  name: string;
+  icon?: string;
+  href: string;
+  isPrimary?: boolean;
+  order?: number;
+}
+
+export interface HomeSection {
+  _id: string;
+  sectionKey: 'hero' | 'cta_cards' | 'latest_updates' | 'technologies' | 'cheatsheets' | 'roadmaps' | 'career_categories' | 'compiler' | 'tools';
+  title: string;
+  subtitle?: string;
+  highlightText?: string;
+  isActive: boolean;
+  order: number;
+  heroData?: {
+    badge?: string;
+    mainTitle?: string;
+    highlightTitle?: string;
+    description?: string;
+    stats?: HomeSectionStat[];
+    ctaButtons?: HomeSectionCtaButton[];
+    backgroundImage?: string;
+  };
+  ctaCards?: HomeSectionCtaCard[];
+  latestUpdates?: {
+    monthYear?: string;
+    items?: HomeSectionItem[];
+  };
+  items?: HomeSectionItem[];
+  careerCategories?: HomeSectionCareerCategory[];
+  compilerData?: {
+    title?: string;
+    subtitle?: string;
+    languages?: HomeSectionCompilerLanguage[];
+    ctaButton?: HomeSectionCtaButton;
+  };
+  seeAllLink?: string;
+  seeAllText?: string;
+  backgroundColor?: 'white' | 'gray' | 'dark';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface HomeSectionsMap {
+  [key: string]: HomeSection;
+}
+
 // Helper function to get auth headers
 const getAuthHeaders = (): HeadersInit => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -258,6 +352,17 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     });
+  },
+};
+
+// Homepage API (Public)
+export const homepageAPI = {
+  getAllSections: async () => {
+    return apiRequest<{ success: boolean; data: HomeSectionsMap }>('/homepage/sections');
+  },
+
+  getSectionByKey: async (sectionKey: string) => {
+    return apiRequest<{ success: boolean; data: HomeSection }>(`/homepage/sections/${sectionKey}`);
   },
 };
 
@@ -644,6 +749,62 @@ export const adminAPI = {
   getMembershipStats: async () => {
     return apiRequest<{ _id: string; count: number; active: number }[]>('/admin/membership-stats');
   },
+
+  // Homepage Sections
+  getHomepageSections: async () => {
+    return apiRequest<HomeSection[]>('/homepage/admin/sections');
+  },
+
+  getHomepageSection: async (id: string) => {
+    return apiRequest<HomeSection>(`/homepage/admin/sections/${id}`);
+  },
+
+  createHomepageSection: async (data: Partial<HomeSection>) => {
+    return apiRequest<{ success: boolean; data: HomeSection }>('/homepage/admin/sections', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateHomepageSection: async (id: string, data: Partial<HomeSection>) => {
+    return apiRequest<{ success: boolean; data: HomeSection }>(`/homepage/admin/sections/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateHomepageSectionByKey: async (sectionKey: string, data: Partial<HomeSection>) => {
+    return apiRequest<{ success: boolean; data: HomeSection }>(`/homepage/admin/sections/key/${sectionKey}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteHomepageSection: async (id: string) => {
+    return apiRequest<{ success: boolean; message: string }>(`/homepage/admin/sections/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  toggleHomepageSectionStatus: async (id: string) => {
+    return apiRequest<{ success: boolean; data: HomeSection }>(`/homepage/admin/sections/${id}/toggle`, {
+      method: 'PATCH',
+    });
+  },
+
+  reorderHomepageSections: async (sections: { id: string; order: number }[]) => {
+    return apiRequest<{ success: boolean; data: HomeSection[] }>('/homepage/admin/sections/reorder', {
+      method: 'PUT',
+      body: JSON.stringify({ sections }),
+    });
+  },
+
+  updateHomepageSectionItems: async (sectionKey: string, data: Partial<HomeSection>) => {
+    return apiRequest<{ success: boolean; data: HomeSection }>(`/homepage/admin/sections/${sectionKey}/items`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 const api = {
@@ -653,6 +814,7 @@ const api = {
   user: userAPI,
   progress: progressAPI,
   admin: adminAPI,
+  homepage: homepageAPI,
 };
 
 export default api;

@@ -23,6 +23,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { name: 'Dashboard', href: '/admin', icon: '🏠' },
       { name: 'Analytics', href: '/admin/analytics', icon: '📈' },
+      { name: 'Homepage', href: '/admin/homepage', icon: '🏡' },
     ]
   },
   {

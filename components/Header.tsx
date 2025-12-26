@@ -11,6 +11,7 @@ import { useSettings } from '../lib/settings';
 const primaryNav = [
   { name: 'Technologies', href: '/technologies', icon: '🔧' },
   { name: 'Tutorials', href: '/tutorials', icon: '📖', badge: 'FREE' },
+  { name: 'Insights', href: '/blog', icon: '💡' },
 ];
 
 const secondaryNav = [

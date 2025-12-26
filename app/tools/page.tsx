@@ -33,6 +33,27 @@ export default function ToolsPage() {
     { slug: 'password-generator', name: 'Password Generator', icon: '🔑', category: 'generator', description: 'Generate secure random passwords' },
     { slug: 'markdown-editor', name: 'Markdown Editor', icon: '📝', category: 'editor', description: 'Write and preview Markdown' },
     { slug: 'regex-tester', name: 'Regex Tester', icon: '🔍', category: 'editor', description: 'Test and debug regular expressions' },
+    { slug: 'xml-formatter', name: 'XML Formatter', icon: '📑', category: 'formatter', description: 'Format and validate XML data' },
+    { slug: 'svg-editor', name: 'SVG Editor', icon: '🎭', category: 'editor', description: 'Create and edit SVG graphics' },
+    { slug: 'url-encoder', name: 'URL Encoder', icon: '🔗', category: 'converter', description: 'Encode and decode URLs' },
+    { slug: 'uuid-generator', name: 'UUID Generator', icon: '🆔', category: 'generator', description: 'Generate unique UUIDs' },
+    { slug: 'hash-generator', name: 'Hash Generator', icon: '#️⃣', category: 'generator', description: 'Generate MD5, SHA hashes' },
+    { slug: 'lorem-ipsum', name: 'Lorem Ipsum', icon: '📄', category: 'generator', description: 'Generate placeholder text' },
+    { slug: 'yaml-formatter', name: 'YAML Formatter', icon: '⚙️', category: 'formatter', description: 'Format and validate YAML' },
+    { slug: 'sql-formatter', name: 'SQL Formatter', icon: '🗄️', category: 'formatter', description: 'Format and beautify SQL queries' },
+    { slug: 'diff-checker', name: 'Diff Checker', icon: '🔄', category: 'editor', description: 'Compare text differences' },
+    { slug: 'unit-converter', name: 'Unit Converter', icon: '📐', category: 'converter', description: 'Convert between units' },
+    { slug: 'json-to-csv', name: 'JSON to CSV', icon: '📊', category: 'converter', description: 'Convert JSON to CSV format' },
+    { slug: 'timestamp-converter', name: 'Timestamp Converter', icon: '⏱️', category: 'converter', description: 'Convert Unix timestamps' },
+    { slug: 'color-converter', name: 'Color Converter', icon: '🎨', category: 'converter', description: 'Convert between color formats' },
+    { slug: 'ascii-art', name: 'ASCII Art Generator', icon: '🖌️', category: 'generator', description: 'Create ASCII art from text' },
+    { slug: 'text-diff', name: 'Text Diff', icon: '📝', category: 'editor', description: 'Compare and highlight differences' },
+    { slug: 'encryption-tool', name: 'Encryption Tool', icon: '🔒', category: 'converter', description: 'Encrypt and decrypt text' },
+    { slug: 'qr-decoder', name: 'QR Code Decoder', icon: '📸', category: 'converter', description: 'Decode QR codes from images' },
+    { slug: 'cron-parser', name: 'Cron Expression Parser', icon: '⏰', category: 'editor', description: 'Parse and explain cron syntax' },
+    { slug: 'jwt-decoder', name: 'JWT Decoder', icon: '🔑', category: 'converter', description: 'Decode JWT tokens' },
+    { slug: 'regex-generator', name: 'Regex Generator', icon: '🔍', category: 'generator', description: 'Generate regex patterns' },
+    { slug: 'carbon-snippet', name: 'Code Snippet Formatter', icon: '💻', category: 'formatter', description: 'Format code for presentations' },
   ];
 
   const filteredTools = tools.filter(tool => {
@@ -45,27 +66,24 @@ export default function ToolsPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="section hero-gradient" style={{ paddingTop: '64px', paddingBottom: '64px' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
-            Developer <span style={{ color: 'rgba(255,255,255,0.8)' }}>Tools</span>
+      <section className="py-16 bg-gradient-to-r from-purple-600 to-purple-800 text-center">
+        <div className="max-w-5xl mx-auto px-4">
+          <h1 className="text-5xl font-bold text-white mb-4">
+            Developer <span className="opacity-80">Tools</span>
           </h1>
-          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px' }}>
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
             Free online tools to help you code faster and more efficiently
           </p>
           
-          <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <div className="navbar-search" style={{ background: 'white', borderRadius: 'var(--radius-lg)' }}>
-              <svg className="navbar-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-lg flex items-center px-4 py-2 gap-3">
+              <span className="text-xl">🔍</span>
               <input
                 type="text"
                 placeholder="Search tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: 'transparent', color: 'var(--text-primary)' }}
+                className="bg-transparent flex-1 outline-none py-2 text-gray-800 placeholder-gray-500"
               />
             </div>
           </div>
@@ -73,14 +91,18 @@ export default function ToolsPage() {
       </section>
 
       {/* Category Tabs */}
-      <section style={{ borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }}>
-        <div className="container">
-          <div className="tabs" style={{ justifyContent: 'center', padding: '16px 0' }}>
+      <section className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center gap-2 py-4 flex-wrap">
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                className={`tab ${selectedCategory === cat.id ? 'active' : ''}`}
                 onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  selectedCategory === cat.id
+                    ? 'bg-purple-600 text-white border-2 border-purple-600'
+                    : 'bg-white text-gray-800 border-2 border-gray-300 hover:border-purple-600'
+                }`}
               >
                 {cat.name}
               </button>
@@ -89,21 +111,27 @@ export default function ToolsPage() {
         </div>
       </section>
 
-      {/* Tools Grid */}
-      <section className="section" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="container">
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>
+      {/* Tools Grid - 6 Columns */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">
               {filteredTools.length} Tools Available
             </h2>
           </div>
 
-          <div className="grid grid-4" style={{ gap: '24px' }}>
+          <div className="grid grid-cols-6 gap-5">
             {filteredTools.map((tool) => (
-              <Link key={tool.slug} href={`/tools/${tool.slug}`} className="tool-card">
-                <div className="tool-card-icon">{tool.icon}</div>
-                <div className="tool-card-title">{tool.name}</div>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
+              <Link
+                key={tool.slug}
+                href={`/tools/${tool.slug}`}
+                className="bg-white rounded-lg p-5 text-center shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="text-4xl mb-3">{tool.icon}</div>
+                <div className="text-sm font-semibold text-gray-900 mb-2">
+                  {tool.name}
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
                   {tool.description}
                 </p>
               </Link>
@@ -113,21 +141,16 @@ export default function ToolsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="section" style={{ background: 'var(--bg-primary)' }}>
-        <div className="container">
-          <div className="card" style={{ 
-            padding: '48px', 
-            textAlign: 'center',
-            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-            color: 'white'
-          }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '12px' }}>
+      <section className="py-12 bg-white">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="p-12 text-center bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg">
+            <h2 className="text-3xl font-bold mb-3">
               Missing a Tool?
             </h2>
-            <p style={{ fontSize: '18px', opacity: 0.9, marginBottom: '24px' }}>
-              Let us know what tools you need and we&apos;ll add them to the collection
+            <p className="text-lg opacity-90 mb-6">
+              Let us know what tools you need and we'll add them to the collection
             </p>
-            <button className="btn btn-dark btn-lg">
+            <button className="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black transition-colors">
               Request a Tool
             </button>
           </div>

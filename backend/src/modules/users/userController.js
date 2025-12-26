@@ -1,3 +1,23 @@
+// Upload profile image
+const path = require('path');
+exports.uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded' });
+    }
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Save relative path or URL
+    const imageUrl = `/uploads/profile-images/${req.file.filename}`;
+    user.profileImage = imageUrl;
+    await user.save();
+    res.json({ message: 'Image uploaded', imageUrl });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 const User = require('../auth/User');
 
 exports.getProfile = async (req, res) => {

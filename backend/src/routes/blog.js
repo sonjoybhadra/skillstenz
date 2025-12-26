@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { auth, adminAuth } = require('../../middlewares/auth');
+const { authenticate: auth, requireAdmin: adminAuth } = require('../middlewares/auth');
 const articleController = require('../modules/blog/articleController');
 const categoryController = require('../modules/blog/categoryController');
 const tagController = require('../modules/blog/tagController');
