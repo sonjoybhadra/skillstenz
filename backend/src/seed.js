@@ -380,19 +380,22 @@ const seedData = async () => {
     ];
 
     for (const tech of technologies) {
-      const exists = await Technology.findOne({ slug: tech.slug });
-      if (!exists) {
-        await Technology.create(tech);
-        console.log(`Technology ${tech.name} created with ${tech.courses.length} courses`);
-      } else {
-        // Update existing technology with new data
-        await Technology.findOneAndUpdate(
-          { slug: tech.slug },
-          tech,
-          { new: true }
-        );
-        console.log(`Technology ${tech.name} updated`);
-      }
+      const existing = await Technology.findOne({
+        $or: [{ slug: tech.slug }, { name: tech.name }]
+      });
+
+      await Technology.findOneAndUpdate(
+        { $or: [{ slug: tech.slug }, { name: tech.name }] },
+        { $set: tech },
+        {
+          new: true,
+          upsert: true,
+          setDefaultsOnInsert: true,
+          runValidators: true
+        }
+      );
+
+      console.log(`Technology ${tech.name} ${existing ? 'synced' : 'created'} (${tech.courses.length} courses)`);
     }
 
     console.log('Seeding completed');

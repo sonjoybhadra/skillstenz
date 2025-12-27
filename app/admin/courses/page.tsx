@@ -90,7 +90,7 @@ export default function AdminCoursesPage() {
 
   const fetchCourses = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       let url = `${API_URL}/courses?limit=100`;
       if (searchQuery) url += `&search=${searchQuery}`;
       if (filterTech) url += `&technology=${filterTech}`;
@@ -131,7 +131,7 @@ export default function AdminCoursesPage() {
     if (!formData.title) { setMessage({ type: 'error', text: 'Title is required' }); return; }
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const method = editingCourse ? 'PUT' : 'POST';
       const url = editingCourse ? `${API_URL}/courses/${editingCourse._id}` : `${API_URL}/courses`;
       const payload = {
@@ -154,7 +154,7 @@ export default function AdminCoursesPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Delete "${title}"?`)) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/courses/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setMessage({ type: 'success', text: 'Deleted!' }); fetchCourses(); }
     } catch { setMessage({ type: 'error', text: 'Network error' }); }
@@ -163,7 +163,7 @@ export default function AdminCoursesPage() {
   const addSection = async (courseId: string) => {
     if (!sectionData.title) { setMessage({ type: 'error', text: 'Section title is required' }); return; }
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/courses/${courseId}/sections`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(sectionData)
@@ -175,7 +175,7 @@ export default function AdminCoursesPage() {
   const addLesson = async (courseId: string, sectionIndex: number) => {
     if (!lessonData.title) { setMessage({ type: 'error', text: 'Lesson title is required' }); return; }
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/courses/${courseId}/sections/${sectionIndex}/lessons`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(lessonData)
@@ -185,7 +185,7 @@ export default function AdminCoursesPage() {
   };
 
   const togglePublish = async (course: Course) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     await fetch(`${API_URL}/courses/${course._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ isPublished: !course.isPublished }) });
     fetchCourses();
   };
@@ -421,3 +421,4 @@ export default function AdminCoursesPage() {
     </div>
   );
 }
+

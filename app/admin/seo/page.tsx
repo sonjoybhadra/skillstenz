@@ -41,7 +41,7 @@ export default function SEOSettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/settings/seo`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -73,7 +73,7 @@ export default function SEOSettingsPage() {
     setSaving(true);
     setMessage({ type: '', text: '' });
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/settings/seo`, {
         method: 'PUT',
         headers: {
@@ -444,3 +444,4 @@ export default function SEOSettingsPage() {
     </div>
   );
 }
+

@@ -40,7 +40,7 @@ export default function AdSenseManagementPage() {
 
   const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/settings/adsense`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -67,7 +67,7 @@ export default function AdSenseManagementPage() {
     setSaving(true);
     setMessage({ type: '', text: '' });
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/settings/adsense`, {
         method: 'PUT',
         headers: {
@@ -501,3 +501,4 @@ export default function AdSenseManagementPage() {
     </div>
   );
 }
+

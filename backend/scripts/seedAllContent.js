@@ -85,14 +85,16 @@ async function seedAll() {
     // Seed Courses
     await Course.deleteMany({});
     for (const course of courses) {
-      if (!course.technologySlug) {
-        console.warn(`Skipping course '${course.title}' - missing technologySlug field.`);
+      // Support both 'technology' and 'technologySlug' field names
+      const techSlug = course.technologySlug || course.technology;
+      if (!techSlug) {
+        console.warn(`Skipping course '${course.title}' - missing technology/technologySlug field.`);
         continue;
       }
 
-      const techId = techSlugMap[course.technologySlug];
+      const techId = techSlugMap[techSlug];
       if (!techId) {
-        console.warn(`Skipping course '${course.title}' - could not find technology for slug '${course.technologySlug}'`);
+        console.warn(`Skipping course '${course.title}' - could not find technology for slug '${techSlug}'`);
         continue;
       }
 
@@ -125,6 +127,13 @@ async function seedAll() {
     }
     console.log('Seeded Courses');
 
+    // Get admin user for article author
+    const User = require('../src/modules/auth/User');
+    let adminUser = await User.findOne({ role: 'admin' });
+    if (!adminUser) {
+      console.warn('No admin user found, skipping articles seeding');
+    }
+
     // Seed Categories and Articles
     await Category.deleteMany({});
     await Article.deleteMany({});
@@ -136,14 +145,15 @@ async function seedAll() {
         isActive: true
       });
 
-      if (cat.articles && cat.articles.length > 0) {
+      if (adminUser && cat.articles && cat.articles.length > 0) {
         for (const art of cat.articles) {
           await Article.create({
             title: art.title,
             slug: art.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            excerpt: art.seoDescription || '',
-            content: art.content || '',
+            excerpt: art.seoDescription || 'Article excerpt',
+            content: art.content || 'Article content',
             category: category._id,
+            author: adminUser._id,
             isPublished: true,
             metaTitle: art.title,
             metaDescription: art.seoDescription || ''
