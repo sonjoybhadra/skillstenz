@@ -377,14 +377,8 @@ export default function ResumeBuilderPage() {
                 Start filling in your details below — your changes are saved securely to your account.
               </p>
             </div>
-            <div className="relative h-56 md:h-64 lg:h-72">
-              <Image
-                src="/ai-resume-banner.png"
-                alt="AI powered resume builder"
-                fill
-                priority
-                className="object-cover"
-              />
+            <div className="relative h-56 md:h-64 lg:h-72 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="text-white text-6xl">📄</div>
             </div>
           </div>
         </div>

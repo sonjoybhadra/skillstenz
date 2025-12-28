@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Helper to get full image URL
+const getImageUrl = (imagePath: string | undefined): string | null => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${API_URL.replace('/api', '')}${imagePath}`;
+};
+
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
@@ -116,8 +125,8 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed top-16 left-0 bottom-0 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 z-40 flex flex-col overflow-y-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex-1 p-4 space-y-5">
+      <aside className={`fixed top-16 left-0 bottom-0 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 z-40 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex-1 overflow-y-auto p-4 space-y-5">
           {/* AI Assistant Promo */}
           <Link
             href="/ai-assistant"
@@ -271,8 +280,8 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${profileMenuOpen ? 'bg-gray-100 dark:bg-slate-800' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}
               >
                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {user.profileImage || user.avatar ? (
-                    <img src={user.profileImage || user.avatar} alt={user.name || user.email} className="w-full h-full object-cover" />
+                  {getImageUrl(user.profileImage) || getImageUrl(user.avatar) ? (
+                    <img src={getImageUrl(user.profileImage) || getImageUrl(user.avatar) || ''} alt={user.name || user.email} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-white font-bold">{(user.name || user.email).charAt(0).toUpperCase()}</span>
                   )}

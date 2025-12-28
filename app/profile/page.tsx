@@ -144,7 +144,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, updateUser } = useAuth();
 
   // Fetch profile data
   useEffect(() => {
@@ -164,6 +164,14 @@ export default function ProfilePage() {
     try {
       setLoadingData(prev => ({ ...prev, profile: true }));
       const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        console.error('No access token found');
+        toast.error('Please login again');
+        router.push('/login');
+        return;
+      }
+      
       const response = await fetch(`${API_URL}/users/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -185,6 +193,15 @@ export default function ProfilePage() {
           twitter: data.socialLinks?.twitter || '',
           isPublic: data.isPublic !== false,
         });
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Profile fetch failed:', response.status, errorData);
+        if (response.status === 401 || response.status === 403) {
+          toast.error('Session expired. Please login again');
+          router.push('/login');
+        } else {
+          toast.error(errorData.message || 'Failed to load profile');
+        }
       }
     } catch (err) {
       console.error('Failed to fetch profile:', err);
@@ -351,7 +368,17 @@ export default function ProfilePage() {
       if (!uploadResponse.ok) throw new Error('Upload failed');
       
       const data = await uploadResponse.json();
+      const newImageUrl = data.imageUrl.startsWith('http') 
+        ? data.imageUrl 
+        : `${API_URL.replace('/api', '')}${data.imageUrl}`;
+      
       setProfile(prev => prev ? { ...prev, profileImage: data.imageUrl } : null);
+      
+      // Update auth context so Header and Sidebar show new image
+      if (user) {
+        updateUser({ ...user, profileImage: newImageUrl });
+      }
+      
       setShowImageModal(false);
       setImagePreview(null);
       toast.success('Profile image updated!');

@@ -68,11 +68,24 @@ exports.getAllCourses = async (req, res) => {
 exports.getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
+    const mongoose = require('mongoose');
     
-    const course = await Course.findById(id)
-      .populate('technology', 'name slug icon color')
-      .populate('instructor', 'name profileImage instructorTitle instructorBio expertise')
-      .populate('createdBy', 'name email');
+    // Check if id is a valid ObjectId, otherwise try to find by slug
+    let course;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      course = await Course.findById(id)
+        .populate('technology', 'name slug icon color')
+        .populate('instructor', 'name profileImage instructorTitle instructorBio expertise')
+        .populate('createdBy', 'name email');
+    }
+    
+    // If not found by ObjectId, try slug
+    if (!course) {
+      course = await Course.findOne({ slug: id })
+        .populate('technology', 'name slug icon color')
+        .populate('instructor', 'name profileImage instructorTitle instructorBio expertise')
+        .populate('createdBy', 'name email');
+    }
     
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });

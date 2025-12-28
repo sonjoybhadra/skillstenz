@@ -280,6 +280,48 @@ const reorderChapters = async (req, res) => {
   }
 };
 
+// Get latest/recently updated tutorials (for homepage "Latest Updates" section)
+const getLatestUpdates = async (req, res) => {
+  try {
+    const { limit = 6 } = req.query;
+
+    // Get recently created or updated chapters
+    const latestChapters = await TutorialChapter.find({ isPublished: true })
+      .sort({ updatedAt: -1 })
+      .limit(parseInt(limit))
+      .populate('technology', 'name slug icon color')
+      .select('title slug description technology updatedAt createdAt');
+
+    // Format for frontend
+    const latestUpdates = latestChapters.map(chapter => {
+      const isNew = (new Date() - new Date(chapter.createdAt)) < (7 * 24 * 60 * 60 * 1000); // Less than 7 days old
+      return {
+        _id: chapter._id,
+        name: chapter.title,
+        title: chapter.title,
+        slug: chapter.slug,
+        description: chapter.description,
+        technology: chapter.technology?.name,
+        technologySlug: chapter.technology?.slug,
+        icon: chapter.technology?.icon || '📚',
+        href: `/tutorials/${chapter.technology?.slug}/${chapter.slug}`,
+        isNew,
+        updatedAt: chapter.updatedAt,
+        createdAt: chapter.createdAt
+      };
+    });
+
+    res.json({
+      latestUpdates,
+      monthYear: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      total: latestUpdates.length
+    });
+  } catch (error) {
+    console.error('Error fetching latest updates:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   getTutorialBySlug,
   getChaptersByTechnology,
@@ -288,5 +330,6 @@ module.exports = {
   createChapter,
   updateChapter,
   deleteChapter,
-  reorderChapters
+  reorderChapters,
+  getLatestUpdates
 };

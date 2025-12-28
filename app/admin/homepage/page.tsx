@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { adminAPI, HomeSection, HomeSectionItem, HomeSectionCtaCard, HomeSectionCareerCategory, HomeSectionCompilerLanguage } from '../../../lib/api';
+import { adminAPI, HomeSection } from '../../../lib/api';
 
 const SECTION_TYPES = [
   { key: 'hero', label: 'Hero Section', icon: '🎯' },
@@ -12,23 +12,31 @@ const SECTION_TYPES = [
   { key: 'career_categories', label: 'Career Categories', icon: '💼' },
   { key: 'compiler', label: 'Compiler Section', icon: '⚡' },
   { key: 'tools', label: 'Tools', icon: '🛠️' },
+  { key: 'kids_courses', label: 'Kids Courses', icon: '👨‍👩‍👧‍👦' },
+  { key: 'testimonials', label: 'Testimonials', icon: '⭐' },
+  { key: 'why_learn_ai', label: 'Why Learn AI', icon: '🧠' },
+  { key: 'partners', label: 'Partners', icon: '🤝' },
 ];
 
 export default function AdminHomepagePage() {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [editingSection, setEditingSection] = useState<HomeSection | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'items' | 'hero' | 'cta' | 'compiler'>('general');
+  const [viewMode, setViewMode] = useState<'list' | 'reorder'>('list');
 
   const fetchSections = async () => {
     try {
       setLoading(true);
       const { data, error } = await adminAPI.getHomepageSections();
       if (data && !error) {
-        setSections(Array.isArray(data) ? data : (data as { data: HomeSection[] }).data || []);
+        const sectionsArray = Array.isArray(data) ? data : (data as { data: HomeSection[] }).data || [];
+        // Sort by order
+        setSections(sectionsArray.sort((a, b) => (a.order || 0) - (b.order || 0)));
       }
     } catch (error) {
       console.error('Failed to fetch sections:', error);
@@ -40,6 +48,84 @@ export default function AdminHomepagePage() {
   useEffect(() => {
     fetchSections();
   }, []);
+
+  // Move section up in order
+  const moveSection = (index: number, direction: 'up' | 'down') => {
+    const newSections = [...sections];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newSections.length) return;
+    
+    // Swap sections
+    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
+    
+    // Update order values
+    newSections.forEach((section, idx) => {
+      section.order = idx;
+    });
+    
+    setSections(newSections);
+  };
+
+  // Save new order to database
+  const handleSaveOrder = async () => {
+    setReordering(true);
+    try {
+      const orderData = sections.map((section, idx) => ({
+        id: section._id,
+        order: idx
+      }));
+      
+      console.log('Saving order:', orderData);
+      
+      // Direct fetch for debugging
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:5000/api/homepage/admin/sections/reorder', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ sections: orderData })
+      });
+      
+      const result = await response.json();
+      console.log('Reorder response:', response.status, result);
+      
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', text: 'Section order saved successfully' });
+        setViewMode('list');
+        fetchSections(); // Refresh to get updated order from server
+      } else {
+        setMessage({ type: 'error', text: result.message || 'Failed to save order' });
+      }
+    } catch (err) {
+      console.error('Save order error:', err);
+      setMessage({ type: 'error', text: 'Failed to save section order' });
+    } finally {
+      setReordering(false);
+    }
+    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  };
+
+  // Bulk toggle all sections
+  const handleBulkToggle = async (activate: boolean) => {
+    setSaving(true);
+    try {
+      for (const section of sections) {
+        if (section.isActive !== activate) {
+          await adminAPI.toggleHomepageSectionStatus(section._id);
+        }
+      }
+      setMessage({ type: 'success', text: `All sections ${activate ? 'activated' : 'deactivated'} successfully` });
+      fetchSections();
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to update sections' });
+    } finally {
+      setSaving(false);
+    }
+    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  };
 
   const handleToggleStatus = async (section: HomeSection) => {
     try {
@@ -218,6 +304,10 @@ export default function AdminHomepagePage() {
     return SECTION_TYPES.find(t => t.key === key)?.icon || '📄';
   };
 
+  const getSectionLabel = (key: string) => {
+    return SECTION_TYPES.find(t => t.key === key)?.label || key;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -229,10 +319,53 @@ export default function AdminHomepagePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Homepage Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage dynamic sections of the homepage</p>
+          <p className="text-gray-600 dark:text-gray-400">Manage visibility and order of homepage sections</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {viewMode === 'list' ? (
+            <>
+              <button
+                onClick={() => handleBulkToggle(true)}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Show All
+              </button>
+              <button
+                onClick={() => handleBulkToggle(false)}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Hide All
+              </button>
+              <button
+                onClick={() => setViewMode('reorder')}
+                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+              >
+                ↕️ Reorder Sections
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => { setViewMode('list'); fetchSections(); }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveOrder}
+                disabled={reordering}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {reordering && <span className="animate-spin">⏳</span>}
+                Save Order
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -245,61 +378,115 @@ export default function AdminHomepagePage() {
 
       {/* Sections List */}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Homepage Sections</h2>
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900 dark:text-white">
+            {viewMode === 'reorder' ? '↕️ Reorder Sections' : 'Homepage Sections'}
+          </h2>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {sections.filter(s => s.isActive).length} of {sections.length} sections visible
+          </span>
         </div>
         
-        <div className="divide-y divide-gray-200 dark:divide-slate-700">
-          {sections.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-              No sections found. Run the seed script to initialize homepage sections.
-            </div>
-          ) : (
-            sections.map((section) => (
-              <div key={section._id} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl">{getSectionIcon(section.sectionKey)}</span>
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">{section.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Key: {section.sectionKey} • Order: {section.order}
-                    </p>
+        {sections.length === 0 ? (
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+            No sections found. Run the seed script to initialize homepage sections.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200 dark:divide-slate-700">
+            {sections.map((section, index) => (
+              <div 
+                key={section._id} 
+                className={`p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 ${!section.isActive ? 'opacity-60' : ''}`}
+              >
+                {/* Order Number */}
+                <div className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold ${
+                  section.isActive 
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
+                    : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-gray-400'
+                }`}>
+                  {index + 1}
+                </div>
+
+                {/* Section Icon */}
+                <span className="text-2xl">{getSectionIcon(section.sectionKey)}</span>
+
+                {/* Section Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    {getSectionLabel(section.sectionKey)}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {section.title}
+                  </p>
+                </div>
+
+                {/* Status Badge */}
+                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                  section.isActive 
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400'
+                }`}>
+                  {section.isActive ? 'Visible' : 'Hidden'}
+                </span>
+
+                {/* Actions */}
+                {viewMode === 'reorder' ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => moveSection(index, 'up')}
+                      disabled={index === 0}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      title="Move Up"
+                    >
+                      ⬆️
+                    </button>
+                    <button
+                      onClick={() => moveSection(index, 'down')}
+                      disabled={index === sections.length - 1}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      title="Move Down"
+                    >
+                      ⬇️
+                    </button>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${section.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400'}`}>
-                    {section.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                  
-                  <button
-                    onClick={() => handleToggleStatus(section)}
-                    className="p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-                    title={section.isActive ? 'Deactivate' : 'Activate'}
-                  >
-                    {section.isActive ? '👁️' : '👁️‍🗨️'}
-                  </button>
-                  
-                  <button
-                    onClick={() => handleEdit(section)}
-                    className="p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-                    title="Edit"
-                  >
-                    ✏️
-                  </button>
-                  
-                  <button
-                    onClick={() => handleDelete(section)}
-                    className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
-                    title="Delete"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {/* Toggle Switch */}
+                    <button
+                      onClick={() => handleToggleStatus(section)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        section.isActive ? 'bg-green-500' : 'bg-gray-300 dark:bg-slate-600'
+                      }`}
+                      title={section.isActive ? 'Click to hide' : 'Click to show'}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          section.isActive ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                    
+                    <button
+                      onClick={() => handleEdit(section)}
+                      className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+                    
+                    <button
+                      onClick={() => handleDelete(section)}
+                      className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                )}
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Edit Modal */}

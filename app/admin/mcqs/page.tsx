@@ -62,7 +62,7 @@ export default function AdminMCQsPage() {
   const [editingMcq, setEditingMcq] = useState<MCQ | null>(null);
   const [formData, setFormData] = useState({
     question: '',
-    category: 'general',
+    category: 'course',
     difficulty: 'medium',
     skill: '',
     points: 10,
@@ -180,14 +180,29 @@ export default function AdminMCQsPage() {
         ? `${API_URL}/mcqs/${editingMcq._id}` 
         : `${API_URL}/mcqs`;
       
+      // Prepare data - convert empty strings to null for optional ObjectId fields
+      const submitData = {
+        ...formData,
+        technology: formData.technology || null,
+        course: formData.course || null,
+        topic: formData.topic || null,
+      };
+
+      console.log('Submitting MCQ:', editingMcq ? 'UPDATE' : 'CREATE');
+      console.log('URL:', url);
+      console.log('Data:', submitData);
+
       const response = await fetch(url, {
         method: editingMcq ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
+
+      const data = await response.json();
+      console.log('Response:', response.status, data);
 
       if (response.ok) {
         toast.success(editingMcq ? 'MCQ updated' : 'MCQ created');
@@ -195,10 +210,10 @@ export default function AdminMCQsPage() {
         resetForm();
         fetchMCQs();
       } else {
-        const data = await response.json();
         toast.error(data.message || 'Failed to save MCQ');
       }
-    } catch {
+    } catch (error) {
+      console.error('MCQ submit error:', error);
       toast.error('Failed to save MCQ');
     }
   };
@@ -225,7 +240,7 @@ export default function AdminMCQsPage() {
   const resetForm = () => {
     setFormData({
       question: '',
-      category: 'general',
+      category: 'course',
       difficulty: 'medium',
       skill: '',
       points: 10,
@@ -340,11 +355,11 @@ export default function AdminMCQsPage() {
             style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
           >
             <option value="">All Categories</option>
-            <option value="general">General</option>
+            <option value="course">Course</option>
+            <option value="skill">Skill</option>
             <option value="interview">Interview</option>
-              <option value="coding">Coding</option>
-              <option value="aptitude">Aptitude</option>
-            </select>
+            <option value="certification">Certification</option>
+          </select>
             <select
               value={filters.difficulty}
               onChange={(e) => setFilters({ ...filters, difficulty: e.target.value, page: 1 })}
@@ -354,6 +369,7 @@ export default function AdminMCQsPage() {
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
+              <option value="expert">Expert</option>
             </select>
             <input
               type="text"
@@ -550,10 +566,10 @@ export default function AdminMCQsPage() {
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)]"
                     >
-                      <option value="general">General</option>
+                      <option value="course">Course</option>
+                      <option value="skill">Skill</option>
                       <option value="interview">Interview</option>
-                      <option value="coding">Coding</option>
-                      <option value="aptitude">Aptitude</option>
+                      <option value="certification">Certification</option>
                     </select>
                   </div>
                   <div>
@@ -568,6 +584,7 @@ export default function AdminMCQsPage() {
                       <option value="easy">Easy</option>
                       <option value="medium">Medium</option>
                       <option value="hard">Hard</option>
+                      <option value="expert">Expert</option>
                     </select>
                   </div>
                 </div>

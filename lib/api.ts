@@ -114,6 +114,11 @@ export interface HomeSectionItem {
   isNew?: boolean;
   tags?: string[];
   order?: number;
+  slug?: string;
+  technology?: string;
+  technologySlug?: string;
+  duration?: string;
+  difficulty?: string;
 }
 
 export interface HomeSectionCtaButton {
@@ -155,9 +160,52 @@ export interface HomeSectionCompilerLanguage {
   order?: number;
 }
 
+// New section types for Kids, Testimonials, Partners, Why Learn AI
+export interface HomeSectionTestimonial {
+  _id?: string;
+  name: string;
+  role?: string;
+  avatar?: string;
+  rating?: number;
+  content: string;
+  course?: string;
+  isActive?: boolean;
+  order?: number;
+}
+
+export interface HomeSectionPartner {
+  _id?: string;
+  name: string;
+  logo?: string;
+  website?: string;
+  isActive?: boolean;
+  order?: number;
+}
+
+export interface HomeSectionKidsCourse {
+  _id?: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  gradeRange?: string;
+  image?: string;
+  href?: string;
+  features?: string[];
+  isActive?: boolean;
+  order?: number;
+}
+
+export interface HomeSectionWhyLearnPoint {
+  _id?: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  order?: number;
+}
+
 export interface HomeSection {
   _id: string;
-  sectionKey: 'hero' | 'cta_cards' | 'latest_updates' | 'technologies' | 'cheatsheets' | 'roadmaps' | 'career_categories' | 'compiler' | 'tools';
+  sectionKey: 'hero' | 'cta_cards' | 'latest_updates' | 'technologies' | 'cheatsheets' | 'roadmaps' | 'career_categories' | 'compiler' | 'tools' | 'kids_courses' | 'testimonials' | 'why_learn_ai' | 'partners';
   title: string;
   subtitle?: string;
   highlightText?: string;
@@ -185,6 +233,17 @@ export interface HomeSection {
     languages?: HomeSectionCompilerLanguage[];
     ctaButton?: HomeSectionCtaButton;
   };
+  // Kids Courses section
+  kidsCoursesData?: {
+    tagline?: string;
+    courses?: HomeSectionKidsCourse[];
+  };
+  // Testimonials section
+  testimonials?: HomeSectionTestimonial[];
+  // Why Learn AI section
+  whyLearnPoints?: HomeSectionWhyLearnPoint[];
+  // Partners section
+  partners?: HomeSectionPartner[];
   seeAllLink?: string;
   seeAllText?: string;
   backgroundColor?: 'white' | 'gray' | 'dark';
@@ -357,6 +416,113 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     });
+  },
+};
+
+// Tutorials API (Public)
+export interface LatestUpdate {
+  _id: string;
+  name: string;
+  title: string;
+  slug: string;
+  description?: string;
+  technology?: string;
+  technologySlug?: string;
+  icon?: string;
+  href?: string;
+  isNew: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export const tutorialsAPI = {
+  getLatestUpdates: async (limit: number = 6) => {
+    return apiRequest<{ latestUpdates: LatestUpdate[]; monthYear: string; total: number }>(`/tutorials/latest?limit=${limit}`);
+  },
+  
+  getByTechnology: async (technologySlug: string) => {
+    return apiRequest<{ chapters: unknown[]; technology: Technology; pagination: { total: number } }>(`/tutorials/technology/${technologySlug}`);
+  },
+  
+  getChapter: async (technologySlug: string, chapterSlug: string) => {
+    return apiRequest<{ chapter: unknown; navigation: { prev: unknown; next: unknown; total: number; current: number } }>(`/tutorials/technology/${technologySlug}/chapter/${chapterSlug}`);
+  },
+  
+  getTutorial: async (slug: string) => {
+    return apiRequest<{ tutorial: unknown }>(`/tutorials/${slug}`);
+  },
+};
+
+// Cheatsheets API (Public)
+export interface Cheatsheet {
+  _id: string;
+  title: string;
+  slug: string;
+  description: string;
+  icon?: string;
+  color?: string;
+  category: string;
+  difficulty: string;
+  tags?: string[];
+  views?: number;
+  technology?: {
+    _id: string;
+    name: string;
+    slug: string;
+    icon?: string;
+    color?: string;
+  };
+}
+
+export const cheatsheetsAPI = {
+  getAll: async (params?: { featured?: boolean; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.featured) queryParams.append('featured', 'true');
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest<{ cheatsheets: Cheatsheet[]; pagination: { total: number } }>(`/cheatsheets${query}`);
+  },
+  
+  getBySlug: async (slug: string) => {
+    return apiRequest<{ cheatsheet: Cheatsheet }>(`/cheatsheets/${slug}`);
+  },
+};
+
+// Roadmaps API (Public)
+export interface RoadmapStep {
+  _id: string;
+  title: string;
+  topics?: string[];
+  duration?: string;
+  order: number;
+}
+
+export interface Roadmap {
+  _id: string;
+  title: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+  category: string;
+  duration?: string;
+  difficulty: string;
+  steps?: RoadmapStep[];
+  isFeatured?: boolean;
+  views?: number;
+}
+
+export const roadmapsAPI = {
+  getAll: async (params?: { featured?: boolean; category?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.featured) queryParams.append('featured', 'true');
+    if (params?.category) queryParams.append('category', params.category);
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest<{ roadmaps: Roadmap[] }>(`/roadmaps${query}`);
+  },
+  
+  getBySlug: async (slug: string) => {
+    return apiRequest<{ roadmap: Roadmap }>(`/roadmaps/${slug}`);
   },
 };
 

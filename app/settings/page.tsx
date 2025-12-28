@@ -85,7 +85,7 @@ export default function SettingsPage() {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/settings`, {
+      const response = await fetch(`${API_URL}/settings/user`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -120,7 +120,7 @@ export default function SettingsPage() {
     }
     setSaving(true);
     try {
-      const response = await fetch(`${API_URL}/settings`, {
+      const response = await fetch(`${API_URL}/settings/user`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

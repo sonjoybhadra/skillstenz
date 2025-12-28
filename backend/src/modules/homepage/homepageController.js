@@ -160,20 +160,32 @@ exports.reorderSections = async (req, res) => {
   try {
     const { sections } = req.body; // Array of { id, order }
     
+    console.log('Reorder request body:', req.body);
+    console.log('Sections to reorder:', sections);
+    
+    if (!sections || !Array.isArray(sections) || sections.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid sections data' });
+    }
+    
+    const mongoose = require('mongoose');
+    
     const bulkOps = sections.map(({ id, order }) => ({
       updateOne: {
-        filter: { _id: id },
-        update: { order, updatedAt: new Date() }
+        filter: { _id: new mongoose.Types.ObjectId(id) },
+        update: { $set: { order: order, updatedAt: new Date() } }
       }
     }));
     
-    await HomeSection.bulkWrite(bulkOps);
+    console.log('Bulk operations:', JSON.stringify(bulkOps, null, 2));
+    
+    const result = await HomeSection.bulkWrite(bulkOps);
+    console.log('BulkWrite result:', result);
     
     const updatedSections = await HomeSection.find().sort({ order: 1 }).lean();
     res.json({ success: true, data: updatedSections });
   } catch (error) {
     console.error('Reorder sections error:', error);
-    res.status(500).json({ success: false, message: 'Failed to reorder sections' });
+    res.status(500).json({ success: false, message: 'Failed to reorder sections', error: error.message });
   }
 };
 

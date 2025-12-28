@@ -6,6 +6,16 @@ import { usePathname, useRouter } from 'next/navigation';
 import AuthModal from './AuthModal';
 import SearchModal from './SearchModal';
 import { useSettings } from '../lib/settings';
+import { useAuth } from '@/lib/auth';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Helper to get full image URL
+const getImageUrl = (imagePath: string | undefined): string | null => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${API_URL.replace('/api', '')}${imagePath}`;
+};
 
 // Navigation items
 const primaryNav = [
@@ -36,21 +46,10 @@ export default function Header() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { settings } = useSettings();
-
-  useEffect(() => {
-    const checkAuth = () => setIsLoggedIn(!!localStorage.getItem('accessToken'));
-    checkAuth();
-    window.addEventListener('storage', checkAuth);
-    window.addEventListener('authChange', checkAuth);
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-      window.removeEventListener('authChange', checkAuth);
-    };
-  }, []);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const saved = localStorage.getItem('theme') as 'light' | 'dark' | null;
@@ -77,7 +76,7 @@ export default function Header() {
         <div className="h-full max-w-full mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
           {/* Left: Toggle + Logo + Primary Nav */}
           <div className="flex items-center gap-3">
-            {isLoggedIn && (
+            {isAuthenticated && (
               <button
                 onClick={toggleSidebar}
                 className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -179,12 +178,16 @@ export default function Header() {
               </button>
 
               {/* Auth Buttons */}
-              {isLoggedIn ? (
+              {isAuthenticated && user ? (
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="w-9 h-9 rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center hover:bg-blue-600 transition-colors"
+                  className="w-9 h-9 rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center hover:bg-blue-600 transition-colors overflow-hidden"
                 >
-                  U
+                  {getImageUrl(user.profileImage) || getImageUrl(user.avatar) ? (
+                    <img src={getImageUrl(user.profileImage) || getImageUrl(user.avatar) || ''} alt={user.name || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    (user.name || user.email || 'U').charAt(0).toUpperCase()
+                  )}
                 </button>
               ) : (
                 <>

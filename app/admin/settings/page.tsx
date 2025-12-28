@@ -45,6 +45,52 @@ interface SiteSettings {
   featuredTechnologies: string[];
 }
 
+interface ApiSettings {
+  openai: {
+    apiKey: string;
+    model: string;
+    maxTokens: number;
+    temperature: number;
+    enabled: boolean;
+  };
+  razorpay: {
+    keyId: string;
+    keySecret: string;
+    webhookSecret: string;
+    enabled: boolean;
+    testMode: boolean;
+  };
+  stripe: {
+    publishableKey: string;
+    secretKey: string;
+    webhookSecret: string;
+    enabled: boolean;
+    testMode: boolean;
+  };
+  email: {
+    provider: string;
+    smtpHost: string;
+    smtpPort: number;
+    smtpUser: string;
+    smtpPassword: string;
+    smtpSecure: boolean;
+    sendgridApiKey: string;
+    fromEmail: string;
+    fromName: string;
+    enabled: boolean;
+  };
+  googleOAuth: {
+    clientId: string;
+    clientSecret: string;
+    enabled: boolean;
+  };
+  githubOAuth: {
+    clientId: string;
+    clientSecret: string;
+    enabled: boolean;
+  };
+}
+
 interface SettingsCard {
   title: string;
   description: string;
@@ -97,7 +143,18 @@ export default function AdminSettingsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'branding' | 'loader' | 'general' | 'security' | 'social' | 'menus'>('branding');
+  const [activeTab, setActiveTab] = useState<'branding' | 'loader' | 'general' | 'security' | 'social' | 'menus' | 'api'>('branding');
+  const [apiSettings, setApiSettings] = useState<ApiSettings>({
+    openai: { apiKey: '', model: 'gpt-4o-mini', maxTokens: 2000, temperature: 0.7, enabled: false },
+    razorpay: { keyId: '', keySecret: '', webhookSecret: '', enabled: false, testMode: true },
+    stripe: { publishableKey: '', secretKey: '', webhookSecret: '', enabled: false, testMode: true },
+    email: { provider: 'smtp', smtpHost: '', smtpPort: 587, smtpUser: '', smtpPassword: '', smtpSecure: false, sendgridApiKey: '', fromEmail: '', fromName: 'TechTooTalk', enabled: false },
+    googleOAuth: { clientId: '', clientSecret: '', enabled: false },
+    githubOAuth: { clientId: '', clientSecret: '', enabled: false }
+  });
+  const [savingApi, setSavingApi] = useState(false);
+  const [testingOpenAI, setTestingOpenAI] = useState(false);
+  const [testingRazorpay, setTestingRazorpay] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const logoDarkInputRef = useRef<HTMLInputElement>(null);
   const loaderImageInputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +214,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     fetchSettings();
+    fetchApiSettings();
   }, []);
 
   const fetchSettings = async () => {
@@ -175,6 +233,23 @@ export default function AdminSettingsPage() {
       console.error('Failed to fetch settings:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApiSettings = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/settings/api`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setApiSettings(prev => ({ ...prev, ...data }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch API settings:', error);
     }
   };
 
@@ -238,6 +313,75 @@ export default function AdminSettingsPage() {
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload image');
+    }
+  };
+
+  const handleSaveApiSettings = async () => {
+    setSavingApi(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/settings/api`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(apiSettings)
+      });
+
+      if (response.ok) {
+        toast.success('API settings saved successfully!');
+        fetchApiSettings(); // Refresh to get masked values
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to save API settings');
+      }
+    } catch {
+      toast.error('Failed to save API settings');
+    } finally {
+      setSavingApi(false);
+    }
+  };
+
+  const handleTestOpenAI = async () => {
+    setTestingOpenAI(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/settings/api/test-openai`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success('OpenAI connection successful!');
+      } else {
+        toast.error(data.message || 'OpenAI connection failed');
+      }
+    } catch {
+      toast.error('Failed to test OpenAI connection');
+    } finally {
+      setTestingOpenAI(false);
+    }
+  };
+
+  const handleTestRazorpay = async () => {
+    setTestingRazorpay(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/settings/api/test-razorpay`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Razorpay connection successful!');
+      } else {
+        toast.error(data.message || 'Razorpay connection failed');
+      }
+    } catch {
+      toast.error('Failed to test Razorpay connection');
+    } finally {
+      setTestingRazorpay(false);
     }
   };
 
@@ -449,7 +593,8 @@ export default function AdminSettingsPage() {
             { id: 'general', label: 'General', icon: '⚙️' },
             { id: 'security', label: 'Security', icon: '🔒' },
             { id: 'social', label: 'Social Links', icon: '🔗' },
-            { id: 'menus', label: 'Header & Menus', icon: '📋' }
+            { id: 'menus', label: 'Header & Menus', icon: '📋' },
+            { id: 'api', label: 'API & Payments', icon: '🔑' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1131,6 +1276,370 @@ export default function AdminSettingsPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* API & Payments Tab */}
+          {activeTab === 'api' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              {/* OpenAI Settings */}
+              <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border-primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    🤖 OpenAI Settings
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      onClick={handleTestOpenAI}
+                      disabled={testingOpenAI}
+                      style={{ padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}
+                    >
+                      {testingOpenAI ? 'Testing...' : 'Test Connection'}
+                    </button>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <div
+                        onClick={() => setApiSettings(prev => ({ ...prev, openai: { ...prev.openai, enabled: !prev.openai.enabled } }))}
+                        className={`settings-toggle ${apiSettings.openai.enabled ? 'active' : ''}`}
+                      ></div>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Enabled</span>
+                    </label>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                  <div>
+                    <label className="settings-label">API Key</label>
+                    <input
+                      type="password"
+                      value={apiSettings.openai.apiKey}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, openai: { ...prev.openai, apiKey: e.target.value } }))}
+                      className="settings-input"
+                      placeholder="sk-..."
+                    />
+                  </div>
+                  <div>
+                    <label className="settings-label">Model</label>
+                    <select
+                      value={apiSettings.openai.model}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, openai: { ...prev.openai, model: e.target.value } }))}
+                      className="settings-input"
+                    >
+                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                      <option value="gpt-4">GPT-4</option>
+                      <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                      <option value="gpt-4o">GPT-4o</option>
+                      <option value="gpt-4o-mini">GPT-4o Mini</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="settings-label">Max Tokens</label>
+                    <input
+                      type="number"
+                      value={apiSettings.openai.maxTokens}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, openai: { ...prev.openai, maxTokens: parseInt(e.target.value) || 2000 } }))}
+                      className="settings-input"
+                      min="100"
+                      max="8000"
+                    />
+                  </div>
+                  <div>
+                    <label className="settings-label">Temperature ({apiSettings.openai.temperature})</label>
+                    <input
+                      type="range"
+                      value={apiSettings.openai.temperature}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, openai: { ...prev.openai, temperature: parseFloat(e.target.value) } }))}
+                      min="0"
+                      max="2"
+                      step="0.1"
+                      style={{ width: '100%', accentColor: 'var(--accent-primary)' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Razorpay Settings */}
+              <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border-primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    💳 Razorpay Payment Settings
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      onClick={handleTestRazorpay}
+                      disabled={testingRazorpay}
+                      style={{ padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--text-primary)' }}
+                    >
+                      {testingRazorpay ? 'Testing...' : 'Test Connection'}
+                    </button>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <div
+                        onClick={() => setApiSettings(prev => ({ ...prev, razorpay: { ...prev.razorpay, enabled: !prev.razorpay.enabled } }))}
+                        className={`settings-toggle ${apiSettings.razorpay.enabled ? 'active' : ''}`}
+                      ></div>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Enabled</span>
+                    </label>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                  <div>
+                    <label className="settings-label">Key ID</label>
+                    <input
+                      type="text"
+                      value={apiSettings.razorpay.keyId}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, razorpay: { ...prev.razorpay, keyId: e.target.value } }))}
+                      className="settings-input"
+                      placeholder="rzp_test_..."
+                    />
+                  </div>
+                  <div>
+                    <label className="settings-label">Key Secret</label>
+                    <input
+                      type="password"
+                      value={apiSettings.razorpay.keySecret}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, razorpay: { ...prev.razorpay, keySecret: e.target.value } }))}
+                      className="settings-input"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div>
+                    <label className="settings-label">Webhook Secret (Optional)</label>
+                    <input
+                      type="password"
+                      value={apiSettings.razorpay.webhookSecret}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, razorpay: { ...prev.razorpay, webhookSecret: e.target.value } }))}
+                      className="settings-input"
+                      placeholder="whsec_..."
+                    />
+                  </div>
+                  <div>
+                    <label className="settings-label">Mode</label>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          checked={apiSettings.razorpay.testMode}
+                          onChange={() => setApiSettings(prev => ({ ...prev, razorpay: { ...prev.razorpay, testMode: true } }))}
+                          style={{ accentColor: 'var(--accent-primary)' }}
+                        />
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Test Mode</span>
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          checked={!apiSettings.razorpay.testMode}
+                          onChange={() => setApiSettings(prev => ({ ...prev, razorpay: { ...prev.razorpay, testMode: false } }))}
+                          style={{ accentColor: 'var(--accent-primary)' }}
+                        />
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Live Mode</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Settings */}
+              <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border-primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ✉️ Email Settings
+                  </h3>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <div
+                      onClick={() => setApiSettings(prev => ({ ...prev, email: { ...prev.email, enabled: !prev.email.enabled } }))}
+                      className={`settings-toggle ${apiSettings.email.enabled ? 'active' : ''}`}
+                    ></div>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Enabled</span>
+                  </label>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                  <div>
+                    <label className="settings-label">Provider</label>
+                    <select
+                      value={apiSettings.email.provider}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, provider: e.target.value } }))}
+                      className="settings-input"
+                    >
+                      <option value="smtp">SMTP</option>
+                      <option value="sendgrid">SendGrid</option>
+                      <option value="mailgun">Mailgun</option>
+                      <option value="ses">AWS SES</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="settings-label">From Email</label>
+                    <input
+                      type="email"
+                      value={apiSettings.email.fromEmail}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, fromEmail: e.target.value } }))}
+                      className="settings-input"
+                      placeholder="noreply@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="settings-label">From Name</label>
+                    <input
+                      type="text"
+                      value={apiSettings.email.fromName}
+                      onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, fromName: e.target.value } }))}
+                      className="settings-input"
+                      placeholder="TechTooTalk"
+                    />
+                  </div>
+                  {apiSettings.email.provider === 'smtp' && (
+                    <>
+                      <div>
+                        <label className="settings-label">SMTP Host</label>
+                        <input
+                          type="text"
+                          value={apiSettings.email.smtpHost}
+                          onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, smtpHost: e.target.value } }))}
+                          className="settings-input"
+                          placeholder="smtp.gmail.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="settings-label">SMTP Port</label>
+                        <input
+                          type="number"
+                          value={apiSettings.email.smtpPort}
+                          onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, smtpPort: parseInt(e.target.value) || 587 } }))}
+                          className="settings-input"
+                          placeholder="587"
+                        />
+                      </div>
+                      <div>
+                        <label className="settings-label">SMTP User</label>
+                        <input
+                          type="text"
+                          value={apiSettings.email.smtpUser}
+                          onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, smtpUser: e.target.value } }))}
+                          className="settings-input"
+                          placeholder="user@gmail.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="settings-label">SMTP Password</label>
+                        <input
+                          type="password"
+                          value={apiSettings.email.smtpPassword}
+                          onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, smtpPassword: e.target.value } }))}
+                          className="settings-input"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {apiSettings.email.provider === 'sendgrid' && (
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <label className="settings-label">SendGrid API Key</label>
+                      <input
+                        type="password"
+                        value={apiSettings.email.sendgridApiKey}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, email: { ...prev.email, sendgridApiKey: e.target.value } }))}
+                        className="settings-input"
+                        placeholder="SG.xxxxx"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* OAuth Settings */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                {/* Google OAuth */}
+                <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      🔵 Google OAuth
+                    </h3>
+                    <div
+                      onClick={() => setApiSettings(prev => ({ ...prev, googleOAuth: { ...prev.googleOAuth, enabled: !prev.googleOAuth.enabled } }))}
+                      className={`settings-toggle ${apiSettings.googleOAuth.enabled ? 'active' : ''}`}
+                      style={{ transform: 'scale(0.85)' }}
+                    ></div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label className="settings-label">Client ID</label>
+                      <input
+                        type="text"
+                        value={apiSettings.googleOAuth.clientId}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, googleOAuth: { ...prev.googleOAuth, clientId: e.target.value } }))}
+                        className="settings-input"
+                        placeholder="xxxxx.apps.googleusercontent.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="settings-label">Client Secret</label>
+                      <input
+                        type="password"
+                        value={apiSettings.googleOAuth.clientSecret}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, googleOAuth: { ...prev.googleOAuth, clientSecret: e.target.value } }))}
+                        className="settings-input"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* GitHub OAuth */}
+                <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      ⚫ GitHub OAuth
+                    </h3>
+                    <div
+                      onClick={() => setApiSettings(prev => ({ ...prev, githubOAuth: { ...prev.githubOAuth, enabled: !prev.githubOAuth.enabled } }))}
+                      className={`settings-toggle ${apiSettings.githubOAuth.enabled ? 'active' : ''}`}
+                      style={{ transform: 'scale(0.85)' }}
+                    ></div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label className="settings-label">Client ID</label>
+                      <input
+                        type="text"
+                        value={apiSettings.githubOAuth.clientId}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, githubOAuth: { ...prev.githubOAuth, clientId: e.target.value } }))}
+                        className="settings-input"
+                        placeholder="Iv1.xxxxx"
+                      />
+                    </div>
+                    <div>
+                      <label className="settings-label">Client Secret</label>
+                      <input
+                        type="password"
+                        value={apiSettings.githubOAuth.clientSecret}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, githubOAuth: { ...prev.githubOAuth, clientSecret: e.target.value } }))}
+                        className="settings-input"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save API Settings Button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={handleSaveApiSettings}
+                  disabled={savingApi}
+                  className="save-btn"
+                >
+                  {savingApi ? (
+                    <>
+                      <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                      Saving API Settings...
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Save API Settings
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           )}

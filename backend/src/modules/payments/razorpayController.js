@@ -3,6 +3,7 @@ const Payment = require('./Payment');
 const Membership = require('../memberships/Membership');
 const Plan = require('../plans/Plan');
 const User = require('../auth/User');
+const ApiSettings = require('../settings/ApiSettings');
 
 // Initialize Razorpay - will be done dynamically
 let Razorpay;
@@ -12,13 +13,35 @@ try {
   console.log('Razorpay module not installed. Run: npm install razorpay');
 }
 
-const getRazorpayInstance = () => {
+const getRazorpayInstance = async () => {
   if (!Razorpay) {
-    throw new Error('Razorpay module not installed');
+    throw new Error('Razorpay module not installed. Run: npm install razorpay');
   }
+  
+  // First try environment variables, then fall back to database settings
+  let keyId = process.env.RAZORPAY_KEY_ID;
+  let keySecret = process.env.RAZORPAY_KEY_SECRET;
+  
+  // If not in env, try to get from database
+  if (!keyId || !keySecret) {
+    try {
+      const apiSettings = await ApiSettings.getSettings();
+      if (apiSettings.razorpay?.enabled) {
+        keyId = keyId || apiSettings.razorpay.keyId;
+        keySecret = keySecret || apiSettings.razorpay.keySecret;
+      }
+    } catch (e) {
+      console.log('Could not load API settings from database:', e.message);
+    }
+  }
+  
+  if (!keyId || !keySecret) {
+    throw new Error('Razorpay credentials not configured. Please set them in Admin Settings → API & Payments');
+  }
+  
   return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
+    key_id: keyId,
+    key_secret: keySecret
   });
 };
 
@@ -37,7 +60,7 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: 'Cannot create order for free plan' });
     }
 
-    const razorpay = getRazorpayInstance();
+    const razorpay = await getRazorpayInstance();
     
     // Amount in paise (smallest currency unit)
     const amountInPaise = Math.round(plan.price * 100);

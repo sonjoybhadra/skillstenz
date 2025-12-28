@@ -1,15 +1,48 @@
 const AILog = require('./AILog');
 const User = require('../auth/User');
 const axios = require('axios');
+const ApiSettings = require('../settings/ApiSettings');
 
 class AIService {
   constructor() {
-    this.apiKey = process.env.OPENAI_API_KEY;
     this.baseURL = 'https://api.openai.com/v1';
+    this._apiSettings = null;
+  }
+
+  async getApiSettings() {
+    // Try environment variable first
+    let apiKey = process.env.OPENAI_API_KEY;
+    let model = 'gpt-4o-mini';
+    let maxTokens = 2000;
+    let temperature = 0.7;
+    
+    // If not in env, try database settings
+    if (!apiKey) {
+      try {
+        const settings = await ApiSettings.getSettings();
+        if (settings.openai?.enabled && settings.openai?.apiKey) {
+          apiKey = settings.openai.apiKey;
+          model = settings.openai.model || model;
+          maxTokens = settings.openai.maxTokens || maxTokens;
+          temperature = settings.openai.temperature ?? temperature;
+        }
+      } catch (e) {
+        console.log('Could not load API settings from database:', e.message);
+      }
+    }
+    
+    return { apiKey, model, maxTokens, temperature };
   }
 
   async processQuery(userId, query, userType) {
     const startTime = Date.now();
+    
+    // Get API settings
+    const { apiKey, model, maxTokens, temperature } = await this.getApiSettings();
+    
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured. Please configure it in Admin Settings → API & Payments');
+    }
     
     try {
       // Get user membership
@@ -48,15 +81,19 @@ class AIService {
       // Generate prompt
       const prompt = this.buildPrompt(query, context, aiMode, userType);
       
+      // Use configured model or default based on plan
+      const selectedModel = aiMode === 'advanced' ? (model.includes('gpt-4') ? model : 'gpt-4') : 'gpt-3.5-turbo';
+      const selectedMaxTokens = aiMode === 'advanced' ? maxTokens : Math.min(maxTokens, 1000);
+      
       // Call OpenAI API
       const response = await axios.post(`${this.baseURL}/chat/completions`, {
-        model: aiMode === 'advanced' ? 'gpt-4' : 'gpt-3.5-turbo',
+        model: selectedModel,
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: aiMode === 'advanced' ? 2000 : 1000,
-        temperature: 0.7
+        max_tokens: selectedMaxTokens,
+        temperature: temperature
       }, {
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         }
       });

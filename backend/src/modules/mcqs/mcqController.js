@@ -252,18 +252,38 @@ exports.createMCQ = async (req, res) => {
 // Admin: Update MCQ
 exports.updateMCQ = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    
+    // Convert empty strings to null for ObjectId fields
+    if (updateData.technology === '') updateData.technology = null;
+    if (updateData.course === '') updateData.course = null;
+    if (updateData.topic === '') updateData.topic = null;
+    
+    // Ensure options have isCorrect set properly based on correctAnswer
+    if (updateData.options && typeof updateData.correctAnswer === 'number') {
+      updateData.options = updateData.options.map((opt, idx) => ({
+        ...opt,
+        isCorrect: idx === updateData.correctAnswer
+      }));
+    }
+
+    console.log('Updating MCQ:', req.params.id);
+    console.log('Update data:', JSON.stringify(updateData, null, 2));
+
     const mcq = await MCQ.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true }
+      updateData,
+      { new: true, runValidators: true }
     );
 
     if (!mcq) {
       return res.status(404).json({ message: 'MCQ not found' });
     }
 
+    console.log('MCQ updated successfully:', mcq._id);
     res.json(mcq);
   } catch (error) {
+    console.error('MCQ update error:', error);
     res.status(500).json({ message: 'Failed to update MCQ', error: error.message });
   }
 };

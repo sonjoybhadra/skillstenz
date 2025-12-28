@@ -54,6 +54,48 @@ const compilerLanguageSchema = new mongoose.Schema({
   order: { type: Number, default: 0 }
 }, { _id: true });
 
+// Testimonial schema for student reviews
+const testimonialSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  role: String, // "Grade 8 Student", "Parent"
+  avatar: String,
+  rating: { type: Number, min: 1, max: 5, default: 5 },
+  content: { type: String, required: true },
+  course: String, // Course they reviewed
+  isActive: { type: Boolean, default: true },
+  order: { type: Number, default: 0 }
+}, { _id: true });
+
+// Partner/Sponsor schema
+const partnerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  logo: String,
+  website: String,
+  isActive: { type: Boolean, default: true },
+  order: { type: Number, default: 0 }
+}, { _id: true });
+
+// Kids Course schema
+const kidsCourseSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  icon: String,
+  gradeRange: String, // "Grade 1-3", "Grade 4-6", etc.
+  image: String,
+  href: String,
+  features: [String],
+  isActive: { type: Boolean, default: true },
+  order: { type: Number, default: 0 }
+}, { _id: true, suppressReservedKeysWarning: true });
+
+// Why Learn AI Point schema
+const whyLearnPointSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  icon: String,
+  order: { type: Number, default: 0 }
+}, { _id: true });
+
 // Home Section Schema
 const homeSectionSchema = new mongoose.Schema({
   sectionKey: {
@@ -69,7 +111,11 @@ const homeSectionSchema = new mongoose.Schema({
       'roadmaps',
       'career_categories',
       'compiler',
-      'tools'
+      'tools',
+      'kids_courses',
+      'testimonials',
+      'why_learn_ai',
+      'partners'
     ]
   },
   title: { type: String, required: true },
@@ -111,6 +157,21 @@ const homeSectionSchema = new mongoose.Schema({
     languages: [compilerLanguageSchema],
     ctaButton: ctaButtonSchema
   },
+  
+  // Kids Courses section
+  kidsCoursesData: {
+    tagline: String, // "Make your child a future innovator"
+    courses: [kidsCourseSchema]
+  },
+  
+  // Student Testimonials section
+  testimonials: [testimonialSchema],
+  
+  // Why Learn AI section
+  whyLearnPoints: [whyLearnPointSchema],
+  
+  // Partners section
+  partners: [partnerSchema],
   
   // Common section settings
   seeAllLink: String,

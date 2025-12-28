@@ -384,18 +384,13 @@ const seedData = async () => {
         $or: [{ slug: tech.slug }, { name: tech.name }]
       });
 
-      await Technology.findOneAndUpdate(
-        { $or: [{ slug: tech.slug }, { name: tech.name }] },
-        { $set: tech },
-        {
-          new: true,
-          upsert: true,
-          setDefaultsOnInsert: true,
-          runValidators: true
-        }
-      );
-
-      console.log(`Technology ${tech.name} ${existing ? 'synced' : 'created'} (${tech.courses.length} courses)`);
+      // Only create if doesn't exist - don't overwrite existing data
+      if (!existing) {
+        await Technology.create(tech);
+        console.log(`Technology ${tech.name} created (${tech.courses.length} courses)`);
+      } else {
+        console.log(`Technology ${tech.name} already exists - skipping`);
+      }
     }
 
     console.log('Seeding completed');
