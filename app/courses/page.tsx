@@ -143,7 +143,7 @@ export default function CoursesPage() {
                     </h3>
                     <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
-                        <span>⏱️</span> {course.duration || 'Self-paced'}
+                        <span>📚</span> {course.topicsCount || course.topics || course.lessonsCount || 0} topics
                       </span>
                       <span className="flex items-center gap-1">
                         <span>👥</span> {course.studentsCount?.toLocaleString() || 0} students

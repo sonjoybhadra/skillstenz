@@ -17,7 +17,7 @@ export default function TechnologiesPage() {
     const fetchData = async () => {
       try {
         const [techResult, catResult] = await Promise.all([
-          technologiesAPI.getAll(),
+          technologiesAPI.getAll({ limit: 100 }),
           technologyCategoriesAPI.getAll()
         ]);
         
@@ -129,27 +129,46 @@ export default function TechnologiesPage() {
         </div>
       </section>
 
-      {/* Category Tabs & View Toggle */}
+      {/* Category Filter & View Toggle */}
       <section className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 sticky top-16 z-30">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex gap-2 overflow-x-auto">
-              {categoryTabs.map((cat) => (
-                <button
-                  key={cat._id}
-                  onClick={() => setSelectedCategory(cat._id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
-                    selectedCategory === cat._id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                  }`}
+          <div className="flex items-center justify-between py-4 gap-4">
+            {/* Category Dropdown Filter */}
+            <div className="flex items-center gap-3 flex-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                Filter by Category:
+              </label>
+              <div className="relative w-full max-w-xs">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full appearance-none px-4 py-2.5 pr-10 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
                 >
-                  <span>{cat.icon || '📘'}</span>
-                  <span>{cat.name}</span>
+                  {categoryTabs.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.icon || '📘'} {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+              {selectedCategory !== 'all' && (
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Clear
                 </button>
-              ))}
+              )}
             </div>
-            <div className="flex gap-1 ml-4">
+            <div className="flex gap-1">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-gray-200 dark:bg-slate-700' : 'hover:bg-gray-100 dark:hover:bg-slate-800'}`}

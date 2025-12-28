@@ -66,4 +66,4 @@ topicSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Topic', topicSchema);
+module.exports = mongoose.model('LegacyTopic', topicSchema);

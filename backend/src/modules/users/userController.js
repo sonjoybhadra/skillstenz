@@ -34,22 +34,46 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { email, userType } = req.body;
+    const { 
+      name, email, userType, title, bio, phone, location, website,
+      skills, interests, socialLinks, experience, education, projects,
+      certifications, achievements, resumeTemplate, isPublic
+    } = req.body;
+    
     const user = await User.findById(req.userId);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update allowed fields
-    if (email) user.email = email;
-    if (userType) user.userType = userType;
+    // Update all allowed fields
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (userType !== undefined) user.userType = userType;
+    if (title !== undefined) user.title = title;
+    if (bio !== undefined) user.bio = bio;
+    if (phone !== undefined) user.phone = phone;
+    if (location !== undefined) user.location = location;
+    if (website !== undefined) user.website = website;
+    if (skills !== undefined) user.skills = skills;
+    if (interests !== undefined) user.interests = interests;
+    if (socialLinks !== undefined) user.socialLinks = { ...user.socialLinks, ...socialLinks };
+    if (experience !== undefined) user.experience = experience;
+    if (education !== undefined) user.education = education;
+    if (projects !== undefined) user.projects = projects;
+    if (certifications !== undefined) user.certifications = certifications;
+    if (achievements !== undefined) user.achievements = achievements;
+    if (resumeTemplate !== undefined) user.resumeTemplate = resumeTemplate;
+    if (isPublic !== undefined) user.isPublic = isPublic;
+    
     user.updatedAt = new Date();
 
     await user.save();
-    res.json({ message: 'Profile updated', user: user.toJSON() });
+    
+    const responseUser = user.toJSON();
+    res.json({ message: 'Profile updated', user: responseUser });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -134,9 +158,9 @@ exports.getPublicProfile = async (req, res) => {
       isPublic: true,
       accountStatus: 'active'
     }).select(
-      'username name title profileImage bio location website skills ' +
+      'username name title profileImage bio location website skills phone ' +
       'socialLinks experience education projects certifications achievements ' +
-      'completedCourses totalPoints badges isPublic'
+      'completedCourses totalPoints badges isPublic resumeTemplate interests userType'
     );
 
     if (!user) {

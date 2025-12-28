@@ -51,27 +51,36 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   const mainNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: 'home' },
-    { href: '/ai-assistant', label: 'AI Assistant', icon: 'ai' },
     { href: '/my-courses', label: 'My Courses', icon: 'book' },
     { href: '/progress', label: 'Progress', icon: 'chart' },
+  ];
+
+  const learningNavItems = [
+    { href: '/ai-assistant', label: 'AI Assistant', icon: 'ai', badge: 'New' },
     { href: '/bookmarks', label: 'Bookmarks', icon: 'bookmark' },
     { href: '/certificates', label: 'Certificates', icon: 'certificate' },
+    { href: '/notes', label: 'Notes', icon: 'note' },
   ];
 
   const toolsNavItems = [
     { href: '/resume-builder', label: 'Resume Builder', icon: 'file' },
     { href: '/code-editor', label: 'Code Editor', icon: 'code' },
     { href: '/whiteboard', label: 'Whiteboard', icon: 'pen' },
-    { href: '/notes', label: 'Notes', icon: 'note' },
+    { href: '/compiler', label: 'Compiler', icon: 'terminal' },
   ];
 
   const exploreNavItems = [
     { href: '/technologies', label: 'Technologies', icon: 'grid' },
     { href: '/courses', label: 'All Courses', icon: 'courses' },
-    { href: '/blog', label: 'Insights', icon: 'article' },
     { href: '/roadmaps', label: 'Roadmaps', icon: 'map' },
+    { href: '/tutorials', label: 'Tutorials', icon: 'play' },
     { href: '/cheatsheets', label: 'Cheatsheets', icon: 'sheet' },
-    { href: '/compiler', label: 'Compiler', icon: 'code' },
+    { href: '/blog', label: 'Insights', icon: 'article' },
+  ];
+
+  const careerNavItems = [
+    { href: '/careers', label: 'Jobs', icon: 'briefcase' },
+    { href: '/profile', label: 'Career Hub', icon: 'target' },
   ];
 
   const getIcon = (icon: string) => {
@@ -91,6 +100,10 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       map: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" /><line x1="9" y1="3" x2="9" y2="18" /><line x1="15" y1="6" x2="15" y2="21" /></svg>),
       sheet: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>),
       article: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" /><path d="M18 14h-8" /><path d="M15 18h-5" /><path d="M10 6h8v4h-8V6Z" /></svg>),
+      terminal: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>),
+      play: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" /></svg>),
+      briefcase: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>),
+      target: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>),
     };
     return icons[icon] || icons.home;
   };
@@ -104,25 +117,28 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
       {/* Sidebar */}
       <aside className={`fixed top-16 left-0 bottom-0 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 z-40 flex flex-col overflow-y-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex-1 p-4 space-y-6">
+        <div className="flex-1 p-4 space-y-5">
           {/* AI Assistant Promo */}
           <Link
             href="/ai-assistant"
             onClick={isMobile ? closeSidebar : undefined}
-            className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+            className="flex items-center gap-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30 transition-colors"
           >
-            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center text-white">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white shadow-lg">
               {getIcon('ai')}
             </div>
-            <div>
-              <div className="font-semibold text-sm text-gray-900 dark:text-white">AI Assistant</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm text-gray-900 dark:text-white">AI Assistant</span>
+                <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded">NEW</span>
+              </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">Ask anything about coding</div>
             </div>
           </Link>
 
           {/* Main Navigation */}
           <div>
-            <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3">Main</div>
+            <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3">Dashboard</div>
             <nav className="space-y-1">
               {mainNavItems.map((item) => (
                 <Link
@@ -131,12 +147,37 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   onClick={isMobile ? closeSidebar : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span className="text-gray-400">{getIcon(item.icon)}</span>
+                  <span className={pathname === item.href ? 'text-emerald-500' : 'text-gray-400'}>{getIcon(item.icon)}</span>
                   <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Learning */}
+          <div>
+            <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3">Learning</div>
+            <nav className="space-y-1">
+              {learningNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={isMobile ? closeSidebar : undefined}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    pathname === item.href
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span className={pathname === item.href ? 'text-emerald-500' : 'text-gray-400'}>{getIcon(item.icon)}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {'badge' in item && item.badge && (
+                    <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded">{item.badge}</span>
+                  )}
                 </Link>
               ))}
             </nav>
@@ -153,33 +194,55 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   onClick={isMobile ? closeSidebar : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span className="text-gray-400">{getIcon(item.icon)}</span>
+                  <span className={pathname === item.href ? 'text-emerald-500' : 'text-gray-400'}>{getIcon(item.icon)}</span>
                   <span>{item.label}</span>
                 </Link>
               ))}
             </nav>
           </div>
 
-          {/* Explore */}
+          {/* Explore - Two Column Grid */}
           <div>
             <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3">Explore</div>
-            <nav className="space-y-1">
+            <nav className="grid grid-cols-2 gap-1.5 px-1">
               {exploreNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={isMobile ? closeSidebar : undefined}
+                  className={`flex flex-col items-center gap-1 px-2 py-3 rounded-lg text-xs font-medium transition-colors ${
+                    pathname === item.href
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span className={`${pathname === item.href ? 'text-emerald-500' : 'text-gray-400'}`}>{getIcon(item.icon)}</span>
+                  <span className="text-center">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Career */}
+          <div>
+            <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3">Career</div>
+            <nav className="space-y-1">
+              {careerNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={isMobile ? closeSidebar : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span className="text-gray-400">{getIcon(item.icon)}</span>
+                  <span className={pathname === item.href ? 'text-emerald-500' : 'text-gray-400'}>{getIcon(item.icon)}</span>
                   <span>{item.label}</span>
                 </Link>
               ))}
@@ -188,11 +251,11 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
           {/* Pro Badge */}
           {(!isAuthenticated || user?.role === 'student') && (
-            <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl text-center">
-              <div className="text-2xl mb-2">🎓</div>
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-800 rounded-xl text-center">
+              <div className="text-2xl mb-2">⭐</div>
               <div className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Upgrade to Pro</div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">Get unlimited access to all features</div>
-              <Link href="/membership" className="block w-full py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
+              <Link href="/membership" className="block w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-md">
                 Learn More
               </Link>
             </div>

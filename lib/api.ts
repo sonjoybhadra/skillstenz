@@ -25,6 +25,7 @@ export interface Technology {
   color: string;
   accessType: 'free' | 'paid' | 'mixed';
   courseCount: number;
+  chapterCount: number;
   featured: boolean;
   order: number;
   courses?: Course[];
@@ -41,9 +42,13 @@ export interface Course {
   duration: string;
   topics: number;
   lessons: number;
+  topicsCount?: number;
+  lessonsCount?: number;
+  sectionsCount?: number;
   image?: string;
   featured: boolean;
   price: 'free' | 'paid';
+  isFree?: boolean;
   instructor?: {
     name: string;
     title: string;
@@ -593,6 +598,163 @@ export const progressAPI = {
   },
 };
 
+// Blog Types
+export interface BlogAuthor {
+  _id?: string;
+  name: string;
+  username?: string;
+  avatar?: string;
+  bio?: string;
+}
+
+export interface BlogCategory {
+  _id?: string;
+  name: string;
+  slug: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface BlogTag {
+  _id?: string;
+  name: string;
+  slug: string;
+  color?: string;
+}
+
+export interface BlogComment {
+  _id: string;
+  user: {
+    _id?: string;
+    name: string;
+    username?: string;
+    avatar?: string;
+  };
+  content: string;
+  likes: number;
+  createdAt: string;
+  isEdited: boolean;
+  replies?: BlogComment[];
+}
+
+export interface BlogArticle {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featuredImage?: string;
+  author: BlogAuthor;
+  category: BlogCategory;
+  tags: BlogTag[];
+  readTime: number;
+  views: number;
+  likes: number;
+  isPublished: boolean;
+  publishedAt: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+  comments?: BlogComment[];
+}
+
+// Blog API
+export const blogAPI = {
+  // Get all articles
+  getArticles: async (params?: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    tag?: string;
+    search?: string;
+    featured?: boolean;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.tag) queryParams.append('tag', params.tag);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.featured) queryParams.append('featured', 'true');
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest<{
+      articles: BlogArticle[];
+      totalPages: number;
+      currentPage: number;
+      total: number;
+    }>(`/blog/articles${query}`);
+  },
+
+  // Get single article by slug
+  getArticleBySlug: async (slug: string) => {
+    return apiRequest<{
+      article: BlogArticle;
+      relatedArticles: BlogArticle[];
+    }>(`/blog/articles/${slug}`);
+  },
+
+  // Toggle like on article
+  toggleLike: async (articleId: string) => {
+    return apiRequest<{ likes: number; liked: boolean }>(`/blog/articles/${articleId}/like`, {
+      method: 'POST',
+    });
+  },
+
+  // Get comments for an article
+  getComments: async (articleId: string, params?: { page?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest<{
+      comments: BlogComment[];
+      totalPages: number;
+      currentPage: number;
+      total: number;
+    }>(`/blog/articles/${articleId}/comments${query}`);
+  },
+
+  // Create a comment (parent: null for top-level, or parent comment ID for replies)
+  createComment: async (data: { article: string; content: string; parent?: string | null }) => {
+    return apiRequest<BlogComment>('/blog/comments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Update a comment
+  updateComment: async (commentId: string, content: string) => {
+    return apiRequest<BlogComment>(`/blog/comments/${commentId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // Delete a comment
+  deleteComment: async (commentId: string) => {
+    return apiRequest<{ message: string }>(`/blog/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Toggle like on comment
+  toggleCommentLike: async (commentId: string) => {
+    return apiRequest<{ likes: number }>(`/blog/comments/${commentId}/like`, {
+      method: 'POST',
+    });
+  },
+
+  // Get blog categories
+  getCategories: async () => {
+    return apiRequest<BlogCategory[]>('/blog/categories');
+  },
+
+  // Get blog tags
+  getTags: async () => {
+    return apiRequest<BlogTag[]>('/blog/tags');
+  },
+};
+
 // Auth helpers
 export const authHelpers = {
   isLoggedIn: (): boolean => {
@@ -813,6 +975,7 @@ const api = {
   courses: coursesAPI,
   user: userAPI,
   progress: progressAPI,
+  blog: blogAPI,
   admin: adminAPI,
   homepage: homepageAPI,
 };

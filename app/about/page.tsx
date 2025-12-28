@@ -1,7 +1,43 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+interface CmsPageData {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  content?: string;
+  sections?: Array<{
+    title: string;
+    content: string;
+    order: number;
+  }>;
+}
+
 export default function AboutPage() {
+  const [cmsContent, setCmsContent] = useState<CmsPageData | null>(null);
+
+  useEffect(() => {
+    fetchCmsContent();
+  }, []);
+
+  const fetchCmsContent = async () => {
+    try {
+      const response = await fetch(`${API_URL}/cms/about`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.page) {
+          setCmsContent(data.page);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch CMS content:', err);
+    }
+  };
+
   const team = [
     { name: 'John Doe', role: 'Founder & CEO' },
     { name: 'Jane Smith', role: 'CTO' },
@@ -22,10 +58,10 @@ export default function AboutPage() {
         {/* Hero */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-5">
-            About TechTooTalk
+            {cmsContent?.heroTitle || 'About TechTooTalk'}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            We&apos;re on a mission to make quality tech education accessible to everyone, everywhere.
+            {cmsContent?.heroSubtitle || "We're on a mission to make quality tech education accessible to everyone, everywhere."}
           </p>
         </div>
 
@@ -43,20 +79,36 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* Mission */}
-        <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-            TechTooTalk was founded with a simple belief: that education should be accessible to everyone. 
-            We provide high-quality programming courses, tutorials, and resources to help learners 
-            at all levels achieve their goals.
-          </p>
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-            Whether you&apos;re just starting your coding journey or looking to advance your career, 
-            we have the resources to help you succeed. Our platform offers interactive learning 
-            experiences, hands-on projects, and a supportive community of learners.
-          </p>
-        </div>
+        {/* CMS Sections or Fallback Mission */}
+        {cmsContent?.sections && cmsContent.sections.length > 0 ? (
+          <div className="space-y-8 mb-12">
+            {cmsContent.sections
+              .sort((a, b) => a.order - b.order)
+              .map((section, index) => (
+                <div key={index} className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{section.title}</h2>
+                  <div 
+                    className="text-gray-600 dark:text-gray-400 leading-relaxed prose dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: section.content }}
+                  />
+                </div>
+              ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8 mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+              TechTooTalk was founded with a simple belief: that education should be accessible to everyone. 
+              We provide high-quality programming courses, tutorials, and resources to help learners 
+              at all levels achieve their goals.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Whether you&apos;re just starting your coding journey or looking to advance your career, 
+              we have the resources to help you succeed. Our platform offers interactive learning 
+              experiences, hands-on projects, and a supportive community of learners.
+            </p>
+          </div>
+        )}
 
         {/* Team */}
         <div className="mb-12">

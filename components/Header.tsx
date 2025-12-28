@@ -280,14 +280,14 @@ export default function Header() {
 
       {/* Secondary Menu Bar - Desktop */}
       <div className="hidden lg:block fixed top-16 left-0 right-0 h-10 bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 z-40">
-        <div className="h-full max-w-full mx-auto px-6 flex items-center gap-1 overflow-x-auto scrollbar-hide">
+        <div className="h-full max-w-full mx-auto px-6 flex items-center justify-center gap-1 overflow-x-auto scrollbar-hide">
           {bottomMenuItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
                 pathname === item.href
-                  ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                  ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
               }`}
             >

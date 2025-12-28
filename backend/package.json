@@ -12,7 +12,17 @@
     "seed:plans": "node scripts/seedPlans.js",
     "seed:content": "node scripts/seedCourseContent.js",
     "seed:homepage": "node scripts/seedHomepage.js",
-    "seed:all": "node scripts/seedAllContent.js"
+    "seed:blog": "node scripts/seedBlog.js",
+    "seed:features": "node scripts/seedContent.js",
+    "seed:all": "node scripts/seedAllContent.js",
+    "seed:live": "node scripts/masterSeeder.js",
+    "seed:categories": "node scripts/masterSeeder.js categories",
+    "seed:technologies": "node scripts/masterSeeder.js technologies",
+    "seed:courses": "node scripts/masterSeeder.js courses",
+    "seed:tutorials": "node scripts/masterSeeder.js tutorials",
+    "seed:roadmaps": "node scripts/masterSeeder.js roadmaps",
+    "seed:cheatsheets": "node scripts/masterSeeder.js cheatsheets",
+    "seed:articles": "node scripts/masterSeeder.js blog"
   },
   "dependencies": {
     "axios": "^1.5.0",

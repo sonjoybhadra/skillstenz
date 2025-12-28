@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
 import DynamicSEO from '../../components/DynamicSEO';
+import { blogAPI } from '@/lib/api';
 
 interface Category {
   _id: string;
@@ -37,6 +38,9 @@ interface Article {
   tags: Tag[];
   readTime: number;
   views: number;
+  likes: number;
+  dislikes: number;
+  commentsCount: number;
   publishedAt: string;
   isFeatured: boolean;
 }
@@ -82,6 +86,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[0], defaultTags[9], defaultTags[10]],
     readTime: 12,
     views: 15420,
+    likes: 234,
+    dislikes: 12,
+    commentsCount: 45,
     publishedAt: '2024-12-20',
     isFeatured: true
   },
@@ -96,6 +103,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[2], defaultTags[3], defaultTags[5]],
     readTime: 15,
     views: 12350,
+    likes: 189,
+    dislikes: 8,
+    commentsCount: 32,
     publishedAt: '2024-12-18',
     isFeatured: true
   },
@@ -110,6 +120,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[7], defaultTags[8], defaultTags[6]],
     readTime: 18,
     views: 9870,
+    likes: 156,
+    dislikes: 5,
+    commentsCount: 28,
     publishedAt: '2024-12-15',
     isFeatured: true
   },
@@ -124,6 +137,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[4], defaultTags[1], defaultTags[5]],
     readTime: 10,
     views: 7650,
+    likes: 98,
+    dislikes: 3,
+    commentsCount: 15,
     publishedAt: '2024-12-12',
     isFeatured: false
   },
@@ -138,6 +154,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[0]],
     readTime: 14,
     views: 11200,
+    likes: 145,
+    dislikes: 4,
+    commentsCount: 22,
     publishedAt: '2024-12-10',
     isFeatured: false
   },
@@ -152,6 +171,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[4], defaultTags[6]],
     readTime: 11,
     views: 8430,
+    likes: 112,
+    dislikes: 6,
+    commentsCount: 19,
     publishedAt: '2024-12-08',
     isFeatured: false
   },
@@ -166,6 +188,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[2], defaultTags[1]],
     readTime: 9,
     views: 6780,
+    likes: 87,
+    dislikes: 15,
+    commentsCount: 42,
     publishedAt: '2024-12-05',
     isFeatured: false
   },
@@ -180,6 +205,9 @@ const sampleArticles: Article[] = [
     tags: [],
     readTime: 8,
     views: 14560,
+    likes: 256,
+    dislikes: 7,
+    commentsCount: 67,
     publishedAt: '2024-12-03',
     isFeatured: false
   },
@@ -194,6 +222,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[11], defaultTags[4]],
     readTime: 13,
     views: 5420,
+    likes: 67,
+    dislikes: 2,
+    commentsCount: 11,
     publishedAt: '2024-12-01',
     isFeatured: false
   },
@@ -208,6 +239,9 @@ const sampleArticles: Article[] = [
     tags: [defaultTags[6], defaultTags[4]],
     readTime: 11,
     views: 7890,
+    likes: 134,
+    dislikes: 4,
+    commentsCount: 23,
     publishedAt: '2024-11-28',
     isFeatured: false
   },
@@ -224,42 +258,86 @@ export default function InsightsPage() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [currentPage, selectedCategory, selectedTag, searchQuery]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '12'
-      });
 
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedTag) params.append('tag', selectedTag);
-      if (searchQuery) params.append('search', searchQuery);
-
+      // Fetch articles, categories, and tags using blogAPI
       const [articlesRes, categoriesRes, tagsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog/articles?${params}`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog/categories`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog/tags`)
+        blogAPI.getArticles({
+          page: currentPage,
+          limit: 12,
+          category: selectedCategory || undefined,
+          tag: selectedTag || undefined,
+          search: searchQuery || undefined
+        }),
+        blogAPI.getCategories(),
+        blogAPI.getTags()
       ]);
 
-      if (articlesRes.ok) {
-        const data = await articlesRes.json();
-        setArticles(data.articles?.length ? data.articles : sampleArticles);
-        setTotalPages(data.totalPages || 1);
+      // Handle articles response
+      if (articlesRes.data && articlesRes.data.articles?.length > 0) {
+        const mappedArticles: Article[] = articlesRes.data.articles.map(a => ({
+          _id: a._id,
+          title: a.title,
+          slug: a.slug,
+          excerpt: a.excerpt,
+          featuredImage: a.featuredImage,
+          author: {
+            name: a.author?.name || 'Unknown',
+            username: a.author?.username || '',
+            avatar: a.author?.avatar
+          },
+          category: {
+            _id: a.category?._id || 'general',
+            name: a.category?.name || 'General',
+            slug: a.category?.slug || 'general',
+            icon: a.category?.icon || '📝',
+            color: a.category?.color || '#3B82F6'
+          },
+          tags: (a.tags || []).map(t => ({
+            _id: t._id || t.slug || '',
+            name: t.name || '',
+            slug: t.slug || '',
+            color: t.color || '#6B7280'
+          })),
+          readTime: a.readTime || 5,
+          views: a.views || 0,
+          likes: a.likes || 0,
+          dislikes: 0,
+          commentsCount: 0,
+          publishedAt: a.publishedAt,
+          isFeatured: false
+        }));
+        setArticles(mappedArticles);
+        setTotalPages(articlesRes.data.totalPages || 1);
+      } else {
+        setArticles(sampleArticles);
       }
 
-      if (categoriesRes.ok) {
-        const data = await categoriesRes.json();
-        setCategories(data?.length ? data : defaultCategories);
+      // Handle categories response
+      if (categoriesRes.data && Array.isArray(categoriesRes.data) && categoriesRes.data.length > 0) {
+        setCategories(categoriesRes.data.map(c => ({
+          _id: c._id || c.slug || '',
+          name: c.name || '',
+          slug: c.slug || '',
+          icon: c.icon || '📝',
+          color: c.color || '#3B82F6'
+        })));
+      } else {
+        setCategories(defaultCategories);
       }
 
-      if (tagsRes.ok) {
-        const data = await tagsRes.json();
-        setTags(data?.length ? data : defaultTags);
+      // Handle tags response
+      if (tagsRes.data && Array.isArray(tagsRes.data) && tagsRes.data.length > 0) {
+        setTags(tagsRes.data.map(t => ({
+          _id: t._id || t.slug || '',
+          name: t.name || '',
+          slug: t.slug || '',
+          color: t.color || '#6B7280'
+        })));
+      } else {
+        setTags(defaultTags);
       }
     } catch (error) {
       console.error('Error fetching insights data:', error);
@@ -270,7 +348,11 @@ export default function InsightsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, selectedCategory, selectedTag, searchQuery]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Filter articles based on selection
   const filteredArticles = articles.filter(article => {
@@ -465,9 +547,13 @@ export default function InsightsPage() {
                                   {article.title}
                                 </h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{article.excerpt}</p>
-                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100 dark:border-slate-700">
                                   <span>{formatDate(article.publishedAt)}</span>
-                                  <span>👁️ {article.views.toLocaleString()}</span>
+                                  <div className="flex items-center gap-3">
+                                    <span className="flex items-center gap-1" title="Views">👁️ {article.views.toLocaleString()}</span>
+                                    <span className="flex items-center gap-1" title="Likes">👍 {article.likes}</span>
+                                    <span className="flex items-center gap-1" title="Comments">💬 {article.commentsCount}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -514,6 +600,15 @@ export default function InsightsPage() {
                                   {tag.name}
                                 </span>
                               ))}
+                            </div>
+                            {/* Stats Row */}
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center gap-1" title="Views">👁️ {article.views.toLocaleString()}</span>
+                                <span className="flex items-center gap-1" title="Likes">👍 {article.likes}</span>
+                                <span className="flex items-center gap-1" title="Dislikes">👎 {article.dislikes}</span>
+                                <span className="flex items-center gap-1" title="Comments">💬 {article.commentsCount}</span>
+                              </div>
                             </div>
                             <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100 dark:border-slate-700">
                               <div className="flex items-center gap-2">

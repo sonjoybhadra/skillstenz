@@ -1,4 +1,4 @@
-const Topic = require('./Topic');
+const Topic = require('./Topic'); // LegacyTopic model
 const Technology = require('../technologies/Technology');
 
 exports.getTopicsByTechnology = async (req, res) => {

@@ -2,9 +2,35 @@
 
 import Layout from '@/components/Layout';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+interface Roadmap {
+  _id: string;
+  slug: string;
+  name: string;
+  title: string;
+  icon: string;
+  category: string;
+  duration: string;
+  description: string;
+  difficulty: string;
+  steps?: { title: string }[];
+  isFeatured: boolean;
+}
+
+// Fallback data in case API is not ready
+const fallbackRoadmaps = [
+  { slug: 'frontend', name: 'Frontend Developer', icon: '🎨', category: 'frontend', duration: '6 months', description: 'Master HTML, CSS, JavaScript, React, and modern frontend tools', difficulty: 'beginner', steps: Array(12).fill({}) },
+  { slug: 'backend', name: 'Backend Developer', icon: '⚙️', category: 'backend', duration: '8 months', description: 'Learn Node.js, databases, APIs, and server architecture', difficulty: 'intermediate', steps: Array(14).fill({}) },
+  { slug: 'fullstack', name: 'Full Stack Developer', icon: '🚀', category: 'other', duration: '12 months', description: 'Comprehensive path covering both frontend and backend technologies', difficulty: 'advanced', steps: Array(20).fill({}) },
+  { slug: 'devops', name: 'DevOps Engineer', icon: '🔧', category: 'devops', duration: '8 months', description: 'CI/CD, Docker, Kubernetes, and cloud infrastructure', difficulty: 'advanced', steps: Array(15).fill({}) },
+];
 
 export default function RoadmapsPage() {
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -12,32 +38,50 @@ export default function RoadmapsPage() {
     { id: 'all', name: 'All Roadmaps' },
     { id: 'frontend', name: 'Frontend' },
     { id: 'backend', name: 'Backend' },
-    { id: 'fullstack', name: 'Full Stack' },
     { id: 'mobile', name: 'Mobile' },
     { id: 'devops', name: 'DevOps' },
+    { id: 'data', name: 'Data' },
+    { id: 'other', name: 'Other' },
   ];
 
-  const roadmaps = [
-    { slug: 'frontend', name: 'Frontend Developer', icon: '🎨', category: 'frontend', steps: 12, duration: '6 months', description: 'Master HTML, CSS, JavaScript, React, and modern frontend tools' },
-    { slug: 'backend', name: 'Backend Developer', icon: '⚙️', category: 'backend', steps: 14, duration: '8 months', description: 'Learn Node.js, databases, APIs, and server architecture' },
-    { slug: 'fullstack', name: 'Full Stack Developer', icon: '🚀', category: 'fullstack', steps: 20, duration: '12 months', description: 'Comprehensive path covering both frontend and backend technologies' },
-    { slug: 'react', name: 'React Developer', icon: '⚛️', category: 'frontend', steps: 10, duration: '4 months', description: 'Deep dive into React ecosystem, Redux, and Next.js' },
-    { slug: 'nodejs', name: 'Node.js Developer', icon: '🟢', category: 'backend', steps: 11, duration: '5 months', description: 'Master Node.js, Express, and backend JavaScript' },
-    { slug: 'python', name: 'Python Developer', icon: '🐍', category: 'backend', steps: 13, duration: '6 months', description: 'Python programming, Django/Flask, and data processing' },
-    { slug: 'android', name: 'Android Developer', icon: '🤖', category: 'mobile', steps: 12, duration: '6 months', description: 'Kotlin, Android SDK, and mobile app development' },
-    { slug: 'ios', name: 'iOS Developer', icon: '🍎', category: 'mobile', steps: 11, duration: '6 months', description: 'Swift, UIKit, SwiftUI, and Apple ecosystem' },
-    { slug: 'devops', name: 'DevOps Engineer', icon: '🔧', category: 'devops', steps: 15, duration: '8 months', description: 'CI/CD, Docker, Kubernetes, and cloud infrastructure' },
-    { slug: 'javascript', name: 'JavaScript Developer', icon: '🟨', category: 'frontend', steps: 10, duration: '4 months', description: 'Complete JavaScript from basics to advanced concepts' },
-    { slug: 'typescript', name: 'TypeScript Developer', icon: '🔷', category: 'frontend', steps: 8, duration: '3 months', description: 'Type-safe JavaScript development with TypeScript' },
-    { slug: 'java', name: 'Java Developer', icon: '☕', category: 'backend', steps: 14, duration: '7 months', description: 'Java programming, Spring Boot, and enterprise development' },
-  ];
+  useEffect(() => {
+    fetchRoadmaps();
+  }, [selectedCategory]);
+
+  const fetchRoadmaps = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+      
+      const response = await fetch(`${API_URL}/roadmaps?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRoadmaps(data.roadmaps || []);
+      } else {
+        setRoadmaps(fallbackRoadmaps as unknown as Roadmap[]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch roadmaps:', error);
+      setRoadmaps(fallbackRoadmaps as unknown as Roadmap[]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredRoadmaps = roadmaps.filter(roadmap => {
     const matchesSearch = roadmap.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      roadmap.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || roadmap.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+      roadmap.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+      case 'intermediate': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+      case 'advanced': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400';
+    }
+  };
 
   return (
     <Layout>
@@ -95,42 +139,70 @@ export default function RoadmapsPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {filteredRoadmaps.length} Roadmaps Available
+              {loading ? 'Loading...' : `${filteredRoadmaps.length} Roadmaps Available`}
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRoadmaps.map((roadmap) => (
-              <Link 
-                key={roadmap.slug} 
-                href={`/roadmaps/${roadmap.slug}`} 
-                className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
-              >
-                <div className="h-28 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-5xl">
-                  {roadmap.icon}
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden animate-pulse">
+                  <div className="h-28 bg-gray-200 dark:bg-slate-700"></div>
+                  <div className="p-5 space-y-3">
+                    <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-slate-700 rounded"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4"></div>
+                  </div>
                 </div>
-                <div className="p-5">
-                  <div className="flex gap-2 mb-3">
-                    <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded">
-                      {roadmap.steps} Steps
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded">
-                      {roadmap.duration}
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRoadmaps.map((roadmap) => (
+                <Link 
+                  key={roadmap._id || roadmap.slug} 
+                  href={`/roadmaps/${roadmap.slug}`} 
+                  className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
+                >
+                  <div className="h-28 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-5xl">
+                    {roadmap.icon || '📚'}
+                  </div>
+                  <div className="p-5">
+                    <div className="flex gap-2 mb-3 flex-wrap">
+                      <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded">
+                        {roadmap.steps?.length || 0} Steps
+                      </span>
+                      <span className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded">
+                        {roadmap.duration}
+                      </span>
+                      {roadmap.difficulty && (
+                        <span className={`px-2 py-1 text-xs font-medium rounded capitalize ${getDifficultyColor(roadmap.difficulty)}`}>
+                          {roadmap.difficulty}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-500 transition-colors">
+                      {roadmap.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                      {roadmap.description}
+                    </p>
+                    <span className="text-purple-500 text-sm font-medium">
+                      Start Learning →
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-500 transition-colors">
-                    {roadmap.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                    {roadmap.description}
-                  </p>
-                  <span className="text-purple-500 text-sm font-medium">
-                    Start Learning →
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {!loading && filteredRoadmaps.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No roadmaps found</h3>
+              <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or category filter</p>
+            </div>
+          )}
         </div>
       </section>
     </Layout>

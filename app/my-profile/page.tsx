@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -37,6 +37,13 @@ export default function MyProfilePage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications'>('profile');
   const [uploadingImage, setUploadingImage] = useState(false);
+  
+  // Image preview state
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0 });
   
   const [profile, setProfile] = useState<UserProfile>({
     _id: '',
@@ -111,7 +118,7 @@ export default function MyProfilePage() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -120,9 +127,62 @@ export default function MyProfilePage() {
       return;
     }
 
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPreviewImage(e.target?.result as string);
+      setSelectedFile(file);
+      setShowImageModal(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPreviewImage(e.target?.result as string);
+      setSelectedFile(file);
+      setShowImageModal(true);
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleImageUpload = async () => {
+    if (!selectedFile) return;
+
     setUploadingImage(true);
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', selectedFile);
 
     try {
       const token = localStorage.getItem('accessToken');
@@ -135,6 +195,9 @@ export default function MyProfilePage() {
       if (response.ok) {
         const data = await response.json();
         setProfile({ ...profile, profileImage: data.imageUrl || data.profileImage });
+        setShowImageModal(false);
+        setPreviewImage(null);
+        setSelectedFile(null);
         toast.success('Profile image updated');
       } else {
         toast.error('Failed to upload image');
@@ -144,6 +207,28 @@ export default function MyProfilePage() {
       toast.error('Failed to upload image');
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!confirm('Are you sure you want to remove your profile image?')) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_URL}/users/profile/image`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setProfile({ ...profile, profileImage: '' });
+        toast.success('Profile image removed');
+      } else {
+        toast.error('Failed to remove image');
+      }
+    } catch (error) {
+      console.error('Remove error:', error);
+      toast.error('Failed to remove image');
     }
   };
 
@@ -367,42 +452,85 @@ export default function MyProfilePage() {
             {/* Profile Image Section */}
             <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] p-6">
               <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-6">Profile Picture</h2>
-              <div className="flex items-center gap-6">
-                <div className="relative">
+              <div className="flex flex-col md:flex-row items-start gap-6">
+                {/* Current Image */}
+                <div className="relative group">
                   {profile.profileImage ? (
                     <img
                       src={profile.profileImage}
                       alt={profile.name}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-[var(--border-primary)]"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-[var(--border-primary)] shadow-lg"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-[var(--bg-accent)] flex items-center justify-center text-white text-2xl font-bold border-4 border-[var(--border-primary)]">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-[var(--border-primary)] shadow-lg">
                       {getInitials(profile.name || 'U')}
                     </div>
                   )}
-                  {uploadingImage && (
-                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
-                    </div>
-                  )}
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-white text-sm font-medium"
+                    >
+                      Change
+                    </button>
+                  </div>
                 </div>
-                <div>
+
+                {/* Drag and Drop Area */}
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`flex-1 border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                    isDragging
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                      : 'border-[var(--border-primary)] hover:border-emerald-500/50'
+                  }`}
+                >
                   <input
                     type="file"
                     ref={fileInputRef}
-                    onChange={handleImageUpload}
+                    onChange={handleImageSelect}
                     accept="image/*"
                     className="hidden"
                   />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingImage}
-                    className="btn btn-secondary"
-                  >
-                    {uploadingImage ? 'Uploading...' : 'Change Photo'}
-                  </button>
-                  <p className="text-sm text-[var(--text-muted)] mt-2">JPG, PNG or GIF. Max size 5MB.</p>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-[var(--text-primary)] font-medium">
+                        Drag & drop your image here
+                      </p>
+                      <p className="text-sm text-[var(--text-muted)]">or</p>
+                    </div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                    >
+                      Browse Files
+                    </button>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      JPG, PNG or GIF. Max size 5MB.
+                    </p>
+                  </div>
                 </div>
+
+                {/* Remove button */}
+                {profile.profileImage && (
+                  <button
+                    onClick={handleRemoveImage}
+                    className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Remove
+                  </button>
+                )}
               </div>
             </div>
 
@@ -769,6 +897,103 @@ export default function MyProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Image Preview Modal */}
+      {showImageModal && previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-[var(--bg-card)] rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-primary)]">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Preview Profile Picture</h3>
+              <button
+                onClick={() => {
+                  setShowImageModal(false);
+                  setPreviewImage(null);
+                  setSelectedFile(null);
+                }}
+                className="w-8 h-8 rounded-full hover:bg-[var(--bg-secondary)] flex items-center justify-center text-[var(--text-secondary)]"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Preview Area */}
+            <div className="p-6">
+              <div className="flex flex-col items-center">
+                {/* Preview Image */}
+                <div className="relative mb-6">
+                  <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-emerald-500 shadow-lg">
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {/* Circular mask overlay indicator */}
+                  <div className="absolute -inset-2 border-2 border-dashed border-emerald-500/50 rounded-full pointer-events-none"></div>
+                </div>
+
+                {/* Preview description */}
+                <p className="text-[var(--text-secondary)] text-sm text-center mb-4">
+                  This is how your profile picture will look. The image will be cropped to a circle.
+                </p>
+
+                {/* File info */}
+                {selectedFile && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-secondary)] rounded-lg text-sm text-[var(--text-secondary)] mb-6">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{selectedFile.name}</span>
+                    <span className="text-[var(--text-muted)]">
+                      ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => {
+                      setShowImageModal(false);
+                      setPreviewImage(null);
+                      setSelectedFile(null);
+                    }}
+                    className="flex-1 px-4 py-3 border border-[var(--border-primary)] rounded-lg font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 px-4 py-3 border border-[var(--border-primary)] rounded-lg font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition-colors"
+                  >
+                    Choose Different
+                  </button>
+                  <button
+                    onClick={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {uploadingImage ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

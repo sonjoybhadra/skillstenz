@@ -1,5 +1,6 @@
 const Course = require('./Course');
 const Technology = require('../technologies/Technology');
+const Topic = require('./Topic');
 
 // Get all courses
 exports.getAllCourses = async (req, res) => {
@@ -26,11 +27,30 @@ exports.getAllCourses = async (req, res) => {
       .populate('technology', 'name slug icon color')
       .populate('instructor', 'name profileImage instructorTitle')
       .select('-sections -ratings');
+    
+    // Get topic counts for each course
+    const courseIds = courses.map(c => c._id);
+    const topicCounts = await Topic.aggregate([
+      { $match: { course: { $in: courseIds }, isPublished: true } },
+      { $group: { _id: '$course', count: { $sum: 1 } } }
+    ]);
+    
+    const topicCountMap = {};
+    topicCounts.forEach(tc => {
+      topicCountMap[tc._id.toString()] = tc.count;
+    });
+    
+    // Add topic counts to courses
+    const coursesWithCounts = courses.map(course => {
+      const courseObj = course.toObject();
+      courseObj.topicsCount = topicCountMap[course._id.toString()] || 0;
+      return courseObj;
+    });
       
     const total = await Course.countDocuments(query);
     
     res.json({
-      courses,
+      courses: coursesWithCounts,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -78,12 +98,19 @@ exports.getCourseBySlug = async (req, res) => {
       return res.status(404).json({ message: 'Course not found' });
     }
     
+    // Get topics count for this course
+    const topicsCount = await Topic.countDocuments({ 
+      course: course._id, 
+      isPublished: true 
+    });
+    
     // Increment views
     course.views++;
     await course.save();
     
     // Hide video URLs for non-free lessons if user not enrolled
     const courseObj = course.toObject();
+    courseObj.topicsCount = topicsCount;
     courseObj.sections = courseObj.sections.map(section => ({
       ...section,
       lessons: section.lessons.map(lesson => ({

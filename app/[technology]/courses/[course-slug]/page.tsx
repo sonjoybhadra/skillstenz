@@ -1,23 +1,54 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '../../../../components/Layout';
-import { getCourseBySlug, getTechnologyBySlug } from '../../../../lib/data';
+import { coursesAPI, technologiesAPI, Course, Technology } from '../../../../lib/api';
+import Spinner from '../../../../components/UI/Spinner';
 
-interface CoursePageProps {
-  params: Promise<{
-    technology: string;
-    'course-slug': string;
-  }>;
-}
+export default function CoursePage() {
+  const params = useParams();
+  const technology = params.technology as string;
+  const courseSlug = params['course-slug'] as string;
+  
+  const [course, setCourse] = useState<Course | null>(null);
+  const [technologyData, setTechnologyData] = useState<Technology | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function CoursePage({ params }: CoursePageProps) {
-  const { technology, 'course-slug': courseSlug } = await params;
-  const course = getCourseBySlug(courseSlug);
-  const technologyData = getTechnologyBySlug(technology);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [courseResult, techResult] = await Promise.all([
+          coursesAPI.getBySlug(courseSlug),
+          technologiesAPI.getBySlug(technology)
+        ]);
 
-  if (!course || !technologyData || course.technology !== technology) {
-    notFound();
-  }
+        if (courseResult.error || !courseResult.data) {
+          setError('Course not found');
+          return;
+        }
+        if (techResult.error || !techResult.data) {
+          setError('Technology not found');
+          return;
+        }
+
+        setCourse(courseResult.data);
+        setTechnologyData(techResult.data);
+      } catch (err) {
+        console.error('Failed to fetch course:', err);
+        setError('Failed to load course');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (courseSlug && technology) {
+      fetchData();
+    }
+  }, [courseSlug, technology]);
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -32,41 +63,59 @@ export default async function CoursePage({ params }: CoursePageProps) {
     }
   };
 
-  const getPriceDisplay = (price?: 'free' | 'paid') => {
-    return price === 'free' ? 'FREE' : 'PAID';
-  };
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Spinner size="lg" />
+        </div>
+      </Layout>
+    );
+  }
 
-  const getPriceColor = (price?: 'free' | 'paid') => {
-    return price === 'free' ? 'text-green-600' : 'text-blue-600';
-  };
+  if (error || !course || !technologyData) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            {error || 'Course not found'}
+          </h1>
+          <Link href={`/${technology}/courses`} className="text-blue-600 hover:underline">
+            Back to Courses
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       {/* Breadcrumb */}
-      <section className="bg-gray-50 border-b border-gray-200">
+      <section className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center space-x-2 text-sm">
-            <Link href="/" className="text-gray-500 hover:text-blue-600">
+            <Link href="/" className="text-gray-500 dark:text-gray-400 hover:text-blue-600">
               <i className="fas fa-home mr-1"></i>
               Home
             </Link>
             <span className="text-gray-400">/</span>
-            <Link href={`/${technology}`} className="text-gray-500 hover:text-blue-600">
+            <Link href={`/${technology}`} className="text-gray-500 dark:text-gray-400 hover:text-blue-600">
               {technologyData.name}
             </Link>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">{course.title}</span>
+            <span className="text-gray-900 dark:text-white font-medium">{course.title}</span>
           </nav>
         </div>
       </section>
 
       {/* Course Header */}
-      <section className="bg-white border-b border-gray-200">
+      <section className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Course Image */}
             <div className="lg:w-1/3">
-              <div className="bg-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={course.image || '/placeholder-course.jpg'}
                   alt={course.title}
@@ -81,111 +130,116 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getLevelColor(course.level)}`}>
                   {course.level}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPriceColor(course.price)}`}>
-                  {getPriceDisplay(course.price)}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${course.price === 'free' ? 'text-green-600' : 'text-blue-600'}`}>
+                  {course.price === 'free' ? 'FREE' : 'PAID'}
                 </span>
               </div>
 
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.title}</h1>
-              <p className="text-gray-600 text-lg mb-6">{course.description}</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{course.title}</h1>
+              <p className="text-gray-600 dark:text-gray-300 text-lg mb-6">{course.description}</p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{course.duration}</div>
-                  <div className="text-sm text-gray-500">Duration</div>
+                  <div className="text-2xl font-bold text-blue-600">{course.duration || 'N/A'}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Duration</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{course.lessons || course.topics}</div>
-                  <div className="text-sm text-gray-500">Lessons</div>
+                  <div className="text-2xl font-bold text-blue-600">{course.lessons || course.topics || 0}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Lessons</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{course.students || course.studentsCount || 0}</div>
-                  <div className="text-sm text-gray-500">Students</div>
+                  <div className="text-2xl font-bold text-blue-600">{course.studentsCount || 0}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Students</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{course.rating || 0}</div>
-                  <div className="text-sm text-gray-500">Rating</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Rating</div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6">
                 {course.tags?.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                  <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-sm">
                     {tag}
                   </span>
                 ))}
               </div>
 
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+              <Link 
+                href={`/${technology}/${courseSlug}`}
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+              >
                 Start Learning
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* Course Content */}
-      <section className="py-12">
+      <section className="py-12 dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
               {/* What You'll Learn */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">What You'll Learn</h2>
-                {course.learningObjectives ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">What You&apos;ll Learn</h2>
+                {course.learningObjectives && course.learningObjectives.length > 0 ? (
                   <ul className="space-y-3">
                     {course.learningObjectives.map((objective, index) => (
                       <li key={index} className="flex items-start">
                         <i className="fas fa-check text-green-500 mt-1 mr-3"></i>
-                        <span className="text-gray-700">{objective}</span>
+                        <span className="text-gray-700 dark:text-gray-300">{objective}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-600">Learning objectives will be available soon.</p>
+                  <p className="text-gray-600 dark:text-gray-400">Learning objectives will be available soon.</p>
                 )}
               </div>
 
               {/* Course Content */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Content</h2>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Course Content</h2>
                 <div className="space-y-4">
-                  {/* Mock course content since we don't have detailed topics */}
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="text-gray-600 dark:text-gray-400 mb-4">
+                    {course.lessons || course.topics || 0} lessons • {course.duration || 'Duration TBA'}
+                  </div>
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <i className="fas fa-play-circle text-blue-500 mr-3"></i>
                         <div>
-                          <h3 className="font-medium text-gray-900">Introduction to {course.title}</h3>
-                          <p className="text-sm text-gray-600">Course overview and prerequisites</p>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Introduction to {course.title}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Course overview and prerequisites</p>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">15 min</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">15 min</div>
                     </div>
                   </div>
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <i className="fas fa-play-circle text-blue-500 mr-3"></i>
                         <div>
-                          <h3 className="font-medium text-gray-900">Core Concepts</h3>
-                          <p className="text-sm text-gray-600">Fundamental concepts and theory</p>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Core Concepts</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Fundamental concepts and theory</p>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">45 min</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">45 min</div>
                     </div>
                   </div>
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <i className="fas fa-play-circle text-blue-500 mr-3"></i>
                         <div>
-                          <h3 className="font-medium text-gray-900">Practical Examples</h3>
-                          <p className="text-sm text-gray-600">Hands-on coding examples</p>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Practical Examples</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Hands-on coding examples</p>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">1h 30min</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">1h 30min</div>
                     </div>
                   </div>
                 </div>
@@ -193,13 +247,13 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
               {/* Prerequisites */}
               {course.prerequisites && course.prerequisites.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Prerequisites</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Prerequisites</h2>
                   <ul className="space-y-2">
                     {course.prerequisites.map((prereq, index) => (
                       <li key={index} className="flex items-start">
                         <i className="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
-                        <span className="text-gray-700">{prereq}</span>
+                        <span className="text-gray-700 dark:text-gray-300">{prereq}</span>
                       </li>
                     ))}
                   </ul>
@@ -209,43 +263,30 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Course Instructor</h3>
-                {typeof course.instructor === 'object' ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-4">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Course Instructor</h3>
+                {course.instructor && typeof course.instructor === 'object' && 'name' in course.instructor ? (
                   <>
                     <div className="flex items-center mb-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={course.instructor.avatar || '/placeholder-avatar.jpg'}
-                        alt={course.instructor.name}
+                        src={(course.instructor as { avatar?: string }).avatar || '/placeholder-avatar.jpg'}
+                        alt={(course.instructor as { name: string }).name}
                         className="w-12 h-12 rounded-full mr-3"
                       />
                       <div>
-                        <div className="font-medium text-gray-900">{course.instructor.name}</div>
-                        <div className="text-sm text-gray-600">{course.instructor.title}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{(course.instructor as { name: string }).name}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{(course.instructor as { title?: string }).title}</div>
                       </div>
                     </div>
-                    <p className="text-gray-700 text-sm mb-4">{course.instructor.bio}</p>
-
-                    <div className="border-t border-gray-200 pt-4">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Rating</span>
-                        <div className="flex items-center">
-                          <i className="fas fa-star text-yellow-400 mr-1"></i>
-                          <span className="font-medium">{course.instructor.rating}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-sm mt-2">
-                        <span className="text-gray-600">Students</span>
-                        <span className="font-medium">{course.instructor.students}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm mt-2">
-                        <span className="text-gray-600">Courses</span>
-                        <span className="font-medium">{course.instructor.courses}</span>
-                      </div>
-                    </div>
+                    {(course.instructor as { bio?: string }).bio && (
+                      <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{(course.instructor as { bio: string }).bio}</p>
+                    )}
                   </>
                 ) : (
-                  <div className="text-gray-700">{course.instructor || 'TechToTalk Academy'}</div>
+                  <div className="text-gray-700 dark:text-gray-300">
+                    {typeof course.instructor === 'string' ? course.instructor : 'TechToTalk Academy'}
+                  </div>
                 )}
               </div>
             </div>

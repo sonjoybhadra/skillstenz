@@ -1,4 +1,5 @@
 const JobPosition = require('./JobPosition');
+const JobApplication = require('../../models/JobApplication');
 
 // Get all active job positions
 exports.getJobs = async (req, res) => {
@@ -161,5 +162,102 @@ exports.getBenefits = async (req, res) => {
     res.json(defaultBenefits);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch benefits', error: error.message });
+  }
+};
+
+// Public: Apply for a job
+exports.applyForJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { name, email, phone, coverLetter, linkedinUrl, portfolioUrl, experience, expectedSalary, noticePeriod } = req.body;
+    
+    const job = await JobPosition.findById(jobId);
+    if (!job || !job.isActive) {
+      return res.status(404).json({ message: 'Job not found or no longer accepting applications' });
+    }
+    
+    // Check if already applied
+    const existingApplication = await JobApplication.findOne({ job: jobId, email });
+    if (existingApplication) {
+      return res.status(400).json({ message: 'You have already applied for this position' });
+    }
+    
+    const application = new JobApplication({
+      job: jobId,
+      user: req.user?.id,
+      name,
+      email,
+      phone,
+      coverLetter,
+      linkedinUrl,
+      portfolioUrl,
+      experience,
+      expectedSalary,
+      noticePeriod,
+      resume: req.file?.path // If using multer for file uploads
+    });
+    
+    await application.save();
+    
+    // Update applications count
+    job.applicationsCount = (job.applicationsCount || 0) + 1;
+    await job.save();
+    
+    res.status(201).json({ message: 'Application submitted successfully', application });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to submit application', error: error.message });
+  }
+};
+
+// Admin: Get all applications
+exports.getApplications = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, jobId } = req.query;
+    const filter = {};
+    
+    if (status && status !== 'all') filter.status = status;
+    if (jobId) filter.job = jobId;
+    
+    const applications = await JobApplication.find(filter)
+      .populate('job', 'title department')
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    
+    const total = await JobApplication.countDocuments(filter);
+    
+    res.json({
+      applications,
+      pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch applications', error: error.message });
+  }
+};
+
+// Admin: Update application status
+exports.updateApplicationStatus = async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+    
+    const application = await JobApplication.findByIdAndUpdate(
+      req.params.id,
+      { 
+        status, 
+        notes,
+        reviewedBy: req.user.id,
+        reviewedAt: new Date()
+      },
+      { new: true }
+    ).populate('job', 'title');
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    
+    res.json({ application, message: 'Application updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update application', error: error.message });
   }
 };

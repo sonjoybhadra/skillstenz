@@ -93,12 +93,12 @@ export default function Home() {
   ];
 
   const defaultLatestUpdates = [
-    { title: 'AI Agents with LangGraph', isNew: true },
-    { title: 'GPT-4 Vision Tutorial', isNew: true },
-    { title: 'RAG with Pinecone', isNew: true },
-    { title: 'LangChain v0.3 Guide', isNew: false },
-    { title: 'Prompt Engineering Best Practices', isNew: false },
-    { title: 'Building Multi-Agent Systems', isNew: true },
+    { name: 'AI Agents with LangGraph', title: 'AI Agents with LangGraph', isNew: true },
+    { name: 'GPT-4 Vision Tutorial', title: 'GPT-4 Vision Tutorial', isNew: true },
+    { name: 'RAG with Pinecone', title: 'RAG with Pinecone', isNew: true },
+    { name: 'LangChain v0.3 Guide', title: 'LangChain v0.3 Guide', isNew: false },
+    { name: 'Prompt Engineering Best Practices', title: 'Prompt Engineering Best Practices', isNew: false },
+    { name: 'Building Multi-Agent Systems', title: 'Building Multi-Agent Systems', isNew: true },
   ];
 
   const defaultCareerCategories = [
@@ -115,28 +115,28 @@ export default function Home() {
 
   const defaultCompilerLanguages = {
     primary: [
-      { name: '🐍 Python', href: '/compiler/python' },
-      { name: '🟨 JavaScript', href: '/compiler/javascript' },
-      { name: '🔷 TypeScript', href: '/compiler/typescript' },
-      { name: '🐘 PHP', href: '/compiler/php' },
-      { name: '☕ Java', href: '/compiler/java' },
-      { name: '©️ C', href: '/compiler/c' },
-      { name: '⚡ C++', href: '/compiler/cpp' },
-      { name: '🔵 Go', href: '/compiler/go' },
-      { name: '🦀 Rust', href: '/compiler/rust' },
-      { name: '💎 Ruby', href: '/compiler/ruby' },
+      { name: 'Python', icon: '🐍', href: '/compiler/python' },
+      { name: 'JavaScript', icon: '🟨', href: '/compiler/javascript' },
+      { name: 'TypeScript', icon: '🔷', href: '/compiler/typescript' },
+      { name: 'PHP', icon: '🐘', href: '/compiler/php' },
+      { name: 'Java', icon: '☕', href: '/compiler/java' },
+      { name: 'C', icon: '©️', href: '/compiler/c' },
+      { name: 'C++', icon: '⚡', href: '/compiler/cpp' },
+      { name: 'Go', icon: '🔵', href: '/compiler/go' },
+      { name: 'Rust', icon: '🦀', href: '/compiler/rust' },
+      { name: 'Ruby', icon: '💎', href: '/compiler/ruby' },
     ],
     secondary: [
-      { name: '⚛️ React.js', href: '/compiler/react' },
-      { name: '▲ Next.js', href: '/compiler/nextjs' },
-      { name: '🟢 Node.js', href: '/compiler/nodejs' },
-      { name: '🥟 Bun.js', href: '/compiler/bunjs' },
-      { name: '📄 HTML/CSS', href: '/compiler/html' },
-      { name: '🗃️ SQL', href: '/compiler/sql' },
-      { name: '🍃 MongoDB', href: '/compiler/mongodb' },
-      { name: '🍎 Swift', href: '/compiler/swift' },
-      { name: '🟣 Kotlin', href: '/compiler/kotlin' },
-      { name: '🎯 Dart', href: '/compiler/dart' },
+      { name: 'React.js', icon: '⚛️', href: '/compiler/react' },
+      { name: 'Next.js', icon: '▲', href: '/compiler/nextjs' },
+      { name: 'Node.js', icon: '🟢', href: '/compiler/nodejs' },
+      { name: 'Bun.js', icon: '🥟', href: '/compiler/bunjs' },
+      { name: 'HTML/CSS', icon: '📄', href: '/compiler/html' },
+      { name: 'SQL', icon: '🗃️', href: '/compiler/sql' },
+      { name: 'MongoDB', icon: '🍃', href: '/compiler/mongodb' },
+      { name: 'Swift', icon: '🍎', href: '/compiler/swift' },
+      { name: 'Kotlin', icon: '🟣', href: '/compiler/kotlin' },
+      { name: 'Dart', icon: '🎯', href: '/compiler/dart' },
     ]
   };
 
@@ -273,7 +273,7 @@ export default function Home() {
                 {latestUpdates.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
                     <span className="text-xl">📚</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{item.title || item.name}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{item.name || item.title}</span>
                     {item.isNew && (
                       <span className="ml-auto px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">
                         NEW

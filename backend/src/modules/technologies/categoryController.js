@@ -1,7 +1,7 @@
 const TechnologyCategory = require('./TechnologyCategory');
 const Technology = require('./Technology');
 
-// Get all categories (public)
+// Get all categories (public) - with technology counts
 exports.getAllCategories = async (req, res) => {
   try {
     const { published = 'true', featured } = req.query;
@@ -13,7 +13,26 @@ exports.getAllCategories = async (req, res) => {
     const categories = await TechnologyCategory.find(query)
       .sort({ order: 1, name: 1 });
     
-    res.json({ categories });
+    // Get technology counts for each category
+    const categoryIds = categories.map(c => c._id);
+    const techCounts = await Technology.aggregate([
+      { $match: { category: { $in: categoryIds }, isPublished: true } },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+    
+    const countMap = {};
+    techCounts.forEach(tc => {
+      countMap[tc._id.toString()] = tc.count;
+    });
+    
+    // Add counts to categories
+    const categoriesWithCounts = categories.map(cat => {
+      const catObj = cat.toObject();
+      catObj.technologiesCount = countMap[cat._id.toString()] || 0;
+      return catObj;
+    });
+    
+    res.json({ categories: categoriesWithCounts });
   } catch (error) {
     console.error('Get categories error:', error);
     res.status(500).json({ message: 'Failed to get categories', error: error.message });

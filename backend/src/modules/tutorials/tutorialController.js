@@ -1,6 +1,48 @@
 const TutorialChapter = require('./Tutorial');
 const Technology = require('../technologies/Technology');
 
+// Get tutorial (technology + chapters) by slug - matches frontend expectation
+const getTutorialBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Find technology by slug
+    const technology = await Technology.findOne({ slug }).populate('category', 'name slug icon');
+    if (!technology) {
+      return res.status(404).json({ message: 'Tutorial not found' });
+    }
+
+    // Get all published chapters for this technology
+    const chapters = await TutorialChapter.find({ 
+      technology: technology._id,
+      isPublished: true 
+    })
+      .sort({ order: 1 })
+      .select('title slug description order icon estimatedTime difficulty keyPoints content codeExample');
+
+    // Format response to match frontend Tutorial interface
+    const tutorial = {
+      _id: technology._id,
+      title: `${technology.name} Tutorial`,
+      slug: technology.slug,
+      description: technology.description || `Learn ${technology.name} with hands-on examples and exercises.`,
+      technology: technology.name,
+      technologyIcon: technology.icon,
+      technologyColor: technology.color,
+      category: technology.category?.name || 'Programming',
+      level: 'beginner',
+      keywords: [technology.name.toLowerCase(), technology.slug],
+      chapters: chapters,
+      createdAt: technology.createdAt
+    };
+
+    res.json({ tutorial });
+  } catch (error) {
+    console.error('Error fetching tutorial:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Get all chapters for a technology
 const getChaptersByTechnology = async (req, res) => {
   try {
@@ -239,6 +281,7 @@ const reorderChapters = async (req, res) => {
 };
 
 module.exports = {
+  getTutorialBySlug,
   getChaptersByTechnology,
   getChapterBySlug,
   getAllChapters,

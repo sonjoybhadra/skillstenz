@@ -1,24 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import toast from 'react-hot-toast';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+interface CmsPage {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  sections?: Array<{
+    title: string;
+    content: string;
+    order: number;
+  }>;
+}
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
+    category: 'general',
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [cmsContent, setCmsContent] = useState<CmsPage | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchCmsContent();
+  }, []);
+
+  const fetchCmsContent = async () => {
+    try {
+      const response = await fetch(`${API_URL}/cms/contact`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.page) {
+          setCmsContent(data.page);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch CMS content:', err);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setFormData({ name: '', email: '', subject: '', message: '' });
-      setSubmitted(false);
-    }, 3000);
+    setSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_URL}/cms/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitted(true);
+        toast.success('Message sent successfully!');
+        setTimeout(() => {
+          setFormData({ name: '', email: '', subject: '', category: 'general', message: '' });
+          setSubmitted(false);
+        }, 3000);
+      } else {
+        toast.error(data.message || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -28,14 +84,24 @@ export default function ContactPage() {
     { icon: '⏰', label: 'Hours', value: 'Mon-Fri: 9AM - 6PM PST' },
   ];
 
+  const categories = [
+    { value: 'general', label: 'General Inquiry' },
+    { value: 'support', label: 'Technical Support' },
+    { value: 'billing', label: 'Billing Question' },
+    { value: 'partnership', label: 'Partnership' },
+    { value: 'feedback', label: 'Feedback' },
+  ];
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">Contact Us</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+            {cmsContent?.heroTitle || 'Contact Us'}
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Have questions? We&apos;d love to hear from you.
+            {cmsContent?.heroSubtitle || "Have questions? We'd love to hear from you."}
           </p>
         </div>
 
@@ -76,6 +142,18 @@ export default function ContactPage() {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
                   <input
                     type="text"
@@ -96,10 +174,18 @@ export default function ContactPage() {
                   />
                 </div>
                 <button 
-                  type="submit" 
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                  type="submit"
+                  disabled={submitting} 
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Send Message
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Message'
+                  )}
                 </button>
               </form>
             )}

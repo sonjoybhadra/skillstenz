@@ -57,6 +57,13 @@ const userSchema = new mongoose.Schema({
     youtube: String
   },
   
+  // Resume Template Preference
+  resumeTemplate: {
+    type: String,
+    enum: ['modern', 'classic', 'minimal', 'creative', 'professional', 'elegant'],
+    default: 'modern'
+  },
+  
   // Resume/Portfolio Data
   experience: [{
     title: String,

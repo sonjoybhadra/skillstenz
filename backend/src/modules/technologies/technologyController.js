@@ -1,10 +1,11 @@
 const Technology = require('./Technology');
 const Course = require('../courses/Course');
+const TutorialChapter = require('../tutorials/Tutorial');
 
 // Get all technologies
 exports.getAllTechnologies = async (req, res) => {
   try {
-    const { search, category, featured, published, page = 1, limit = 20, sort = '-createdAt' } = req.query;
+    const { search, category, featured, published, page = 1, limit = 100, sort = 'order' } = req.query;
     
     const query = {};
     
@@ -23,11 +24,42 @@ exports.getAllTechnologies = async (req, res) => {
       .limit(parseInt(limit))
       .populate('createdBy', 'name email')
       .populate('category', 'name slug icon color');
+    
+    // Get course counts for each technology
+    const techIds = technologies.map(t => t._id);
+    const courseCounts = await Course.aggregate([
+      { $match: { technology: { $in: techIds }, isPublished: true } },
+      { $group: { _id: '$technology', count: { $sum: 1 } } }
+    ]);
+    
+    // Get chapter counts for each technology (for tutorials)
+    const chapterCounts = await TutorialChapter.aggregate([
+      { $match: { technology: { $in: techIds }, isPublished: true } },
+      { $group: { _id: '$technology', count: { $sum: 1 } } }
+    ]);
+    
+    const courseCountMap = {};
+    courseCounts.forEach(cc => {
+      courseCountMap[cc._id.toString()] = cc.count;
+    });
+    
+    const chapterCountMap = {};
+    chapterCounts.forEach(cc => {
+      chapterCountMap[cc._id.toString()] = cc.count;
+    });
+    
+    // Add counts to each technology
+    const technologiesWithCounts = technologies.map(tech => {
+      const techObj = tech.toObject();
+      techObj.courseCount = courseCountMap[tech._id.toString()] || 0;
+      techObj.chapterCount = chapterCountMap[tech._id.toString()] || 0;
+      return techObj;
+    });
       
     const total = await Technology.countDocuments(query);
     
     res.json({
-      technologies,
+      technologies: technologiesWithCounts,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),

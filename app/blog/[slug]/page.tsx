@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import DynamicSEO from '../../../components/DynamicSEO';
+import { useAuth } from '@/lib/auth';
+import { blogAPI, BlogArticle, BlogComment } from '@/lib/api';
 
 interface Category {
   name: string;
@@ -53,6 +55,7 @@ interface Article {
   readTime: number;
   views: number;
   likes: number;
+  dislikes: number;
   publishedAt: string;
   metaTitle?: string;
   metaDescription?: string;
@@ -93,6 +96,7 @@ const sampleArticlesData: Record<string, Article> = {
     readTime: 12,
     views: 15420,
     likes: 234,
+    dislikes: 12,
     publishedAt: '2024-12-20',
     content: `
 <p class="lead">Large Language Models (LLMs) like GPT-4 have revolutionized how we build AI applications. In this comprehensive guide, we'll explore how to leverage LangChain to create powerful AI-powered applications.</p>
@@ -303,6 +307,7 @@ conversation.predict(input="What's my name?")
     readTime: 15,
     views: 12350,
     likes: 189,
+    dislikes: 8,
     publishedAt: '2024-12-18',
     content: `
 <p class="lead">Next.js 15 introduces powerful new features for building modern web applications. This guide covers Server Components, the new rendering model, and best practices for optimal performance.</p>
@@ -556,28 +561,149 @@ const relatedArticlesData: RelatedArticle[] = [
   }
 ];
 
+// Helper to check if an ID is a valid MongoDB ObjectId (24 char hex string)
+const isValidObjectId = (id: string): boolean => {
+  return /^[a-fA-F0-9]{24}$/.test(id);
+};
+
 export default function BlogArticlePage() {
   const params = useParams();
-  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const [article, setArticle] = useState<Article | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasDisliked, setHasDisliked] = useState(false);
+  const [viewIncremented, setViewIncremented] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
 
+  // Increment view count when article is loaded
   useEffect(() => {
-    if (params.slug) {
-      fetchArticle();
+    if (article && !viewIncremented) {
+      incrementViewCount();
+      setViewIncremented(true);
     }
-  }, [params.slug]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [article, viewIncremented]);
 
-  const fetchArticle = async () => {
+  const incrementViewCount = async () => {
+    if (!article) return;
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/blog/articles/${article._id}/view`, {
+        method: 'POST'
+      });
+      // Update local state to reflect the view
+      setArticle(prev => prev ? { ...prev, views: prev.views + 1 } : null);
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+    }
+  };
+
+  const fetchArticle = useCallback(async () => {
     try {
       setLoading(true);
       const slug = params.slug as string;
       
-      // First, check if we have sample data for this slug
+      // Try to fetch from API first
+      const { data, error } = await blogAPI.getArticleBySlug(slug);
+      
+      if (data && data.article) {
+        // Convert API response to our Article interface
+        const apiArticle = data.article;
+        setArticle({
+          _id: apiArticle._id,
+          title: apiArticle.title,
+          slug: apiArticle.slug,
+          excerpt: apiArticle.excerpt,
+          content: apiArticle.content,
+          featuredImage: apiArticle.featuredImage,
+          author: {
+            name: apiArticle.author?.name || 'Unknown',
+            username: apiArticle.author?.username || '',
+            avatar: apiArticle.author?.avatar,
+            bio: apiArticle.author?.bio
+          },
+          category: {
+            name: apiArticle.category?.name || 'General',
+            slug: apiArticle.category?.slug || 'general',
+            icon: apiArticle.category?.icon || '📝',
+            color: apiArticle.category?.color || '#3B82F6'
+          },
+          tags: (apiArticle.tags || []).map((t: { name?: string; slug?: string; color?: string }) => ({
+            name: t.name || '',
+            slug: t.slug || '',
+            color: t.color || '#6B7280'
+          })),
+          readTime: apiArticle.readTime || 5,
+          views: apiArticle.views || 0,
+          likes: apiArticle.likes || 0,
+          dislikes: 0, // API might not have dislikes
+          publishedAt: apiArticle.publishedAt,
+          metaTitle: apiArticle.metaTitle,
+          metaDescription: apiArticle.metaDescription,
+          ogImage: apiArticle.ogImage,
+          comments: (apiArticle.comments || []).map((c: BlogComment) => ({
+            _id: c._id,
+            user: {
+              name: c.user?.name || 'Anonymous',
+              username: c.user?.username || '',
+              avatar: c.user?.avatar
+            },
+            content: c.content,
+            likes: c.likes || 0,
+            createdAt: c.createdAt,
+            isEdited: c.isEdited || false,
+            replies: (c.replies || []).map((r: BlogComment) => ({
+              _id: r._id,
+              user: {
+                name: r.user?.name || 'Anonymous',
+                username: r.user?.username || '',
+                avatar: r.user?.avatar
+              },
+              content: r.content,
+              likes: r.likes || 0,
+              createdAt: r.createdAt,
+              isEdited: r.isEdited || false
+            }))
+          }))
+        });
+        
+        // Set related articles from API
+        if (data.relatedArticles && data.relatedArticles.length > 0) {
+          setRelatedArticles(data.relatedArticles.map((r: BlogArticle) => ({
+            _id: r._id,
+            title: r.title,
+            slug: r.slug,
+            excerpt: r.excerpt,
+            featuredImage: r.featuredImage,
+            category: {
+              name: r.category?.name || 'General',
+              slug: r.category?.slug || 'general',
+              icon: r.category?.icon || '📝',
+              color: r.category?.color || '#3B82F6'
+            },
+            readTime: r.readTime || 5
+          })));
+        } else {
+          setRelatedArticles(relatedArticlesData);
+        }
+        
+        // Fetch comments separately if not included
+        if (!apiArticle.comments || apiArticle.comments.length === 0) {
+          fetchComments(apiArticle._id);
+        }
+        
+        setLoading(false);
+        return;
+      }
+      
+      // Fallback: check if we have sample data for this slug
       if (sampleArticlesData[slug]) {
         setArticle(sampleArticlesData[slug]);
         setRelatedArticles(relatedArticlesData);
@@ -585,23 +711,18 @@ export default function BlogArticlePage() {
         return;
       }
 
-      // Try to fetch from API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog/articles/${slug}`);
-      if (response.ok) {
-        const data = await response.json();
-        setArticle(data.article);
-        setRelatedArticles(data.relatedArticles || relatedArticlesData);
-      } else {
-        // Use a default article if not found
-        const defaultArticle = Object.values(sampleArticlesData)[0];
-        if (defaultArticle) {
-          setArticle({
-            ...defaultArticle,
-            slug: slug,
-            title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-          });
-          setRelatedArticles(relatedArticlesData);
-        }
+      // Use a default article if not found
+      if (error) {
+        console.log('API returned error, using sample data:', error);
+      }
+      const defaultArticle = Object.values(sampleArticlesData)[0];
+      if (defaultArticle) {
+        setArticle({
+          ...defaultArticle,
+          slug: slug,
+          title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        });
+        setRelatedArticles(relatedArticlesData);
       }
     } catch (error) {
       console.error('Error fetching article:', error);
@@ -615,65 +736,285 @@ export default function BlogArticlePage() {
     } finally {
       setLoading(false);
     }
+  }, [params.slug]);
+
+  const fetchComments = async (articleId: string) => {
+    try {
+      const { data } = await blogAPI.getComments(articleId);
+      if (data && data.comments) {
+        setArticle(prev => prev ? {
+          ...prev,
+          comments: data.comments.map((c: BlogComment) => ({
+            _id: c._id,
+            user: {
+              name: c.user?.name || 'Anonymous',
+              username: c.user?.username || '',
+              avatar: c.user?.avatar
+            },
+            content: c.content,
+            likes: c.likes || 0,
+            createdAt: c.createdAt,
+            isEdited: c.isEdited || false,
+            replies: (c.replies || []).map((r: BlogComment) => ({
+              _id: r._id,
+              user: {
+                name: r.user?.name || 'Anonymous',
+                username: r.user?.username || '',
+                avatar: r.user?.avatar
+              },
+              content: r.content,
+              likes: r.likes || 0,
+              createdAt: r.createdAt,
+              isEdited: r.isEdited || false
+            }))
+          }))
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
   };
 
   const handleLikeArticle = async () => {
     if (!article) return;
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog/articles/${article._id}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setArticle({ ...article, likes: data.likes });
-      }
-    } catch (error) {
-      console.error('Error liking article:', error);
+    
+    // Check if user is logged in
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
     }
+
+    // If already liked, remove like
+    if (hasLiked) {
+      setArticle({ ...article, likes: article.likes - 1 });
+      setHasLiked(false);
+    } else {
+      // If disliked, remove dislike first
+      if (hasDisliked) {
+        setHasDisliked(false);
+        setArticle({ ...article, likes: article.likes + 1, dislikes: article.dislikes - 1 });
+      } else {
+        setArticle({ ...article, likes: article.likes + 1 });
+      }
+      setHasLiked(true);
+    }
+
+    // Sync with backend only if valid ObjectId
+    if (isValidObjectId(article._id)) {
+      try {
+        await blogAPI.toggleLike(article._id);
+      } catch (error) {
+        console.error('Error syncing like:', error);
+      }
+    }
+  };
+
+  const handleDislikeArticle = async () => {
+    if (!article) return;
+    
+    // Check if user is logged in
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    // If already disliked, remove dislike
+    if (hasDisliked) {
+      setArticle({ ...article, dislikes: article.dislikes - 1 });
+      setHasDisliked(false);
+    } else {
+      // If liked, remove like first
+      if (hasLiked) {
+        setHasLiked(false);
+        setArticle({ ...article, dislikes: article.dislikes + 1, likes: article.likes - 1 });
+      } else {
+        setArticle({ ...article, dislikes: article.dislikes + 1 });
+      }
+      setHasDisliked(true);
+    }
+
+    // Note: Dislike is client-side only as API doesn't have dislike endpoint
+    // Could be added to backend if needed
   };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!article || !commentText.trim()) return;
 
+    // Check if user is logged in
+    if (!isAuthenticated || !user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     try {
       setSubmittingComment(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      // Create new comment object for immediate UI update
+      const userName = user.name || user.email?.split('@')[0] || 'You';
+      const tempId = `temp-${Date.now()}`;
+      const newComment: Comment = {
+        _id: tempId,
+        user: {
+          name: userName,
+          username: user.email?.split('@')[0] || 'user',
+          avatar: user.avatar || user.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`
         },
-        body: JSON.stringify({
-          article: article._id,
-          content: commentText
-        })
-      });
+        content: commentText.trim(),
+        likes: 0,
+        createdAt: new Date().toISOString(),
+        isEdited: false
+      };
 
-      if (response.ok) {
-        setCommentText('');
-        fetchArticle(); // Refresh to get new comment
+      // Immediately add comment to UI
+      setArticle(prev => prev ? {
+        ...prev,
+        comments: [...(prev.comments || []), newComment]
+      } : null);
+      setCommentText('');
+
+      // Only save to backend if article has a valid MongoDB ObjectId
+      if (isValidObjectId(article._id)) {
+        const { data, error } = await blogAPI.createComment({
+          article: article._id,
+          content: newComment.content,
+          parent: null
+        });
+
+        if (data && data._id) {
+          // Update the temp comment with real ID from server
+          setArticle(prev => prev ? {
+            ...prev,
+            comments: prev.comments?.map(c => 
+              c._id === tempId ? { 
+                ...c, 
+                _id: data._id,
+                user: {
+                  name: data.user?.name || c.user.name,
+                  username: data.user?.username || c.user.username,
+                  avatar: data.user?.avatar || c.user.avatar
+                }
+              } : c
+            )
+          } : null);
+        } else if (error) {
+          console.error('Error saving comment to database:', error);
+          // Comment is still shown in UI with temp ID
+        }
       }
+      // If sample data article, comment is only stored locally in state
     } catch (error) {
       console.error('Error submitting comment:', error);
+      // Comment is already added to UI, so user sees it
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  const handleSubmitReply = async (commentId: string) => {
+    if (!article || !replyText.trim()) return;
+
+    // Check if user is logged in
+    if (!isAuthenticated || !user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    try {
+      setSubmittingReply(true);
+
+      // Create new reply object for immediate UI update
+      const userName = user.name || user.email?.split('@')[0] || 'You';
+      const tempId = `reply-${Date.now()}`;
+      const newReply: Comment = {
+        _id: tempId,
+        user: {
+          name: userName,
+          username: user.email?.split('@')[0] || 'user',
+          avatar: user.avatar || user.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`
+        },
+        content: replyText.trim(),
+        likes: 0,
+        createdAt: new Date().toISOString(),
+        isEdited: false
+      };
+
+      // Immediately add reply to UI
+      setArticle(prev => prev ? {
+        ...prev,
+        comments: prev.comments?.map(c => 
+          c._id === commentId 
+            ? { ...c, replies: [...(c.replies || []), newReply] }
+            : c
+        )
+      } : null);
+      setReplyText('');
+      setReplyingTo(null);
+
+      // Only save to backend if both article and parent comment have valid MongoDB ObjectIds
+      if (isValidObjectId(article._id) && isValidObjectId(commentId)) {
+        const { data, error } = await blogAPI.createComment({
+          article: article._id,
+          content: newReply.content,
+          parent: commentId
+        });
+
+        if (data && data._id) {
+          // Update the temp reply with real ID from server
+          setArticle(prev => prev ? {
+            ...prev,
+            comments: prev.comments?.map(c => 
+              c._id === commentId 
+                ? { 
+                    ...c, 
+                    replies: c.replies?.map(r => 
+                      r._id === tempId ? { 
+                        ...r, 
+                        _id: data._id,
+                        user: {
+                          name: data.user?.name || r.user.name,
+                          username: data.user?.username || r.user.username,
+                          avatar: data.user?.avatar || r.user.avatar
+                        }
+                      } : r
+                    )
+                  }
+                : c
+            )
+          } : null);
+        } else if (error) {
+          console.error('Error saving reply to database:', error);
+        }
+      }
+      // If sample data, reply is only stored locally in state
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    
+    // Optimistic update
+    setArticle(prev => prev ? {
+      ...prev,
+      comments: prev.comments?.map(c => 
+        c._id === commentId ? { ...c, likes: c.likes + 1 } : c
+      )
+    } : null);
+
+    // Sync with backend only if valid ObjectId
+    if (isValidObjectId(commentId)) {
+      try {
+        await blogAPI.toggleCommentLike(commentId);
+      } catch (error) {
+        console.error('Error liking comment:', error);
+      }
     }
   };
 
@@ -684,6 +1025,13 @@ export default function BlogArticlePage() {
       day: 'numeric'
     });
   };
+
+  // Update useEffect to use the memoized fetchArticle
+  useEffect(() => {
+    if (params.slug) {
+      fetchArticle();
+    }
+  }, [params.slug, fetchArticle]);
 
   if (loading) {
     return (
@@ -705,12 +1053,6 @@ export default function BlogArticlePage() {
       </Layout>
     );
   }
-
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const fallbackSidebarArticles: RelatedArticle[] = Object.values(sampleArticlesData).map((item) => ({
     _id: item._id,
@@ -888,7 +1230,7 @@ export default function BlogArticlePage() {
                 <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">{article.title}</h1>
 
                 {/* Meta Info */}
-                <div className="flex flex-wrap items-center gap-6 text-gray-600 dark:text-gray-400 mb-8">
+                <div className="flex flex-wrap items-center gap-6 text-gray-600 dark:text-gray-400 mb-4">
                   <div className="flex items-center gap-3">
                     {article.author.avatar && (
                       <img src={article.author.avatar} alt={article.author.name} className="w-12 h-12 rounded-full" />
@@ -902,8 +1244,33 @@ export default function BlogArticlePage() {
                     <span>{formatDate(article.publishedAt)}</span>
                     <span>•</span>
                     <span>{article.readTime} min read</span>
-                    <span>•</span>
-                    <span>{article.views} views</span>
+                  </div>
+                </div>
+
+                {/* Engagement Stats Bar */}
+                <div className="flex flex-wrap items-center gap-4 mb-8 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <span className="text-lg">👁️</span>
+                    <span className="font-semibold">{article.views.toLocaleString()}</span>
+                    <span className="text-sm text-gray-500">views</span>
+                  </div>
+                  <div className="w-px h-6 bg-gray-300 dark:bg-slate-600"></div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <span className="text-lg">👍</span>
+                    <span className="font-semibold">{article.likes}</span>
+                    <span className="text-sm text-gray-500">likes</span>
+                  </div>
+                  <div className="w-px h-6 bg-gray-300 dark:bg-slate-600"></div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <span className="text-lg">👎</span>
+                    <span className="font-semibold">{article.dislikes}</span>
+                    <span className="text-sm text-gray-500">dislikes</span>
+                  </div>
+                  <div className="w-px h-6 bg-gray-300 dark:bg-slate-600"></div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <span className="text-lg">💬</span>
+                    <span className="font-semibold">{article.comments?.length || 0}</span>
+                    <span className="text-sm text-gray-500">comments</span>
                   </div>
                 </div>
 
@@ -934,21 +1301,46 @@ export default function BlogArticlePage() {
                   </div>
                 </div>
 
-                {/* Like & Share */}
-                <div className="flex items-center gap-4 pb-12 border-b border-gray-200 dark:border-slate-700">
+                {/* Like, Dislike & Share */}
+                <div className="flex flex-wrap items-center gap-3 pb-12 border-b border-gray-200 dark:border-slate-700">
+                  {/* Like Button */}
                   <button
                     onClick={handleLikeArticle}
-                    className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-xl font-semibold transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+                    className={`px-5 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg ${
+                      hasLiked 
+                        ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white ring-2 ring-pink-300' 
+                        : 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white'
+                    }`}
                   >
-                    ❤️ Like ({article.likes})
+                    <span className="text-lg">👍</span>
+                    <span>Like</span>
+                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{article.likes}</span>
                   </button>
+                  
+                  {/* Dislike Button */}
+                  <button
+                    onClick={handleDislikeArticle}
+                    className={`px-5 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg ${
+                      hasDisliked 
+                        ? 'bg-gray-700 text-white ring-2 ring-gray-400' 
+                        : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200'
+                    }`}
+                  >
+                    <span className="text-lg">👎</span>
+                    <span>Dislike</span>
+                    <span className={`px-2 py-0.5 rounded-full text-sm ${hasDisliked ? 'bg-white/20' : 'bg-gray-300 dark:bg-slate-600'}`}>{article.dislikes}</span>
+                  </button>
+
+                  <div className="flex-1"></div>
+
+                  {/* Share Button */}
                   <button 
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="px-6 py-3 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                    className="px-5 py-3 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 rounded-xl font-semibold transition-colors flex items-center gap-2"
                   >
                     {copied ? '✓ Copied!' : '🔗 Share'}
                   </button>
@@ -979,23 +1371,33 @@ export default function BlogArticlePage() {
                 )}
 
                 {/* Comments Section */}
-                <div className="mt-12">
+                <div id="comments-section" className="mt-12 scroll-mt-24">
                   <h3 className="text-2xl font-bold mb-6">Comments ({article.comments?.length || 0})</h3>
 
                   {/* Comment Form */}
                   <form onSubmit={handleSubmitComment} className="mb-8">
+                    {!isAuthenticated && (
+                      <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-center justify-between">
+                        <span className="text-yellow-800 dark:text-yellow-200 text-sm">
+                          🔒 Please login to post a comment
+                        </span>
+                        <Link href="/login" className="text-sm font-medium text-yellow-700 dark:text-yellow-300 hover:underline">
+                          Login →
+                        </Link>
+                      </div>
+                    )}
                     <textarea
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
-                      placeholder="Share your thoughts..."
+                      placeholder={isAuthenticated ? "Share your thoughts..." : "Login to comment..."}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 min-h-[100px]"
-                      required
+                      disabled={!isAuthenticated}
                     />
                     <div className="mt-3 flex justify-end">
                       <button
                         type="submit"
-                        disabled={submittingComment || !commentText.trim()}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50 transition-colors"
+                        disabled={submittingComment || !commentText.trim() || !isAuthenticated}
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {submittingComment ? 'Posting...' : 'Post Comment'}
                       </button>
@@ -1004,11 +1406,21 @@ export default function BlogArticlePage() {
 
                   {/* Comments List */}
                   <div className="space-y-6">
+                    {(!article.comments || article.comments.length === 0) && (
+                      <div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                        <div className="text-4xl mb-3">💬</div>
+                        <p className="text-gray-500 dark:text-gray-400">No comments yet. Be the first to share your thoughts!</p>
+                      </div>
+                    )}
                     {article.comments?.map((comment) => (
-                      <div key={comment._id} className="flex gap-4">
-                        {comment.user.avatar && (
-                          <img src={comment.user.avatar} alt={comment.user.name} className="w-10 h-10 rounded-full flex-shrink-0" />
-                        )}
+                      <div key={comment._id} className="flex gap-4 animate-fadeIn">
+                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                          {comment.user.avatar ? (
+                            <img src={comment.user.avatar} alt={comment.user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            comment.user.name.charAt(0).toUpperCase()
+                          )}
+                        </div>
                         <div className="flex-1">
                           <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
@@ -1023,23 +1435,86 @@ export default function BlogArticlePage() {
                               <span className="text-xs text-gray-500 italic">Edited</span>
                             )}
                           </div>
+                          
+                          {/* Comment Actions */}
                           <div className="mt-2 flex items-center gap-4 text-sm">
-                            <button className="text-gray-600 dark:text-gray-400 hover:text-blue-600">
-                              ❤️ {comment.likes}
+                            <button 
+                              onClick={() => handleLikeComment(comment._id)}
+                              className="text-gray-600 dark:text-gray-400 hover:text-pink-500 transition-colors flex items-center gap-1"
+                            >
+                              ❤️ <span>{comment.likes}</span>
                             </button>
-                            <button className="text-gray-600 dark:text-gray-400 hover:text-blue-600">
-                              Reply
+                            <button 
+                              onClick={() => {
+                                if (!isAuthenticated) {
+                                  setShowLoginPrompt(true);
+                                  return;
+                                }
+                                setReplyingTo(replyingTo === comment._id ? null : comment._id);
+                                setReplyText('');
+                              }}
+                              className={`transition-colors flex items-center gap-1 ${
+                                replyingTo === comment._id 
+                                  ? 'text-blue-500 font-medium' 
+                                  : 'text-gray-600 dark:text-gray-400 hover:text-blue-500'
+                              }`}
+                            >
+                              💬 Reply
                             </button>
                           </div>
 
+                          {/* Reply Form */}
+                          {replyingTo === comment._id && (
+                            <div className="mt-4 ml-4 border-l-2 border-blue-300 dark:border-blue-600 pl-4">
+                              <div className="flex gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                                  {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                                <div className="flex-1">
+                                  <textarea
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    placeholder={`Reply to ${comment.user.name}...`}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 min-h-[60px] resize-none"
+                                    autoFocus
+                                  />
+                                  <div className="mt-2 flex items-center gap-2 justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setReplyingTo(null);
+                                        setReplyText('');
+                                      }}
+                                      className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSubmitReply(comment._id)}
+                                      disabled={submittingReply || !replyText.trim()}
+                                      className="px-4 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                      {submittingReply ? 'Posting...' : 'Reply'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Replies */}
                           {comment.replies && comment.replies.length > 0 && (
-                            <div className="ml-8 mt-4 space-y-4">
+                            <div className="mt-4 ml-4 border-l-2 border-gray-200 dark:border-slate-700 pl-4 space-y-3">
                               {comment.replies.map((reply) => (
                                 <div key={reply._id} className="flex gap-3">
-                                  {reply.user.avatar && (
-                                    <img src={reply.user.avatar} alt={reply.user.name} className="w-8 h-8 rounded-full flex-shrink-0" />
-                                  )}
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                                    {reply.user.avatar ? (
+                                      <img src={reply.user.avatar} alt={reply.user.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      reply.user.name.charAt(0).toUpperCase()
+                                    )}
+                                  </div>
                                   <div className="flex-1 bg-gray-100 dark:bg-slate-700 rounded-lg p-3">
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="font-semibold text-sm">{reply.user.name}</span>
@@ -1063,7 +1538,7 @@ export default function BlogArticlePage() {
 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
-          <section className="bg-gray-50 dark:bg-slate-800 py-16">
+          <section className="bg-gray-50 dark:bg-slate-800 py-16 mb-16 md:mb-0">
             <div className="container">
               <h2 className="text-3xl font-bold mb-8 text-center">Related Insights</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -1095,6 +1570,164 @@ export default function BlogArticlePage() {
               </div>
             </div>
           </section>
+        )}
+
+        {/* Sticky Engagement Bar - Vertical on right for desktop, bottom for mobile */}
+        {/* Desktop: Vertical bar on right */}
+        <div className="hidden md:flex fixed right-6 top-1/2 -translate-y-1/2 z-50">
+          <div className="flex flex-col items-center gap-3 px-3 py-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700">
+            {/* Like Button */}
+            <button
+              onClick={handleLikeArticle}
+              className={`flex flex-col items-center gap-1 p-3 rounded-xl font-medium transition-all ${
+                hasLiked 
+                  ? 'bg-pink-500 text-white' 
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-pink-100 dark:hover:bg-pink-900/30'
+              }`}
+              title="Like"
+            >
+              <span className="text-xl">👍</span>
+              <span className="text-xs font-bold">{article.likes}</span>
+            </button>
+            
+            {/* Dislike Button */}
+            <button
+              onClick={handleDislikeArticle}
+              className={`flex flex-col items-center gap-1 p-3 rounded-xl font-medium transition-all ${
+                hasDisliked 
+                  ? 'bg-gray-600 text-white' 
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+              title="Dislike"
+            >
+              <span className="text-xl">👎</span>
+              <span className="text-xs font-bold">{article.dislikes}</span>
+            </button>
+
+            <div className="w-8 h-px bg-gray-300 dark:bg-slate-600"></div>
+
+            {/* Comments */}
+            <button
+              onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex flex-col items-center gap-1 p-3 rounded-xl font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all"
+              title="Comments"
+            >
+              <span className="text-xl">💬</span>
+              <span className="text-xs font-bold">{article.comments?.length || 0}</span>
+            </button>
+
+            <div className="w-8 h-px bg-gray-300 dark:bg-slate-600"></div>
+
+            {/* Share Button */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex flex-col items-center gap-1 p-3 rounded-xl font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all"
+              title="Share"
+            >
+              <span className="text-xl">{copied ? '✓' : '🔗'}</span>
+              <span className="text-xs font-bold">{copied ? 'Done' : 'Share'}</span>
+            </button>
+
+            <div className="w-8 h-px bg-gray-300 dark:bg-slate-600"></div>
+
+            {/* Views */}
+            <div className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-gray-400" title="Views">
+              <span className="text-xl">👁️</span>
+              <span className="text-xs font-bold">{article.views.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: Horizontal bar at bottom */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+          <div className="flex items-center justify-around px-2 py-3 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-2xl">
+            {/* Like Button */}
+            <button
+              onClick={handleLikeArticle}
+              className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg font-medium transition-all ${
+                hasLiked 
+                  ? 'text-pink-500' 
+                  : 'text-gray-600 dark:text-gray-300'
+              }`}
+            >
+              <span className="text-xl">👍</span>
+              <span className="text-xs font-bold">{article.likes}</span>
+            </button>
+            
+            {/* Dislike Button */}
+            <button
+              onClick={handleDislikeArticle}
+              className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg font-medium transition-all ${
+                hasDisliked 
+                  ? 'text-gray-800 dark:text-white' 
+                  : 'text-gray-600 dark:text-gray-300'
+              }`}
+            >
+              <span className="text-xl">👎</span>
+              <span className="text-xs font-bold">{article.dislikes}</span>
+            </button>
+
+            {/* Comments */}
+            <button
+              onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg font-medium text-gray-600 dark:text-gray-300"
+            >
+              <span className="text-xl">💬</span>
+              <span className="text-xs font-bold">{article.comments?.length || 0}</span>
+            </button>
+
+            {/* Share Button */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg font-medium text-gray-600 dark:text-gray-300"
+            >
+              <span className="text-xl">{copied ? '✓' : '🔗'}</span>
+              <span className="text-xs font-bold">{copied ? 'Done' : 'Share'}</span>
+            </button>
+
+            {/* Views */}
+            <div className="flex flex-col items-center gap-0.5 px-4 py-1 text-gray-500 dark:text-gray-400">
+              <span className="text-xl">👁️</span>
+              <span className="text-xs font-bold">{article.views.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Login Prompt Modal */}
+        {showLoginPrompt && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={() => setShowLoginPrompt(false)}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="text-center">
+                <div className="text-5xl mb-4">🔐</div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Login Required</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Please login to like, dislike, or comment on this article.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLoginPrompt(false)}
+                    className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <Link
+                    href="/login"
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors text-center"
+                  >
+                    Login
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </Layout>
     </>
