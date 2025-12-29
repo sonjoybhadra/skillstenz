@@ -8,7 +8,7 @@ const itemSchema = new mongoose.Schema({
   href: String,
   description: String,
   image: String,
-  isNew: { type: Boolean, default: false },
+  isNewItem: { type: Boolean, default: false }, // Renamed from isNew to avoid Mongoose reserved keyword
   tags: [String], // For career sections
   order: { type: Number, default: 0 }
 }, { _id: true });

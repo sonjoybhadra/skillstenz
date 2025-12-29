@@ -15,6 +15,7 @@ router.post('/:id/download', cheatsheetController.trackDownload);
 // Admin routes
 router.get('/admin/stats', authenticate, requireAdmin, cheatsheetController.getCheatsheetStats);
 router.post('/', authenticate, requireAdmin, cheatsheetController.createCheatsheet);
+router.post('/import', authenticate, requireAdmin, cheatsheetController.importCheatsheet);
 router.put('/:id', authenticate, requireAdmin, cheatsheetController.updateCheatsheet);
 router.delete('/:id', authenticate, requireAdmin, cheatsheetController.deleteCheatsheet);
 

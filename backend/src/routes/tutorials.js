@@ -13,6 +13,7 @@ router.get('/:slug', tutorialController.getTutorialBySlug);
 // Admin routes (auth required)
 router.get('/admin/chapters', authenticate, requireAdmin, tutorialController.getAllChapters);
 router.post('/admin/chapters', authenticate, requireAdmin, tutorialController.createChapter);
+router.post('/admin/import', authenticate, requireAdmin, tutorialController.importChapters);
 router.put('/admin/chapters/:id', authenticate, requireAdmin, tutorialController.updateChapter);
 router.delete('/admin/chapters/:id', authenticate, requireAdmin, tutorialController.deleteChapter);
 router.post('/admin/chapters/reorder', authenticate, requireAdmin, tutorialController.reorderChapters);

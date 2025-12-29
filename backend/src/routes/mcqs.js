@@ -17,6 +17,7 @@ router.get('/user/progress', authenticate, mcqController.getUserProgress);
 // Admin routes
 router.get('/admin/all', authenticate, requireAdmin, mcqController.getAllMCQs);
 router.post('/', authenticate, requireAdmin, mcqController.createMCQ);
+router.post('/import', authenticate, requireAdmin, mcqController.importMCQs);
 router.put('/:id', authenticate, requireAdmin, mcqController.updateMCQ);
 router.delete('/:id', authenticate, requireAdmin, mcqController.deleteMCQ);
 

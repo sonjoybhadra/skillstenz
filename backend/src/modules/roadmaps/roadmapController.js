@@ -152,3 +152,70 @@ exports.deleteRoadmap = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete roadmap' });
   }
 };
+
+// Admin: Import roadmap with nodes and connections
+exports.importRoadmap = async (req, res) => {
+  try {
+    const roadmapData = req.body;
+
+    if (!roadmapData.title) {
+      return res.status(400).json({ error: 'Roadmap title is required' });
+    }
+
+    // Generate slug if not provided
+    if (!roadmapData.slug) {
+      roadmapData.slug = roadmapData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    }
+
+    // Check if exists
+    const existing = await Roadmap.findOne({ slug: roadmapData.slug });
+    if (existing) {
+      return res.status(400).json({ error: 'Roadmap with this slug already exists' });
+    }
+
+    // Convert nodes to steps format if provided
+    if (roadmapData.nodes && Array.isArray(roadmapData.nodes)) {
+      roadmapData.steps = roadmapData.nodes.map(node => ({
+        id: node.id,
+        title: node.title,
+        description: node.description,
+        type: node.type || 'topic',
+        order: node.order || 0,
+        parentId: node.parentId,
+        children: node.children || [],
+        resources: node.resources || [],
+        optional: node.optional || false,
+        topics: []
+      }));
+    }
+
+    // Store connections for graph visualization
+    if (roadmapData.connections) {
+      roadmapData.graphConnections = roadmapData.connections;
+    }
+
+    roadmapData.createdBy = req.user.id;
+    roadmapData.name = roadmapData.name || roadmapData.title;
+
+    const roadmap = new Roadmap(roadmapData);
+    await roadmap.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Roadmap imported successfully',
+      imported: 1,
+      roadmap: {
+        _id: roadmap._id,
+        title: roadmap.title,
+        slug: roadmap.slug,
+        stepsCount: roadmap.steps?.length || 0
+      }
+    });
+  } catch (error) {
+    console.error('Import roadmap error:', error);
+    res.status(500).json({ error: 'Failed to import roadmap', details: error.message });
+  }
+};

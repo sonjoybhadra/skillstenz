@@ -10,6 +10,7 @@ router.get('/:slug', roadmapController.getRoadmapBySlug);
 // Admin routes
 router.get('/admin/all', authenticate, requireAdmin, roadmapController.getAllRoadmaps);
 router.post('/', authenticate, requireAdmin, roadmapController.createRoadmap);
+router.post('/import', authenticate, requireAdmin, roadmapController.importRoadmap);
 router.put('/:id', authenticate, requireAdmin, roadmapController.updateRoadmap);
 router.patch('/:id/toggle', authenticate, requireAdmin, roadmapController.toggleRoadmapStatus);
 router.delete('/:id', authenticate, requireAdmin, roadmapController.deleteRoadmap);

@@ -20,6 +20,7 @@ router.post('/:id/rate', courseController.rateCourse);
 
 // Admin routes
 router.post('/', checkRole(['admin', 'instructor']), courseController.createCourse);
+router.post('/import', checkRole(['admin', 'instructor']), courseController.importCourse);
 router.put('/:id', checkRole(['admin', 'instructor']), courseController.updateCourse);
 router.delete('/:id', checkRole(['admin']), courseController.deleteCourse);
 

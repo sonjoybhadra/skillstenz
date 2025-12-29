@@ -239,3 +239,53 @@ exports.getCheatsheetStats = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Import cheatsheet
+exports.importCheatsheet = async (req, res) => {
+  try {
+    const cheatsheetData = req.body;
+
+    if (!cheatsheetData.title) {
+      return res.status(400).json({ message: 'Cheatsheet title is required' });
+    }
+
+    // Generate slug if not provided
+    if (!cheatsheetData.slug) {
+      cheatsheetData.slug = cheatsheetData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    }
+
+    // Check if exists
+    const existing = await Cheatsheet.findOne({ slug: cheatsheetData.slug });
+    if (existing) {
+      return res.status(400).json({ message: 'Cheatsheet with this slug already exists' });
+    }
+
+    // Process tags if string
+    if (typeof cheatsheetData.tags === 'string') {
+      cheatsheetData.tags = cheatsheetData.tags.split(',').map(t => t.trim()).filter(Boolean);
+    }
+
+    cheatsheetData.createdBy = req.user.id;
+
+    const cheatsheet = new Cheatsheet(cheatsheetData);
+    await cheatsheet.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Cheatsheet imported successfully',
+      imported: 1,
+      cheatsheet: {
+        _id: cheatsheet._id,
+        title: cheatsheet.title,
+        slug: cheatsheet.slug,
+        sectionsCount: cheatsheet.sections?.length || 0
+      }
+    });
+  } catch (error) {
+    console.error('Import cheatsheet error:', error);
+    res.status(500).json({ message: 'Failed to import cheatsheet', error: error.message });
+  }
+};
