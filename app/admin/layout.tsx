@@ -36,6 +36,7 @@ const menuGroups: MenuGroup[] = [
       { name: 'Courses', href: '/admin/courses', icon: '📖' },
       { name: 'Topics', href: '/admin/topics', icon: '📑' },
       { name: 'Lessons', href: '/admin/lessons', icon: '📄' },
+      { name: 'Roadmaps', href: '/admin/roadmaps', icon: '🗺️' },
       { name: 'Cheatsheets', href: '/admin/cheatsheets', icon: '📝' },
       { name: 'MCQs', href: '/admin/mcqs', icon: '❓' },
     ]

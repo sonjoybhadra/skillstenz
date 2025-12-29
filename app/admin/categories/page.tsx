@@ -1,6 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Editor...</div>
+});
 
 interface TechnologyCategory {
   _id: string;
@@ -414,13 +420,14 @@ export default function AdminCategoriesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea
+                <label className="block text-sm font-medium mb-1">Description (Markdown supported)</label>
+                <RichContentEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg"
-                  placeholder="Brief description of this category"
+                  onChange={(value) => setFormData({ ...formData, description: value })}
+                  mode="markdown"
+                  height="200px"
+                  showPreview={true}
+                  showToolbar={true}
                 />
               </div>
 

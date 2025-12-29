@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '../../../lib/auth';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div className="p-5 text-center text-[var(--text-muted)]">Loading Editor...</div>
+});
+
+const ContentImporter = dynamic(() => import('@/components/UI/ContentImporter'), {
+  ssr: false,
+  loading: () => <div className="p-5 text-center text-[var(--text-muted)]">Loading Importer...</div>
+});
 
 interface Technology {
   _id: string;
@@ -41,6 +52,7 @@ export default function AdminCheatsheets() {
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [editingCheatsheet, setEditingCheatsheet] = useState<Cheatsheet | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -217,168 +229,146 @@ export default function AdminCheatsheets() {
 
   return (
     <ProtectedRoute adminOnly>
-      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="space-y-6">
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-              Cheatsheets Management
-            </h1>
-            <p style={{ color: 'var(--text-muted)' }}>Create and manage quick reference guides</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Cheatsheets</h1>
+            <p className="text-[var(--text-muted)] mt-1">Create and manage quick reference guides</p>
           </div>
-          <button
-            onClick={() => { resetForm(); setShowModal(true); }}
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <span>+</span> Add Cheatsheet
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowImporter(true)} className="btn btn-ghost">
+              <span>📥</span> Import
+            </button>
+            <button onClick={() => { resetForm(); setShowModal(true); }} className="btn btn-primary">
+              <span>+</span> Add Cheatsheet
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="stat-card">
+            <div className="stat-value">{cheatsheets.length}</div>
+            <div className="stat-label">Total Cheatsheets</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{cheatsheets.filter(c => c.isPublished).length}</div>
+            <div className="stat-label">Published</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{cheatsheets.filter(c => c.isFeatured).length}</div>
+            <div className="stat-label">Featured</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{cheatsheets.reduce((sum, c) => sum + c.views, 0)}</div>
+            <div className="stat-label">Total Views</div>
+          </div>
         </div>
 
         {/* Filters */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-          <input
-            type="text"
-            placeholder="Search cheatsheets..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              border: '1px solid var(--border-primary)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)'
-            }}
-          />
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            style={{
-              padding: '12px 16px',
-              border: '1px solid var(--border-primary)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              minWidth: '160px'
-            }}
-          >
-            <option value="">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-          <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-accent)' }}>{cheatsheets.length}</div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Total Cheatsheets</div>
-          </div>
-          <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#10b981' }}>
-              {cheatsheets.filter(c => c.isPublished).length}
+        <div className="admin-card p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Search cheatsheets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-modern"
+              />
             </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Published</div>
-          </div>
-          <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#f59e0b' }}>
-              {cheatsheets.filter(c => c.isFeatured).length}
-            </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Featured</div>
-          </div>
-          <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#3b82f6' }}>
-              {cheatsheets.reduce((sum, c) => sum + c.views, 0)}
-            </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Total Views</div>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="select-modern sm:w-auto"
+            >
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}</option>
+              ))}
+            </select>
           </div>
         </div>
 
         {/* Cheatsheets Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>Loading...</div>
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="spinner" />
+          </div>
+        ) : filteredCheatsheets.length === 0 ? (
+          <div className="admin-card empty-state">
+            <div className="empty-state-icon">📋</div>
+            <h3 className="empty-state-title">No cheatsheets found</h3>
+            <p className="empty-state-text">Create your first cheatsheet to get started</p>
+            <button onClick={() => { resetForm(); setShowModal(true); }} className="btn btn-primary">
+              <span>+</span> Create Cheatsheet
+            </button>
+          </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCheatsheets.map((cheatsheet) => (
-              <div key={cheatsheet._id} className="card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '32px' }}>{cheatsheet.icon}</span>
+              <div key={cheatsheet._id} className="admin-card p-5">
+                {/* Card Header */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{cheatsheet.icon}</span>
                     <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1 line-clamp-1">
                         {cheatsheet.title}
                       </h3>
-                      <span style={{
-                        fontSize: '12px',
-                        padding: '2px 8px',
-                        background: cheatsheet.technology?.color || '#3b82f6',
-                        color: 'white',
-                        borderRadius: '4px'
-                      }}>
+                      <span
+                        className="text-xs px-2 py-0.5 rounded text-white"
+                        style={{ background: cheatsheet.technology?.color || '#3b82f6' }}
+                      >
                         {cheatsheet.technology?.name || 'Unknown'}
                       </span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {cheatsheet.isPublished && <span title="Published" style={{ fontSize: '14px' }}>✅</span>}
-                    {cheatsheet.isFeatured && <span title="Featured" style={{ fontSize: '14px' }}>⭐</span>}
+                  <div className="flex gap-1.5">
+                    {cheatsheet.isPublished && <span title="Published" className="text-sm">✅</span>}
+                    {cheatsheet.isFeatured && <span title="Featured" className="text-sm">⭐</span>}
                   </div>
                 </div>
 
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
-                  {cheatsheet.description.slice(0, 100)}...
+                {/* Description */}
+                <p className="text-sm text-[var(--text-muted)] mb-3 line-clamp-2">
+                  {cheatsheet.description}
                 </p>
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                  <span style={{
-                    fontSize: '11px',
-                    padding: '2px 8px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: '4px',
-                    color: 'var(--text-muted)'
-                  }}>
-                    {cheatsheet.category}
-                  </span>
-                  <span style={{
-                    fontSize: '11px',
-                    padding: '2px 8px',
-                    background: cheatsheet.difficulty === 'beginner' ? '#dcfce7' : cheatsheet.difficulty === 'intermediate' ? '#fef3c7' : '#fee2e2',
-                    color: cheatsheet.difficulty === 'beginner' ? '#15803d' : cheatsheet.difficulty === 'intermediate' ? '#b45309' : '#b91c1c',
-                    borderRadius: '4px'
-                  }}>
+                {/* Badges */}
+                <div className="flex gap-2 flex-wrap mb-3">
+                  <span className="badge badge-info">{cheatsheet.category}</span>
+                  <span className={`badge ${
+                    cheatsheet.difficulty === 'beginner' ? 'badge-success' :
+                    cheatsheet.difficulty === 'intermediate' ? 'badge-warning' : 'badge-danger'
+                  }`}>
                     {cheatsheet.difficulty}
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                    <span>👁️ {cheatsheet.views}</span>
-                    <span>⬇️ {cheatsheet.downloads}</span>
-                    <span>👍 {cheatsheet.votes?.upvotes || 0}</span>
-                  </div>
+                {/* Stats */}
+                <div className="flex gap-4 text-xs text-[var(--text-muted)] mb-4">
+                  <span className="flex items-center gap-1">👁️ {cheatsheet.views}</span>
+                  <span className="flex items-center gap-1">⬇️ {cheatsheet.downloads}</span>
+                  <span className="flex items-center gap-1">👍 {cheatsheet.votes?.upvotes || 0}</span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Actions */}
+                <div className="flex gap-2">
                   <button
                     onClick={() => togglePublish(cheatsheet)}
-                    className="btn btn-outline"
-                    style={{ flex: 1, padding: '8px', fontSize: '13px' }}
+                    className={`btn btn-sm flex-1 ${cheatsheet.isPublished ? 'btn-ghost' : 'btn-primary'}`}
                   >
                     {cheatsheet.isPublished ? 'Unpublish' : 'Publish'}
                   </button>
-                  <button
-                    onClick={() => handleEdit(cheatsheet)}
-                    className="btn"
-                    style={{ padding: '8px 12px', background: 'var(--bg-secondary)', fontSize: '13px' }}
-                  >
+                  <button onClick={() => handleEdit(cheatsheet)} className="btn btn-ghost btn-sm">
                     ✏️
                   </button>
                   <button
                     onClick={() => handleDelete(cheatsheet._id)}
-                    className="btn"
-                    style={{ padding: '8px 12px', background: '#fee2e2', color: '#b91c1c', fontSize: '13px' }}
+                    className="btn btn-sm"
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
                   >
                     🗑️
                   </button>
@@ -388,192 +378,201 @@ export default function AdminCheatsheets() {
           </div>
         )}
 
-        {filteredCheatsheets.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-            <p>No cheatsheets found. Create your first one!</p>
-          </div>
-        )}
-
         {/* Modal */}
         {showModal && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}>
-            <div style={{
-              background: 'var(--bg-card)',
-              borderRadius: 'var(--radius-lg)',
-              width: '100%',
-              maxWidth: '700px',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              padding: '24px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {editingCheatsheet ? 'Edit Cheatsheet' : 'Add Cheatsheet'}
-                </h2>
-                <button onClick={() => setShowModal(false)} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>×</button>
+          <div className="modal-overlay open" onClick={() => setShowModal(false)}>
+            <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title">{editingCheatsheet ? '✏️ Edit Cheatsheet' : '➕ Create Cheatsheet'}</h3>
+                <button onClick={() => setShowModal(false)} className="modal-close">✕</button>
               </div>
 
-              <form onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Title *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Slug</label>
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      placeholder="auto-generated"
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                    />
+              <form onSubmit={handleSubmit} className="p-6 max-h-[70vh] overflow-y-auto space-y-5">
+                {/* Basic Info */}
+                <div>
+                  <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <span>📝</span> Basic Information
+                  </h4>
+                  <div className="form-grid form-grid-2">
+                    <div className="form-group">
+                      <label className="input-label">Title *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        className="input-modern"
+                        placeholder="Python Cheatsheet"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="input-label">Slug</label>
+                      <input
+                        type="text"
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        className="input-modern"
+                        placeholder="auto-generated"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Description *</label>
+                <div className="form-group">
+                  <label className="input-label">Description *</label>
                   <textarea
                     required
                     rows={2}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', resize: 'vertical' }}
+                    className="textarea-modern"
+                    placeholder="A quick reference guide for..."
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Technology *</label>
-                    <select
-                      required
-                      value={formData.technology}
-                      onChange={(e) => setFormData({ ...formData, technology: e.target.value })}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                    >
-                      <option value="">Select Technology</option>
-                      {technologies.map(tech => (
-                        <option key={tech._id} value={tech._id}>{tech.icon} {tech.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                    >
-                      {categories.map(cat => (
-                        <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Difficulty</label>
-                    <select
-                      value={formData.difficulty}
-                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                    >
-                      {difficulties.map(diff => (
-                        <option key={diff} value={diff}>{diff.charAt(0).toUpperCase() + diff.slice(1)}</option>
-                      ))}
-                    </select>
+                {/* Settings */}
+                <div>
+                  <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <span>⚙️</span> Settings
+                  </h4>
+                  <div className="form-grid form-grid-3">
+                    <div className="form-group">
+                      <label className="input-label">Technology *</label>
+                      <select
+                        required
+                        value={formData.technology}
+                        onChange={(e) => setFormData({ ...formData, technology: e.target.value })}
+                        className="select-modern"
+                      >
+                        <option value="">Select Technology</option>
+                        {technologies.map(tech => (
+                          <option key={tech._id} value={tech._id}>{tech.icon} {tech.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="input-label">Category</label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="select-modern"
+                      >
+                        {categories.map(cat => (
+                          <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="input-label">Difficulty</label>
+                      <select
+                        value={formData.difficulty}
+                        onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                        className="select-modern"
+                      >
+                        {difficulties.map(diff => (
+                          <option key={diff} value={diff}>{diff.charAt(0).toUpperCase() + diff.slice(1)}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Content (Markdown) *</label>
-                  <textarea
-                    required
-                    rows={8}
+                {/* Content */}
+                <div className="form-group">
+                  <label className="input-label">Content (Markdown) *</label>
+                  <RichContentEditor
                     value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    placeholder="# Title\n\n## Section\n\n- Item 1\n- Item 2"
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', resize: 'vertical', fontFamily: 'monospace' }}
+                    onChange={(value) => setFormData({ ...formData, content: value })}
+                    mode="markdown"
+                    height="300px"
+                    showPreview={true}
+                    showToolbar={true}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Tags</label>
-                    <input
-                      type="text"
-                      value={formData.tags}
-                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                      placeholder="python, basics, quick-reference"
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Icon</label>
-                    <input
-                      type="text"
-                      value={formData.icon}
-                      onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '20px', textAlign: 'center' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-primary)' }}>Color</label>
-                    <input
-                      type="color"
-                      value={formData.color}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      style={{ width: '100%', height: '42px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', cursor: 'pointer' }}
-                    />
+                {/* Appearance */}
+                <div>
+                  <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <span>🎨</span> Appearance
+                  </h4>
+                  <div className="form-grid form-grid-3">
+                    <div className="form-group form-group-full">
+                      <label className="input-label">Tags</label>
+                      <input
+                        type="text"
+                        value={formData.tags}
+                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                        className="input-modern"
+                        placeholder="python, basics, quick-reference"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="input-label">Icon</label>
+                      <input
+                        type="text"
+                        value={formData.icon}
+                        onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                        className="input-modern text-center text-xl"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="input-label">Color</label>
+                      <input
+                        type="color"
+                        value={formData.color}
+                        onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                        className="input-modern h-[42px] cursor-pointer"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                {/* Publish Options */}
+                <div className="flex items-center gap-6 pt-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.isPublished}
                       onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
-                      style={{ width: '18px', height: '18px' }}
+                      className="checkbox-modern"
                     />
-                    <span style={{ color: 'var(--text-primary)' }}>Published</span>
+                    <span className="text-[var(--text-primary)]">🌐 Published</span>
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.isFeatured}
                       onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                      style={{ width: '18px', height: '18px' }}
+                      className="checkbox-modern"
                     />
-                    <span style={{ color: 'var(--text-primary)' }}>Featured</span>
+                    <span className="text-[var(--text-primary)]">⭐ Featured</span>
                   </label>
                 </div>
-
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                  <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline" style={{ padding: '10px 20px' }}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px' }}>
-                    {editingCheatsheet ? 'Update' : 'Create'} Cheatsheet
-                  </button>
-                </div>
               </form>
+
+              <div className="flex items-center justify-end gap-3 border-t border-[var(--border-primary)] px-6 py-4">
+                <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">
+                  Cancel
+                </button>
+                <button type="submit" onClick={handleSubmit} className="btn btn-primary">
+                  {editingCheatsheet ? '💾 Update Cheatsheet' : '✨ Create Cheatsheet'}
+                </button>
+              </div>
             </div>
           </div>
+        )}
+
+        {/* Content Importer Modal */}
+        {showImporter && (
+          <ContentImporter
+            type="cheatsheet"
+            technologyId={filterCategory || undefined}
+            onImportComplete={(result) => {
+              toast[result.success ? 'success' : 'error'](`Imported ${result.imported} cheatsheet(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+              if (result.success) fetchCheatsheets();
+            }}
+            onClose={() => setShowImporter(false)}
+          />
         )}
       </div>
     </ProtectedRoute>

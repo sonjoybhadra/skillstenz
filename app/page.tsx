@@ -256,20 +256,28 @@ export default function Home() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2360a5fa' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
           
-          {/* Moving particles */}
+          {/* Moving particles - using deterministic values to prevent hydration mismatch */}
           <div className="absolute inset-0 overflow-hidden">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-blue-400/60 rounded-full animate-particle"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 5}s`,
-                  animationDuration: `${5 + Math.random() * 10}s`
-                }}
-              />
-            ))}
+            {[...Array(20)].map((_, i) => {
+              // Use deterministic pseudo-random values based on index
+              const seed = (i + 1) * 17;
+              const left = ((seed * 31) % 100);
+              const top = ((seed * 47) % 100);
+              const delay = ((seed * 13) % 50) / 10;
+              const duration = 5 + ((seed * 23) % 100) / 10;
+              return (
+                <div
+                  key={i}
+                  className="absolute w-1 h-1 bg-blue-400/60 rounded-full animate-particle"
+                  style={{
+                    left: `${left}%`,
+                    top: `${top}%`,
+                    animationDelay: `${delay}s`,
+                    animationDuration: `${duration}s`
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
         

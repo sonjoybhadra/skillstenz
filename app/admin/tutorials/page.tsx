@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Editor...</div>
+});
+
+const ContentImporter = dynamic(() => import('@/components/UI/ContentImporter'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Importer...</div>
+});
 
 interface TutorialChapter {
   _id: string;
@@ -36,6 +47,7 @@ export default function AdminTutorialsPage() {
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [editingChapter, setEditingChapter] = useState<TutorialChapter | null>(null);
   const [filterTech, setFilterTech] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -220,12 +232,20 @@ export default function AdminTutorialsPage() {
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">Tutorial Chapters</h1>
           <p className="text-[var(--text-secondary)]">Manage free tutorial content (Technology → Chapters)</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="px-4 py-2 bg-[var(--bg-accent)] text-white rounded-lg hover:opacity-90 flex items-center gap-2"
-        >
-          <span>+</span> Add Chapter
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowImporter(true)}
+            className="px-4 py-2 border border-purple-500/30 text-purple-500 bg-purple-500/10 rounded-lg hover:bg-purple-500/20 flex items-center gap-2"
+          >
+            <span>📥</span> Import
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="px-4 py-2 bg-[var(--bg-accent)] text-white rounded-lg hover:opacity-90 flex items-center gap-2"
+          >
+            <span>+</span> Add Chapter
+          </button>
+        </div>
       </div>
 
       {/* Info Box */}
@@ -504,12 +524,13 @@ export default function AdminTutorialsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Content (HTML/Markdown)</label>
-                <textarea
+                <RichContentEditor
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={8}
-                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg font-mono text-sm"
-                  placeholder="<h2>Getting Started</h2><p>Welcome to this chapter...</p>"
+                  onChange={(value) => setFormData({ ...formData, content: value })}
+                  mode="markdown"
+                  height="350px"
+                  showPreview={true}
+                  showToolbar={true}
                 />
               </div>
 
@@ -586,6 +607,19 @@ export default function AdminTutorialsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Content Importer Modal */}
+      {showImporter && (
+        <ContentImporter
+          type="tutorial"
+          technologyId={filterTech || undefined}
+          onImportComplete={(result) => {
+            setMessage({ type: result.success ? 'success' : 'error', text: `Imported ${result.imported} chapter(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}` });
+            if (result.success) fetchChapters();
+          }}
+          onClose={() => setShowImporter(false)}
+        />
       )}
     </div>
   );

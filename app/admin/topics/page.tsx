@@ -1,18 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the Rich Content Editor
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Editor...</div>
+});
+
+interface ContentItem {
+  type: 'text' | 'video' | 'pdf' | 'link' | 'code';
+  title: string;
+  content?: string;
+  url?: string;
+  duration?: number;
+  language?: string;
+  approved: boolean;
+}
 
 interface Subtopic {
   name: string;
   description: string;
-  content: {
-    type: 'text' | 'video' | 'pdf' | 'link';
-    title: string;
-    content?: string;
-    url?: string;
-    duration?: number;
-    approved: boolean;
-  }[];
+  content: ContentItem[];
 }
 
 interface Topic {
@@ -40,9 +50,12 @@ export default function AdminTopicsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showSubtopicModal, setShowSubtopicModal] = useState(false);
+  const [showContentModal, setShowContentModal] = useState(false);
   const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
   const [editingSubtopicIndex, setEditingSubtopicIndex] = useState<number | null>(null);
+  const [editingContentIndex, setEditingContentIndex] = useState<number | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
+  const [expandedSubtopic, setExpandedSubtopic] = useState<string | null>(null);
   const [filterTech, setFilterTech] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -56,6 +69,16 @@ export default function AdminTopicsPage() {
     technologyId: '',
     accessType: 'free' as 'free' | 'paid',
     order: 0
+  });
+
+  const [contentForm, setContentForm] = useState<ContentItem>({
+    type: 'text',
+    title: '',
+    content: '',
+    url: '',
+    duration: 0,
+    language: 'javascript',
+    approved: true
   });
 
   const [subtopicForm, setSubtopicForm] = useState({
@@ -287,6 +310,121 @@ export default function AdminTopicsPage() {
     }
   };
 
+  // Content Management Functions
+  const openContentModal = (topic: Topic, subtopicIdx: number, contentIdx?: number) => {
+    setEditingTopic(topic);
+    setEditingSubtopicIndex(subtopicIdx);
+    
+    if (typeof contentIdx === 'number' && topic.subtopics[subtopicIdx]?.content[contentIdx]) {
+      setEditingContentIndex(contentIdx);
+      const content = topic.subtopics[subtopicIdx].content[contentIdx];
+      setContentForm({
+        type: content.type,
+        title: content.title,
+        content: content.content || '',
+        url: content.url || '',
+        duration: content.duration || 0,
+        language: content.language || 'javascript',
+        approved: content.approved
+      });
+    } else {
+      setEditingContentIndex(null);
+      setContentForm({
+        type: 'text',
+        title: '',
+        content: '',
+        url: '',
+        duration: 0,
+        language: 'javascript',
+        approved: true
+      });
+    }
+    setShowContentModal(true);
+  };
+
+  const saveContent = async () => {
+    if (!contentForm.title || !editingTopic || editingSubtopicIndex === null) {
+      setMessage({ type: 'error', text: 'Content title is required' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const token = getToken();
+      const updatedSubtopics = [...(editingTopic.subtopics || [])];
+      const subtopic = { ...updatedSubtopics[editingSubtopicIndex] };
+      const contentItems = [...(subtopic.content || [])];
+
+      const newContent: ContentItem = {
+        type: contentForm.type,
+        title: contentForm.title,
+        content: contentForm.content,
+        url: contentForm.url,
+        duration: contentForm.duration,
+        language: contentForm.language,
+        approved: contentForm.approved
+      };
+
+      if (typeof editingContentIndex === 'number') {
+        contentItems[editingContentIndex] = newContent;
+      } else {
+        contentItems.push(newContent);
+      }
+
+      subtopic.content = contentItems;
+      updatedSubtopics[editingSubtopicIndex] = subtopic;
+
+      const response = await fetch(`${API_URL}/topics/${editingTopic._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ subtopics: updatedSubtopics })
+      });
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: `Content ${editingContentIndex !== null ? 'updated' : 'added'} successfully!` });
+        setShowContentModal(false);
+        fetchTopics(filterTech);
+      } else {
+        setMessage({ type: 'error', text: 'Failed to save content' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Network error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteContent = async (topic: Topic, subtopicIdx: number, contentIdx: number) => {
+    if (!confirm('Delete this content?')) return;
+    
+    try {
+      const token = getToken();
+      const updatedSubtopics = [...topic.subtopics];
+      updatedSubtopics[subtopicIdx] = {
+        ...updatedSubtopics[subtopicIdx],
+        content: updatedSubtopics[subtopicIdx].content.filter((_, i) => i !== contentIdx)
+      };
+
+      const response = await fetch(`${API_URL}/topics/${topic._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ subtopics: updatedSubtopics })
+      });
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Content deleted!' });
+        fetchTopics(filterTech);
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Network error' });
+    }
+  };
+
   // Pagination
   const paginatedTopics = topics.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(topics.length / itemsPerPage);
@@ -447,26 +585,107 @@ export default function AdminTopicsPage() {
                       </p>
                     ) : (
                       topic.subtopics.map((subtopic, idx) => (
-                        <div key={idx} className="subtopic-item">
-                          <div>
-                            <span className="subtopic-name">{subtopic.name}</span>
-                            {subtopic.description && (
-                              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                {subtopic.description}
-                              </p>
-                            )}
-                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                              {subtopic.content?.length || 0} content items
-                            </span>
+                        <div key={idx} style={{ marginBottom: '16px', border: '1px solid var(--border-primary)', borderRadius: '8px', overflow: 'hidden' }}>
+                          <div className="subtopic-item" style={{ borderRadius: 0, marginBottom: 0 }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span className="subtopic-name" style={{ fontWeight: 600 }}>{subtopic.name}</span>
+                                <span style={{ fontSize: '11px', padding: '2px 6px', background: 'var(--bg-accent)', color: 'white', borderRadius: '4px' }}>
+                                  {subtopic.content?.length || 0} items
+                                </span>
+                              </div>
+                              {subtopic.description && (
+                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                  {subtopic.description}
+                                </p>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <button 
+                                onClick={() => setExpandedSubtopic(expandedSubtopic === `${topic._id}-${idx}` ? null : `${topic._id}-${idx}`)} 
+                                className="btn btn-secondary btn-sm"
+                              >
+                                {expandedSubtopic === `${topic._id}-${idx}` ? '▲ Hide Content' : '▼ Show Content'}
+                              </button>
+                              <button onClick={() => openContentModal(topic, idx)} className="btn btn-primary btn-sm" style={{ background: '#10b981' }}>
+                                + Content
+                              </button>
+                              <button onClick={() => openSubtopicModal(topic, idx)} className="btn btn-secondary btn-sm">
+                                Edit
+                              </button>
+                              <button onClick={() => deleteSubtopic(topic, idx)} className="btn btn-danger btn-sm">
+                                Delete
+                              </button>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button onClick={() => openSubtopicModal(topic, idx)} className="btn btn-secondary btn-sm">
-                              Edit
-                            </button>
-                            <button onClick={() => deleteSubtopic(topic, idx)} className="btn btn-danger btn-sm">
-                              Delete
-                            </button>
-                          </div>
+                          
+                          {/* Content Items */}
+                          {expandedSubtopic === `${topic._id}-${idx}` && (
+                            <div style={{ padding: '12px', background: 'var(--bg-primary)', borderTop: '1px solid var(--border-primary)' }}>
+                              {(!subtopic.content || subtopic.content.length === 0) ? (
+                                <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '16px' }}>
+                                  No content yet. Click &quot;+ Content&quot; to add lessons, videos, or code examples.
+                                </p>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  {subtopic.content.map((content, cIdx) => (
+                                    <div 
+                                      key={cIdx} 
+                                      style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center',
+                                        padding: '10px 14px',
+                                        background: 'var(--bg-secondary)',
+                                        borderRadius: '6px',
+                                        border: '1px solid var(--border-primary)'
+                                      }}
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <span style={{ fontSize: '18px' }}>
+                                          {content.type === 'text' ? '📝' : 
+                                           content.type === 'video' ? '🎬' : 
+                                           content.type === 'code' ? '💻' : 
+                                           content.type === 'pdf' ? '📄' : '🔗'}
+                                        </span>
+                                        <div>
+                                          <div style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '14px' }}>
+                                            {content.title}
+                                          </div>
+                                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                            <span style={{ textTransform: 'capitalize' }}>{content.type}</span>
+                                            {content.type === 'code' && content.language && (
+                                              <span>• {content.language}</span>
+                                            )}
+                                            {content.duration && <span>• {content.duration} min</span>}
+                                            <span style={{ color: content.approved ? '#10b981' : '#f59e0b' }}>
+                                              {content.approved ? '✓ Approved' : '⏳ Pending'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '6px' }}>
+                                        <button 
+                                          onClick={() => openContentModal(topic, idx, cIdx)} 
+                                          className="btn btn-secondary btn-sm"
+                                          style={{ padding: '4px 10px' }}
+                                        >
+                                          Edit
+                                        </button>
+                                        <button 
+                                          onClick={() => deleteContent(topic, idx, cIdx)} 
+                                          className="btn btn-danger btn-sm"
+                                          style={{ padding: '4px 10px' }}
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -616,6 +835,150 @@ export default function AdminTopicsPage() {
               <button onClick={() => setShowSubtopicModal(false)} className="btn btn-secondary">Cancel</button>
               <button onClick={saveSubtopic} className="btn btn-primary" disabled={saving}>
                 {saving ? 'Saving...' : (editingSubtopicIndex !== null ? 'Update' : 'Add')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content Modal with Rich Editor */}
+      {showContentModal && (
+        <div className="modal-overlay" onClick={() => setShowContentModal(false)}>
+          <div 
+            className="modal" 
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '900px', width: '95%', maxHeight: '95vh' }}
+          >
+            <div className="modal-header">
+              <h2 className="modal-title">
+                {editingContentIndex !== null ? 'Edit Content' : 'Add New Content'}
+              </h2>
+              <button onClick={() => setShowContentModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-primary)' }}>✕</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: 'calc(95vh - 140px)', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Content Title *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={contentForm.title}
+                    onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
+                    placeholder="e.g., Introduction to useState"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Content Type *</label>
+                  <select
+                    className="form-select"
+                    value={contentForm.type}
+                    onChange={(e) => setContentForm({ ...contentForm, type: e.target.value as ContentItem['type'] })}
+                  >
+                    <option value="text">📝 Text/Markdown</option>
+                    <option value="code">💻 Code Example</option>
+                    <option value="video">🎬 Video</option>
+                    <option value="pdf">📄 PDF Document</option>
+                    <option value="link">🔗 External Link</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Video/Link/PDF URL */}
+              {(contentForm.type === 'video' || contentForm.type === 'pdf' || contentForm.type === 'link') && (
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">URL *</label>
+                    <input
+                      type="url"
+                      className="form-input"
+                      value={contentForm.url}
+                      onChange={(e) => setContentForm({ ...contentForm, url: e.target.value })}
+                      placeholder={contentForm.type === 'video' ? 'https://youtube.com/watch?v=...' : 'https://...'}
+                    />
+                  </div>
+                  {contentForm.type === 'video' && (
+                    <div className="form-group">
+                      <label className="form-label">Duration (minutes)</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={contentForm.duration}
+                        onChange={(e) => setContentForm({ ...contentForm, duration: parseInt(e.target.value) || 0 })}
+                        min={0}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Code Language Selector */}
+              {contentForm.type === 'code' && (
+                <div className="form-group">
+                  <label className="form-label">Programming Language</label>
+                  <select
+                    className="form-select"
+                    value={contentForm.language}
+                    onChange={(e) => setContentForm({ ...contentForm, language: e.target.value })}
+                  >
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="csharp">C#</option>
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                    <option value="php">PHP</option>
+                    <option value="ruby">Ruby</option>
+                    <option value="swift">Swift</option>
+                    <option value="kotlin">Kotlin</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="sql">SQL</option>
+                    <option value="shell">Shell/Bash</option>
+                    <option value="json">JSON</option>
+                    <option value="yaml">YAML</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Rich Content Editor */}
+              {(contentForm.type === 'text' || contentForm.type === 'code') && (
+                <div className="form-group">
+                  <RichContentEditor
+                    label={contentForm.type === 'code' ? 'Code Content' : 'Content (Markdown supported)'}
+                    value={contentForm.content || ''}
+                    onChange={(val) => setContentForm({ ...contentForm, content: val })}
+                    mode={contentForm.type === 'code' ? 'code' : 'markdown'}
+                    language={contentForm.language}
+                    height="400px"
+                    showPreview={contentForm.type === 'text'}
+                    showToolbar={contentForm.type === 'text'}
+                    placeholder={contentForm.type === 'code' ? '// Write your code here...' : '# Start writing your content...\n\nUse **bold**, *italic*, and `code` formatting.'}
+                  />
+                </div>
+              )}
+
+              {/* Approval Toggle */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={contentForm.approved}
+                    onChange={(e) => setContentForm({ ...contentForm, approved: e.target.checked })}
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  <span className="form-label" style={{ margin: 0 }}>
+                    Approved (visible to users)
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowContentModal(false)} className="btn btn-secondary">Cancel</button>
+              <button onClick={saveContent} className="btn btn-primary" disabled={saving}>
+                {saving ? 'Saving...' : (editingContentIndex !== null ? 'Update Content' : 'Add Content')}
               </button>
             </div>
           </div>

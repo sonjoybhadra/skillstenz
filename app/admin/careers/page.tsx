@@ -5,6 +5,12 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Layout from '@/components/Layout';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Editor...</div>
+});
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -451,12 +457,13 @@ export default function AdminCareersPage() {
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
                     Description *
                   </label>
-                  <textarea
+                  <RichContentEditor
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    required
-                    rows={4}
-                    className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                    onChange={(value) => setFormData({ ...formData, description: value })}
+                    mode="markdown"
+                    height="250px"
+                    showPreview={true}
+                    showToolbar={true}
                   />
                 </div>
 

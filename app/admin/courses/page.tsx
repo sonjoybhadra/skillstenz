@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div className="p-5 text-center text-[var(--text-muted)]">Loading Editor...</div>
+});
+
+const ContentImporter = dynamic(() => import('@/components/UI/ContentImporter'), {
+  ssr: false,
+  loading: () => <div className="p-5 text-center text-[var(--text-muted)]">Loading Importer...</div>
+});
 
 interface Lesson {
   _id?: string;
@@ -56,10 +67,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'all-levels'];
 const CONTENT_TYPES = [
-  { value: 'video', label: '🎥 Video' },
-  { value: 'article', label: '📝 Article' },
-  { value: 'quiz', label: '❓ Quiz' },
-  { value: 'code', label: '💻 Code' }
+  { value: 'video', label: 'Video', icon: '🎥' },
+  { value: 'article', label: 'Article', icon: '📝' },
+  { value: 'quiz', label: 'Quiz', icon: '❓' },
+  { value: 'code', label: 'Code', icon: '💻' }
 ];
 
 export default function AdminCoursesPage() {
@@ -68,6 +79,7 @@ export default function AdminCoursesPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showContentModal, setShowContentModal] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editingSection, setEditingSection] = useState<{courseId: string; sectionIndex: number} | null>(null);
   const [formData, setFormData] = useState({
@@ -191,186 +203,522 @@ export default function AdminCoursesPage() {
   };
 
   const getLessonCount = (course: Course) => course.sections?.reduce((acc, s) => acc + (s.lessons?.length || 0), 0) || 0;
-  const formatDuration = (mins: number) => `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  const formatDuration = (mins: number) => mins > 0 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : '--';
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}><div className="spinner"></div></div>;
+  const paginatedCourses = courses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(courses.length / itemsPerPage);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>Courses Management</h2>
-          <p style={{ color: 'var(--text-muted)' }}>Manage courses with sections & lessons ({courses.length} total)</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Courses</h1>
+          <p className="text-[var(--text-muted)] mt-1">Manage your courses, sections & lessons</p>
         </div>
-        <button onClick={openAddModal} className="btn btn-primary">+ Add Course</button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowImporter(true)} className="btn btn-ghost">
+            <span>📥</span> Import
+          </button>
+          <button onClick={openAddModal} className="btn btn-primary">
+            <span>+</span> Add Course
+          </button>
+        </div>
       </div>
 
-      {message.text && <div style={{ padding: '12px 16px', marginBottom: '24px', borderRadius: 'var(--radius-md)', background: message.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: message.type === 'success' ? '#10b981' : '#ef4444' }}>{message.text}</div>}
+      {/* Message Alert */}
+      {message.text && (
+        <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+          <span>{message.type === 'success' ? '✓' : '!'}</span>
+          <span>{message.text}</span>
+          <button onClick={() => setMessage({ type: '', text: '' })} className="ml-auto text-lg leading-none">&times;</button>
+        </div>
+      )}
 
-      <div className="card" style={{ padding: '16px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          <input type="text" placeholder="Search courses..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} style={{ flex: 1, minWidth: '200px', padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
-          <select value={filterTech} onChange={(e) => { setFilterTech(e.target.value); setCurrentPage(1); }} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="stat-card">
+          <div className="stat-value">{courses.length}</div>
+          <div className="stat-label">Total Courses</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{courses.filter(c => c.isPublished).length}</div>
+          <div className="stat-label">Published</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{courses.reduce((acc, c) => acc + getLessonCount(c), 0)}</div>
+          <div className="stat-label">Total Lessons</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{courses.filter(c => c.featured).length}</div>
+          <div className="stat-label">Featured</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="admin-card p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="input-modern"
+            />
+          </div>
+          <select
+            value={filterTech}
+            onChange={(e) => { setFilterTech(e.target.value); setCurrentPage(1); }}
+            className="select-modern sm:w-auto"
+          >
             <option value="">All Technologies</option>
-            {technologies.map(tech => <option key={tech._id} value={tech._id}>{tech.icon} {tech.name}</option>)}
+            {technologies.map(tech => (
+              <option key={tech._id} value={tech._id}>{tech.icon} {tech.name}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Courses List */}
+      <div className="space-y-4">
         {courses.length === 0 ? (
-          <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No courses found. Add your first!</div>
-        ) : (() => {
-          const paginatedCourses = courses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-          return paginatedCourses.map((course) => (
-          <div key={course._id} className="card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-              {course.thumbnail && <img src={course.thumbnail} alt={course.title} style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />}
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>{course.title}</h3>
-                  {course.technology && <span style={{ fontSize: '14px' }}>{course.technology.icon}</span>}
-                  {course.featured && <span style={{ padding: '2px 8px', fontSize: '10px', fontWeight: 600, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '4px' }}>⭐ Featured</span>}
+          <div className="admin-card empty-state">
+            <div className="empty-state-icon">📚</div>
+            <h3 className="empty-state-title">No courses yet</h3>
+            <p className="empty-state-text">Create your first course to get started</p>
+            <button onClick={openAddModal} className="btn btn-primary">
+              <span>+</span> Create Course
+            </button>
+          </div>
+        ) : (
+          paginatedCourses.map((course) => (
+            <div key={course._id} className="admin-card">
+              {/* Course Header */}
+              <div className="p-5 flex flex-col lg:flex-row gap-4">
+                {/* Thumbnail */}
+                {course.thumbnail && (
+                  <img
+                    src={course.thumbnail}
+                    alt={course.title}
+                    className="w-full lg:w-36 h-24 object-cover rounded-xl flex-shrink-0"
+                  />
+                )}
+
+                {/* Course Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
+                      {course.title}
+                    </h3>
+                    {course.technology && (
+                      <span className="text-lg flex-shrink-0">{course.technology.icon}</span>
+                    )}
+                    {course.featured && (
+                      <span className="badge badge-warning flex-shrink-0">⭐ Featured</span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-[var(--text-muted)] mb-3 line-clamp-2">
+                    {course.shortDescription || course.description?.substring(0, 120)}
+                  </p>
+
+                  {/* Meta Info */}
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-[var(--text-muted)]">
+                    <span className="flex items-center gap-1.5">
+                      <span>📚</span> {course.sections?.length || 0} sections
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span>📖</span> {getLessonCount(course)} lessons
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span>⏱️</span> {formatDuration(course.duration || 0)}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span>👁️</span> {course.views || 0} views
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span>⭐</span> {course.rating?.average?.toFixed(1) || '0.0'} ({course.rating?.count || 0})
+                    </span>
+                    <span className="flex items-center gap-1.5 capitalize">
+                      <span>📊</span> {course.level}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      {course.pricing?.type === 'paid' ? `💵 $${course.pricing.price}` : '🆓 Free'}
+                    </span>
+                  </div>
                 </div>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '12px' }}>{course.shortDescription || course.description?.substring(0, 100)}</p>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-muted)' }}>
-                  <span>📚 {course.sections?.length || 0} sections</span>
-                  <span>📖 {getLessonCount(course)} lessons</span>
-                  <span>⏱️ {formatDuration(course.duration || 0)}</span>
-                  <span>👁️ {course.views || 0} views</span>
-                  <span>⬆️ {course.votes?.upvotes || 0} / ⬇️ {course.votes?.downvotes || 0}</span>
-                  <span>⭐ {course.rating?.average?.toFixed(1) || '0.0'} ({course.rating?.count || 0})</span>
-                  <span style={{ textTransform: 'capitalize' }}>📊 {course.level}</span>
-                  <span>{course.pricing?.type === 'paid' ? `💵 $${course.pricing.price}` : '🆓 Free'}</span>
+
+                {/* Actions */}
+                <div className="flex flex-wrap lg:flex-col gap-2 lg:items-end flex-shrink-0">
+                  <button
+                    onClick={() => togglePublish(course)}
+                    className={`btn btn-xs ${course.isPublished ? 'badge-success' : 'badge-danger'}`}
+                    style={{ background: course.isPublished ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', color: course.isPublished ? '#10b981' : '#ef4444', border: 'none' }}
+                  >
+                    {course.isPublished ? '● Published' : '○ Draft'}
+                  </button>
+                  <button
+                    onClick={() => setExpandedCourse(expandedCourse === course._id ? null : course._id)}
+                    className="btn btn-ghost btn-xs"
+                  >
+                    {expandedCourse === course._id ? '▲ Hide' : '▼ Content'}
+                  </button>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/${course.technology?.slug || 'course'}/${course.slug}`}
+                      target="_blank"
+                      className="btn btn-ghost btn-xs"
+                    >
+                      👁️
+                    </Link>
+                    <button onClick={() => openEditModal(course)} className="btn btn-ghost btn-xs">
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(course._id, course.title)}
+                      className="btn btn-xs"
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button onClick={() => togglePublish(course)} style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 500, border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: course.isPublished ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: course.isPublished ? '#10b981' : '#ef4444' }}>{course.isPublished ? 'Published' : 'Draft'}</button>
-                <button onClick={() => setExpandedCourse(expandedCourse === course._id ? null : course._id)} style={{ padding: '6px 12px', fontSize: '12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>{expandedCourse === course._id ? '▲ Content' : '▼ Content'}</button>
-                <Link href={`/${course.technology?.slug || 'course'}/${course.slug}`} target="_blank" style={{ padding: '6px 12px', fontSize: '12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-muted)', textDecoration: 'none' }}>View</Link>
-                <button onClick={() => openEditModal(course)} style={{ padding: '6px 12px', fontSize: '12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>Edit</button>
-                <button onClick={() => handleDelete(course._id, course.title)} style={{ padding: '6px 12px', fontSize: '12px', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>Delete</button>
-              </div>
-            </div>
-            
-            {expandedCourse === course._id && (
-              <div style={{ borderTop: '1px solid var(--border-primary)', padding: '20px', background: 'var(--bg-secondary)' }}>
-                <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <input type="text" placeholder="New section title..." value={sectionData.title} onChange={(e) => setSectionData({ ...sectionData, title: e.target.value })} style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
-                  <button onClick={() => addSection(course._id)} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }}>+ Section</button>
-                </div>
-                
-                {course.sections?.length === 0 ? (
-                  <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>No sections yet. Add the first section above.</p>
-                ) : course.sections?.map((section, sIdx) => (
-                  <div key={section._id || sIdx} style={{ marginBottom: '16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-primary)' }}>
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div><span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Section {sIdx + 1}: {section.title}</span><span style={{ marginLeft: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>({section.lessons?.length || 0} lessons)</span></div>
-                      <button onClick={() => { setEditingSection({ courseId: course._id, sectionIndex: sIdx }); setLessonData({ title: '', contentType: 'video', videoUrl: '', videoProvider: 'youtube', videoDuration: 0, content: '', isFree: false }); setShowContentModal(true); }} className="btn" style={{ padding: '4px 12px', fontSize: '12px', background: 'var(--accent-primary)', color: 'white' }}>+ Lesson</button>
-                    </div>
-                    <div>
-                      {section.lessons?.length === 0 ? (
-                        <p style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No lessons yet</p>
-                      ) : section.lessons?.map((lesson, lIdx) => (
-                        <div key={lesson._id || lIdx} style={{ padding: '12px 16px', borderBottom: lIdx < section.lessons.length - 1 ? '1px solid var(--border-primary)' : 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>{lIdx + 1}.</span>
-                          <span>{lesson.contentType === 'video' ? '🎥' : lesson.contentType === 'article' ? '📝' : lesson.contentType === 'quiz' ? '❓' : '💻'}</span>
-                          <span style={{ flex: 1, color: 'var(--text-primary)' }}>{lesson.title}</span>
-                          {lesson.isFree && <span style={{ padding: '2px 6px', fontSize: '10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '4px' }}>Free Preview</span>}
-                          {lesson.videoDuration && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{Math.floor(lesson.videoDuration / 60)}:{(lesson.videoDuration % 60).toString().padStart(2, '0')}</span>}
+
+              {/* Expanded Content Section */}
+              {expandedCourse === course._id && (
+                <div className="border-t border-[var(--border-primary)] bg-[var(--bg-primary)] p-5">
+                  {/* Add Section */}
+                  <div className="flex gap-3 mb-5">
+                    <input
+                      type="text"
+                      placeholder="New section title..."
+                      value={sectionData.title}
+                      onChange={(e) => setSectionData({ ...sectionData, title: e.target.value })}
+                      className="input-modern flex-1"
+                    />
+                    <button onClick={() => addSection(course._id)} className="btn btn-primary btn-sm">
+                      + Add Section
+                    </button>
+                  </div>
+
+                  {/* Sections List */}
+                  {(!course.sections || course.sections.length === 0) ? (
+                    <p className="text-center text-[var(--text-muted)] py-8">
+                      No sections yet. Add your first section above.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {course.sections.map((section, sIdx) => (
+                        <div key={section._id || sIdx} className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl overflow-hidden">
+                          {/* Section Header */}
+                          <div className="px-4 py-3 border-b border-[var(--border-primary)] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="w-7 h-7 bg-[var(--accent-primary)] text-white text-sm font-semibold rounded-lg flex items-center justify-center">
+                                {sIdx + 1}
+                              </span>
+                              <span className="font-medium text-[var(--text-primary)]">{section.title}</span>
+                              <span className="text-xs text-[var(--text-muted)]">
+                                ({section.lessons?.length || 0} lessons)
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setEditingSection({ courseId: course._id, sectionIndex: sIdx });
+                                setLessonData({ title: '', contentType: 'video', videoUrl: '', videoProvider: 'youtube', videoDuration: 0, content: '', isFree: false });
+                                setShowContentModal(true);
+                              }}
+                              className="btn btn-primary btn-xs"
+                            >
+                              + Add Lesson
+                            </button>
+                          </div>
+
+                          {/* Lessons List */}
+                          <div>
+                            {(!section.lessons || section.lessons.length === 0) ? (
+                              <p className="text-center text-[var(--text-muted)] py-6 text-sm">
+                                No lessons in this section yet
+                              </p>
+                            ) : (
+                              section.lessons.map((lesson, lIdx) => (
+                                <div
+                                  key={lesson._id || lIdx}
+                                  className={`px-4 py-3 flex items-center gap-3 hover:bg-[var(--bg-hover)] transition-colors ${lIdx < section.lessons.length - 1 ? 'border-b border-[var(--border-primary)]' : ''}`}
+                                >
+                                  <span className="text-[var(--text-muted)] text-sm w-6">{lIdx + 1}.</span>
+                                  <span className="text-lg">
+                                    {CONTENT_TYPES.find(ct => ct.value === lesson.contentType)?.icon || '📄'}
+                                  </span>
+                                  <span className="flex-1 text-[var(--text-primary)] text-sm">{lesson.title}</span>
+                                  {lesson.isFree && (
+                                    <span className="badge badge-success">Free</span>
+                                  )}
+                                  {lesson.videoDuration && lesson.videoDuration > 0 && (
+                                    <span className="text-xs text-[var(--text-muted)]">
+                                      {Math.floor(lesson.videoDuration / 60)}:{(lesson.videoDuration % 60).toString().padStart(2, '0')}
+                                    </span>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ));
-        })()}
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Pagination */}
-      {courses.length > 0 && (() => {
-        const totalPages = Math.ceil(courses.length / itemsPerPage);
-        if (totalPages <= 1) return null;
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '24px' }}>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-              Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, courses.length)} of {courses.length}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{ padding: '6px 12px', border: '1px solid var(--border-primary)', borderRadius: '6px', fontSize: '13px', background: 'transparent', color: 'var(--text-muted)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
-              >
-                ← Prev
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).slice(
-                Math.max(0, currentPage - 3),
-                Math.min(totalPages, currentPage + 2)
-              ).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: page === currentPage ? 'none' : '1px solid var(--border-primary)', background: page === currentPage ? 'var(--accent-primary)' : 'transparent', color: page === currentPage ? 'white' : 'var(--text-muted)', cursor: 'pointer' }}
-                >
-                  {page}
-                </button>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <p className="text-sm text-[var(--text-muted)]">
+            Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, courses.length)} of {courses.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(page => page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1))
+              .map((page, idx, arr) => (
+                <span key={page}>
+                  {idx > 0 && arr[idx - 1] !== page - 1 && <span className="text-[var(--text-muted)]">...</span>}
+                  <button
+                    onClick={() => setCurrentPage(page)}
+                    className={`btn btn-sm ${page === currentPage ? 'btn-primary' : 'btn-ghost'}`}
+                  >
+                    {page}
+                  </button>
+                </span>
               ))}
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                style={{ padding: '6px 12px', border: '1px solid var(--border-primary)', borderRadius: '6px', fontSize: '13px', background: 'transparent', color: 'var(--text-muted)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}
-              >
-                Next →
-              </button>
-            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
           </div>
-        );
-      })()}
+        </div>
+      )}
 
       {/* Course Modal */}
       {showModal && (
         <div className="modal-overlay open" onClick={() => setShowModal(false)}>
           <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">{editingCourse ? 'Edit Course' : 'Add Course'}</h3>
+              <h3 className="modal-title">{editingCourse ? '✏️ Edit Course' : '➕ Create New Course'}</h3>
+              <button onClick={() => setShowModal(false)} className="modal-close">✕</button>
             </div>
-            <div className="p-6">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-                <div style={{ gridColumn: 'span 2' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Title *</label><input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-') })} placeholder="Python for Beginners" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Slug</label><input type="text" value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Technology</label><select value={formData.technology} onChange={(e) => setFormData({ ...formData, technology: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}><option value="">Select...</option>{technologies.map(t => <option key={t._id} value={t._id}>{t.icon} {t.name}</option>)}</select></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Level</label><select value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{LEVELS.map(l => <option key={l} value={l}>{l.charAt(0).toUpperCase() + l.slice(1).replace('-', ' ')}</option>)}</select></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Language</label><input type="text" value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Pricing</label><select value={formData.pricingType} onChange={(e) => setFormData({ ...formData, pricingType: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}><option value="free">Free</option><option value="paid">Paid</option><option value="subscription">Subscription</option></select></div>
-                {formData.pricingType === 'paid' && <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Price ($)</label><input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>}
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Thumbnail URL</label><input type="text" value={formData.thumbnail} onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-                <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Preview Video URL</label><input type="text" value={formData.previewVideo} onChange={(e) => setFormData({ ...formData, previewVideo: e.target.value })} placeholder="YouTube/Vimeo URL" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+              {/* Basic Info Section */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <span>📝</span> Basic Information
+                </h4>
+                <div className="form-grid form-grid-2">
+                  <div className="form-group form-group-full">
+                    <label className="input-label">Course Title *</label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-') })}
+                      placeholder="e.g., Python for Beginners"
+                      className="input-modern"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="input-label">URL Slug</label>
+                    <input
+                      type="text"
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      placeholder="python-for-beginners"
+                      className="input-modern"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="input-label">Technology</label>
+                    <select
+                      value={formData.technology}
+                      onChange={(e) => setFormData({ ...formData, technology: e.target.value })}
+                      className="select-modern"
+                    >
+                      <option value="">Select Technology...</option>
+                      {technologies.map(t => (
+                        <option key={t._id} value={t._id}>{t.icon} {t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group form-group-full">
+                    <label className="input-label">Short Description</label>
+                    <input
+                      type="text"
+                      value={formData.shortDescription}
+                      onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                      placeholder="Brief course summary"
+                      className="input-modern"
+                    />
+                  </div>
+                  <div className="form-group form-group-full">
+                    <label className="input-label">Full Description</label>
+                    <RichContentEditor
+                      value={formData.description}
+                      onChange={(value) => setFormData({ ...formData, description: value })}
+                      mode="markdown"
+                      height="200px"
+                      showPreview={true}
+                      showToolbar={true}
+                    />
+                  </div>
+                </div>
               </div>
-              <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Short Description</label><input type="text" value={formData.shortDescription} onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-              <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Full Description</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', resize: 'vertical' }} /></div>
-              <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Learning Objectives (one per line)</label><textarea value={formData.learningObjectives} onChange={(e) => setFormData({ ...formData, learningObjectives: e.target.value })} rows={3} placeholder="Master Python basics&#10;Build real projects" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', resize: 'vertical' }} /></div>
-              <div style={{ marginTop: '20px', display: 'flex', gap: '24px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><input type="checkbox" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} style={{ width: '18px', height: '18px' }} /><span style={{ color: 'var(--text-primary)' }}>Featured</span></label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><input type="checkbox" checked={formData.isPublished} onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })} style={{ width: '18px', height: '18px' }} /><span style={{ color: 'var(--text-primary)' }}>Published</span></label>
+
+              {/* Course Settings Section */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <span>⚙️</span> Course Settings
+                </h4>
+                <div className="form-grid form-grid-3">
+                  <div className="form-group">
+                    <label className="input-label">Level</label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                      className="select-modern"
+                    >
+                      {LEVELS.map(l => (
+                        <option key={l} value={l}>{l.charAt(0).toUpperCase() + l.slice(1).replace('-', ' ')}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="input-label">Language</label>
+                    <input
+                      type="text"
+                      value={formData.language}
+                      onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                      className="input-modern"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="input-label">Pricing</label>
+                    <select
+                      value={formData.pricingType}
+                      onChange={(e) => setFormData({ ...formData, pricingType: e.target.value })}
+                      className="select-modern"
+                    >
+                      <option value="free">🆓 Free</option>
+                      <option value="paid">💵 Paid</option>
+                      <option value="subscription">🔄 Subscription</option>
+                    </select>
+                  </div>
+                  {formData.pricingType === 'paid' && (
+                    <div className="form-group">
+                      <label className="input-label">Price ($)</label>
+                      <input
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                        className="input-modern"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Media Section */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <span>🖼️</span> Media
+                </h4>
+                <div className="form-grid form-grid-2">
+                  <div className="form-group">
+                    <label className="input-label">Thumbnail URL</label>
+                    <input
+                      type="text"
+                      value={formData.thumbnail}
+                      onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                      placeholder="https://..."
+                      className="input-modern"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="input-label">Preview Video URL</label>
+                    <input
+                      type="text"
+                      value={formData.previewVideo}
+                      onChange={(e) => setFormData({ ...formData, previewVideo: e.target.value })}
+                      placeholder="YouTube or Vimeo URL"
+                      className="input-modern"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Learning Objectives Section */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <span>🎯</span> Learning Objectives
+                </h4>
+                <textarea
+                  value={formData.learningObjectives}
+                  onChange={(e) => setFormData({ ...formData, learningObjectives: e.target.value })}
+                  rows={3}
+                  placeholder="One objective per line..."
+                  className="textarea-modern"
+                />
+              </div>
+
+              {/* Publish Options */}
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="checkbox-modern"
+                  />
+                  <span className="text-[var(--text-primary)]">⭐ Featured Course</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPublished}
+                    onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
+                    className="checkbox-modern"
+                  />
+                  <span className="text-[var(--text-primary)]">🌐 Published</span>
+                </label>
               </div>
             </div>
+
             <div className="flex items-center justify-end gap-3 border-t border-[var(--border-primary)] px-6 py-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn border border-[var(--border-primary)] bg-transparent"
-              >
+              <button onClick={() => setShowModal(false)} className="btn btn-ghost">
                 Cancel
               </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="btn btn-primary"
-              >
-                {saving ? 'Saving...' : editingCourse ? 'Update' : 'Create'}
+              <button onClick={handleSave} disabled={saving} className="btn btn-primary">
+                {saving ? '⏳ Saving...' : editingCourse ? '💾 Update Course' : '✨ Create Course'}
               </button>
             </div>
           </div>
@@ -382,41 +730,134 @@ export default function AdminCoursesPage() {
         <div className="modal-overlay open" onClick={() => setShowContentModal(false)}>
           <div className="modal modal-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Add Lesson</h3>
+              <h3 className="modal-title">➕ Add New Lesson</h3>
+              <button onClick={() => setShowContentModal(false)} className="modal-close">✕</button>
             </div>
-            <div className="p-6">
-              <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Lesson Title *</label><input type="text" value={lessonData.title} onChange={(e) => setLessonData({ ...lessonData, title: e.target.value })} placeholder="Introduction to Variables" style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-              <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Content Type</label><div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>{CONTENT_TYPES.map(ct => (<button key={ct.value} onClick={() => setLessonData({ ...lessonData, contentType: ct.value as 'video' | 'article' | 'quiz' | 'code' })} style={{ padding: '10px 16px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: lessonData.contentType === ct.value ? 'var(--accent-primary)' : 'transparent', color: lessonData.contentType === ct.value ? 'white' : 'var(--text-muted)', cursor: 'pointer' }}>{ct.label}</button>))}</div></div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-5">
+              <div className="form-group">
+                <label className="input-label">Lesson Title *</label>
+                <input
+                  type="text"
+                  value={lessonData.title}
+                  onChange={(e) => setLessonData({ ...lessonData, title: e.target.value })}
+                  placeholder="e.g., Introduction to Variables"
+                  className="input-modern"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="input-label">Content Type</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {CONTENT_TYPES.map(ct => (
+                    <button
+                      key={ct.value}
+                      onClick={() => setLessonData({ ...lessonData, contentType: ct.value as 'video' | 'article' | 'quiz' | 'code' })}
+                      className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        lessonData.contentType === ct.value
+                          ? 'border-[var(--accent-primary)] bg-[var(--bg-accent-soft)]'
+                          : 'border-[var(--border-primary)] hover:border-[var(--text-muted)]'
+                      }`}
+                    >
+                      <span className="text-2xl">{ct.icon}</span>
+                      <span className="text-xs font-medium text-[var(--text-primary)]">{ct.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {lessonData.contentType === 'video' && (
                 <>
-                  <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Video Provider</label><select value={lessonData.videoProvider} onChange={(e) => setLessonData({ ...lessonData, videoProvider: e.target.value as 'youtube' | 'vimeo' | 'custom' })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}><option value="youtube">YouTube</option><option value="vimeo">Vimeo</option><option value="custom">Custom URL</option></select></div>
-                    <div><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Duration (seconds)</label><input type="number" value={lessonData.videoDuration} onChange={(e) => setLessonData({ ...lessonData, videoDuration: parseInt(e.target.value) })} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+                  <div className="form-grid form-grid-2">
+                    <div className="form-group">
+                      <label className="input-label">Video Provider</label>
+                      <select
+                        value={lessonData.videoProvider}
+                        onChange={(e) => setLessonData({ ...lessonData, videoProvider: e.target.value as 'youtube' | 'vimeo' | 'custom' })}
+                        className="select-modern"
+                      >
+                        <option value="youtube">YouTube</option>
+                        <option value="vimeo">Vimeo</option>
+                        <option value="custom">Custom URL</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="input-label">Duration (seconds)</label>
+                      <input
+                        type="number"
+                        value={lessonData.videoDuration}
+                        onChange={(e) => setLessonData({ ...lessonData, videoDuration: parseInt(e.target.value) || 0 })}
+                        className="input-modern"
+                      />
+                    </div>
                   </div>
-                  <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Video URL</label><input type="text" value={lessonData.videoUrl} onChange={(e) => setLessonData({ ...lessonData, videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+                  <div className="form-group">
+                    <label className="input-label">Video URL</label>
+                    <input
+                      type="text"
+                      value={lessonData.videoUrl}
+                      onChange={(e) => setLessonData({ ...lessonData, videoUrl: e.target.value })}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="input-modern"
+                    />
+                  </div>
                 </>
               )}
+
               {(lessonData.contentType === 'article' || lessonData.contentType === 'code') && (
-                <div style={{ marginTop: '20px' }}><label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Content</label><textarea value={lessonData.content} onChange={(e) => setLessonData({ ...lessonData, content: e.target.value })} rows={8} placeholder={lessonData.contentType === 'code' ? '// Your code here...' : 'Lesson content (supports Markdown)'} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', resize: 'vertical', fontFamily: lessonData.contentType === 'code' ? 'monospace' : 'inherit' }} /></div>
+                <div className="form-group">
+                  <label className="input-label">
+                    Content {lessonData.contentType === 'article' && '(Markdown supported)'}
+                  </label>
+                  <RichContentEditor
+                    value={lessonData.content}
+                    onChange={(value) => setLessonData({ ...lessonData, content: value })}
+                    mode={lessonData.contentType === 'code' ? 'code' : 'markdown'}
+                    language={lessonData.contentType === 'code' ? 'javascript' : undefined}
+                    height="300px"
+                    showPreview={true}
+                    showToolbar={true}
+                  />
+                </div>
               )}
-              <div style={{ marginTop: '20px' }}><label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><input type="checkbox" checked={lessonData.isFree} onChange={(e) => setLessonData({ ...lessonData, isFree: e.target.checked })} style={{ width: '18px', height: '18px' }} /><span style={{ color: 'var(--text-primary)' }}>Free Preview (available without enrollment)</span></label></div>
+
+              <label className="flex items-center gap-3 cursor-pointer pt-2">
+                <input
+                  type="checkbox"
+                  checked={lessonData.isFree}
+                  onChange={(e) => setLessonData({ ...lessonData, isFree: e.target.checked })}
+                  className="checkbox-modern"
+                />
+                <span className="text-[var(--text-primary)]">🆓 Free Preview (available without enrollment)</span>
+              </label>
             </div>
+
             <div className="flex items-center justify-end gap-3 border-t border-[var(--border-primary)] px-6 py-4">
-              <button
-                onClick={() => setShowContentModal(false)}
-                className="btn border border-[var(--border-primary)] bg-transparent"
-              >
+              <button onClick={() => setShowContentModal(false)} className="btn btn-ghost">
                 Cancel
               </button>
               <button
                 onClick={() => addLesson(editingSection.courseId, editingSection.sectionIndex)}
                 className="btn btn-primary"
               >
-                Add Lesson
+                ✨ Add Lesson
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Content Importer Modal */}
+      {showImporter && (
+        <ContentImporter
+          type="course"
+          technologyId={filterTech || undefined}
+          onImportComplete={(result) => {
+            setMessage({ type: result.success ? 'success' : 'error', text: `Imported ${result.imported} course(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}` });
+            if (result.success) fetchCourses();
+          }}
+          onClose={() => setShowImporter(false)}
+        />
       )}
     </div>
   );

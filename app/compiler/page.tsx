@@ -25,7 +25,6 @@ const compilers = [
   { slug: 'react', name: 'React.js', icon: '⚛️', description: 'UI component library', category: 'Web', color: '#61DAFB' },
   { slug: 'nextjs', name: 'Next.js', icon: '▲', description: 'React framework', category: 'Web', color: '#000000' },
   { slug: 'nodejs', name: 'Node.js', icon: '🟢', description: 'JavaScript runtime', category: 'Web', color: '#339933' },
-  { slug: 'bunjs', name: 'Bun.js', icon: '🥟', description: 'Fast JavaScript runtime', category: 'Web', color: '#FBF0DF' },
   
   // Database
   { slug: 'sql', name: 'SQL', icon: '🗃️', description: 'Database query language', category: 'Database', color: '#4479A1' },
@@ -33,249 +32,208 @@ const compilers = [
 ];
 
 const categories = [
-  { id: 'all', name: 'All', icon: '🔥' },
-  { id: 'Programming', name: 'Programming', icon: '💻' },
-  { id: 'Web', name: 'Web Development', icon: '🌐' },
-  { id: 'Mobile', name: 'Mobile', icon: '📱' },
-  { id: 'Database', name: 'Database', icon: '🗄️' },
+  { id: 'all', name: 'All Languages', icon: '🔥', count: compilers.length },
+  { id: 'Programming', name: 'Programming', icon: '💻', count: compilers.filter(c => c.category === 'Programming').length },
+  { id: 'Web', name: 'Web Development', icon: '🌐', count: compilers.filter(c => c.category === 'Web').length },
+  { id: 'Mobile', name: 'Mobile', icon: '📱', count: compilers.filter(c => c.category === 'Mobile').length },
+  { id: 'Database', name: 'Database', icon: '🗄️', count: compilers.filter(c => c.category === 'Database').length },
+];
+
+const features = [
+  { icon: '🚀', title: 'Instant Execution', description: 'Run code instantly with zero setup required' },
+  { icon: '💾', title: 'Auto Save', description: 'Your code is automatically saved in browser' },
+  { icon: '🌐', title: 'Browser Based', description: 'No installation or downloads needed' },
+  { icon: '🎨', title: 'Syntax Highlighting', description: 'Beautiful code editor with smart highlighting' },
 ];
 
 export default function CompilersPage() {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [viewMode, setViewMode] = useState('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCompilers = activeCategory === 'all' 
-    ? compilers 
-    : compilers.filter(c => c.category === activeCategory);
+  const filteredCompilers = compilers.filter(c => {
+    const matchesCategory = activeCategory === 'all' || c.category === activeCategory;
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          c.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="py-16 px-6 text-center">
-        <h1 className="text-5xl font-bold text-white mb-4">
-          Online <span className="opacity-80">Code Compilers</span>
-        </h1>
-        <p className="text-lg text-white/90 max-w-2xl mx-auto">
-          Write, compile, and run code in 20+ programming languages directly in your browser
-        </p>
+      <section className="relative py-20 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20 pointer-events-none" />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-sm font-medium mb-6">
+            <span>🔥</span> 20+ Programming Languages
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-[var(--text-primary)] mb-4">
+            Online Code <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#667eea] to-[#764ba2]">Compilers</span>
+          </h1>
+          <p className="text-lg text-[var(--text-muted)] max-w-2xl mx-auto mb-8">
+            Write, compile, and run code in your browser. No setup required. Perfect for learning, testing, and quick prototyping.
+          </p>
+          
+          {/* Search Bar */}
+          <div className="max-w-xl mx-auto relative">
+            <input
+              type="text"
+              placeholder="Search languages (Python, JavaScript, Java...)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-5 py-4 pl-12 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50 focus:border-[var(--accent-primary)] transition-all text-base"
+            />
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+          </div>
+        </div>
       </section>
 
-       <section className="bg-gray-50 min-h-screen py-12 px-6">
+      {/* Main Content */}
+      <section className="py-12 px-6 bg-[var(--bg-secondary)]">
         <div className="max-w-7xl mx-auto">
-          {/* View Toggle and Categories */}
-          <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-            {/* Categories */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <button 
-                  key={cat.id} 
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    activeCategory === cat.id 
-                      ? 'bg-indigo-600 text-white border-2 border-indigo-600' 
-                      : 'bg-white text-gray-600 border-2 border-transparent hover:border-indigo-200'
-                  }`}
-                >
-                  <span className="mr-2">{cat.icon}</span>
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-
-            {/* View Toggle */}
-            <div className="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-2 mb-8 justify-center">
+            {categories.map((cat) => (
               <button
-                onClick={() => setViewMode('grid')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all duration-300 ${
-                  viewMode === 'grid' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                  activeCategory === cat.id
+                    ? 'bg-[var(--accent-primary)] text-white shadow-lg shadow-[var(--accent-primary)]/25'
+                    : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] border border-[var(--border-primary)]'
                 }`}
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7"/>
-                  <rect x="14" y="3" width="7" height="7"/>
-                  <rect x="3" y="14" width="7" height="7"/>
-                  <rect x="14" y="14" width="7" height="7"/>
-                </svg>
-                Grid
+                <span>{cat.icon}</span>
+                <span>{cat.name}</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeCategory === cat.id ? 'bg-white/20' : 'bg-[var(--bg-hover)]'}`}>
+                  {cat.count}
+                </span>
               </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all duration-300 ${
-                  viewMode === 'list' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="8" y1="6" x2="21" y2="6"/>
-                  <line x1="8" y1="12" x2="21" y2="12"/>
-                  <line x1="8" y1="18" x2="21" y2="18"/>
-                  <line x1="3" y1="6" x2="3.01" y2="6"/>
-                  <line x1="3" y1="12" x2="3.01" y2="12"/>
-                  <line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-                List
-              </button>
-            </div>
+            ))}
           </div>
 
-          {/* Grid View - 4 columns */}
-          {viewMode === 'grid' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {filteredCompilers.map((compiler) => (
-                <div
-                  key={compiler.slug}
-                  className="bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border border-gray-200 hover:-translate-y-1 hover:shadow-xl relative group"
-                >
-                  {/* Colored Top Border */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 h-1"
-                    style={{ background: compiler.color }}
-                  />
-                  
-                  {/* Icon Section */}
-                  <div 
-                    className="h-24 flex items-center justify-center text-5xl relative"
-                    style={{ 
-                      background: `linear-gradient(135deg, ${compiler.color}20 0%, ${compiler.color}10 100%)` 
-                    }}
-                  >
-                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
-                      {compiler.icon}
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="text-base font-bold text-gray-800 mb-1.5 text-center">
-                      {compiler.name}
-                    </h3>
-                    <p className="text-xs text-gray-600 mb-3 text-center leading-relaxed">
-                      {compiler.description}
-                    </p>
-                    <div className="flex justify-center pt-3 border-t border-gray-200">
-                      <span 
-                        className="text-xs font-semibold px-3 py-1 rounded-xl"
-                        style={{ 
-                          background: `${compiler.color}20`,
-                          color: compiler.color 
-                        }}
-                      >
-                        {compiler.category}
-                      </span>
-                    </div>
-                     <Link key={compiler.slug}
-                href={`/compiler/${compiler.slug}`}
-                className="card"
-                style={{ overflow: 'hidden', transition: 'all 0.3s ease' }}
-              >
-                        Run Code
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                      </Link>
-                  </div>
-                </div>
-              ))}
+          {/* Results Count */}
+          {searchQuery && (
+            <div className="text-center mb-6">
+              <span className="text-sm text-[var(--text-muted)]">
+                Found {filteredCompilers.length} language{filteredCompilers.length !== 1 ? 's' : ''} matching &quot;{searchQuery}&quot;
+              </span>
             </div>
           )}
 
-          {/* List View - 2 columns */}
-          {viewMode === 'list' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Compiler Grid */}
+          {filteredCompilers.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">No languages found</h3>
+              <p className="text-[var(--text-muted)]">Try a different search term or category</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredCompilers.map((compiler) => (
-                <div
+                <Link
                   key={compiler.slug}
-                  className="bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border border-gray-200 hover:translate-x-1 hover:shadow-xl relative flex items-center"
+                  href={`/compiler/${compiler.slug}`}
+                  className="group relative bg-[var(--bg-card)] rounded-2xl border border-[var(--border-primary)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-[var(--accent-primary)]/50"
                 >
-                  {/* Colored Left Border */}
+                  {/* Color Accent */}
                   <div 
-                    className="absolute top-0 left-0 bottom-0 w-1"
+                    className="absolute top-0 left-0 right-0 h-1 transition-all duration-300 group-hover:h-1.5"
                     style={{ background: compiler.color }}
                   />
                   
-                  {/* Icon Section */}
+                  {/* Icon Area */}
                   <div 
-                    className="w-28 h-28 flex items-center justify-center text-5xl flex-shrink-0"
-                    style={{ 
-                      background: `linear-gradient(135deg, ${compiler.color}20 0%, ${compiler.color}10 100%)` 
-                    }}
+                    className="h-24 flex items-center justify-center relative overflow-hidden"
+                    style={{ background: `linear-gradient(135deg, ${compiler.color}15 0%, ${compiler.color}05 100%)` }}
                   >
-                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
+                    <div 
+                      className="w-14 h-14 rounded-2xl bg-[var(--bg-card)] flex items-center justify-center shadow-lg text-3xl transition-transform duration-300 group-hover:scale-110"
+                      style={{ boxShadow: `0 8px 24px ${compiler.color}30` }}
+                    >
                       {compiler.icon}
                     </div>
                   </div>
                   
                   {/* Content */}
-                  <div className="p-5 flex-1">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                          {compiler.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                          {compiler.description}
-                        </p>
-                        <span 
-                          className="text-xs font-semibold px-3.5 py-1.5 rounded-xl inline-block"
-                          style={{ 
-                            background: `${compiler.color}20`,
-                            color: compiler.color 
-                          }}
-                        >
-                          {compiler.category}
-                        </span>
-                      </div>
-                      <Link key={compiler.slug}
-                href={`/compiler/${compiler.slug}`}
-                className="card"
-                style={{ overflow: 'hidden', transition: 'all 0.3s ease' }}
-              >
-                        Run Code
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                      </Link>
+                  <div className="p-4 text-center">
+                    <h3 className="font-bold text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent-primary)] transition-colors">
+                      {compiler.name}
+                    </h3>
+                    <p className="text-xs text-[var(--text-muted)] mb-3 line-clamp-2">
+                      {compiler.description}
+                    </p>
+                    
+                    {/* Category Badge */}
+                    <span 
+                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full"
+                      style={{ background: `${compiler.color}15`, color: compiler.color }}
+                    >
+                      {compiler.category}
+                    </span>
+
+                    {/* Hover CTA */}
+                    <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span 
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white"
+                        style={{ background: compiler.color }}
+                      >
+                        <span>▶</span> Run Code
+                      </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header" style={{ textAlign: 'center' }}>
-            <h2 className="section-title">
-              Why Use Our <span className="section-title-accent">Online Compilers?</span>
+      {/* Features Section */}
+      <section className="py-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3">
+              Why Use Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#667eea] to-[#764ba2]">Online Compilers?</span>
             </h2>
+            <p className="text-[var(--text-muted)] max-w-xl mx-auto">
+              Built for developers, students, and learners who want to code without the hassle
+            </p>
           </div>
-          <div className="grid grid-4" style={{ gap: '24px' }}>
-            <div className="card" style={{ textAlign: 'center', padding: '32px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚀</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>Instant Execution</h3>
-              <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Run code instantly without any setup</p>
-            </div>
-            <div className="card" style={{ textAlign: 'center', padding: '32px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>💾</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>Save & Share</h3>
-              <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Save your code and share with others</p>
-            </div>
-            <div className="card" style={{ textAlign: 'center', padding: '32px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🌐</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>Browser-Based</h3>
-              <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>No installation required</p>
-            </div>
-            <div className="card" style={{ textAlign: 'center', padding: '32px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>Syntax Highlighting</h3>
-              <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Beautiful code editor with themes</p>
-            </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <div 
+                key={index}
+                className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-primary)] p-6 text-center hover:border-[var(--accent-primary)]/50 hover:shadow-lg transition-all duration-300"
+              >
+                <div className="text-5xl mb-4">{feature.icon}</div>
+                <h3 className="font-bold text-[var(--text-primary)] mb-2">{feature.title}</h3>
+                <p className="text-sm text-[var(--text-muted)]">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 px-6 bg-gradient-to-r from-[#667eea] to-[#764ba2]">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Ready to Start Coding?
+          </h2>
+          <p className="text-white/80 mb-8 max-w-xl mx-auto">
+            Pick your favorite language and start writing code in seconds. No account required for basic usage.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href="/compiler/python" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#667eea] font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+              🐍 Try Python
+            </Link>
+            <Link href="/compiler/javascript" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-colors">
+              🟨 Try JavaScript
+            </Link>
+            <Link href="/code-editor" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-colors">
+              💻 Web Editor
+            </Link>
           </div>
         </div>
       </section>

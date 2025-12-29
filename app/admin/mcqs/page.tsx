@@ -4,6 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Editor...</div>
+});
+
+const ContentImporter = dynamic(() => import('@/components/UI/ContentImporter'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Importer...</div>
+});
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -59,6 +70,7 @@ export default function AdminMCQsPage() {
     limit: 20
   });
   const [showModal, setShowModal] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [editingMcq, setEditingMcq] = useState<MCQ | null>(null);
   const [formData, setFormData] = useState({
     question: '',
@@ -325,13 +337,22 @@ export default function AdminMCQsPage() {
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>MCQ Management</h1>
           <p style={{ color: 'var(--text-muted)' }}>Manage quiz questions and assessments ({pagination.count} total)</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="px-4 py-2 text-white rounded-lg hover:opacity-90 flex items-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #0968c6 0%, #0756a3 100%)' }}
-        >
-          <span>+</span> Add MCQ
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowImporter(true)}
+            className="px-4 py-2 border rounded-lg hover:bg-purple-500/20 flex items-center gap-2"
+            style={{ borderColor: 'rgba(139, 92, 246, 0.3)', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}
+          >
+            <span>📥</span> Import
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="px-4 py-2 text-white rounded-lg hover:opacity-90 flex items-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #0968c6 0%, #0756a3 100%)' }}
+          >
+            <span>+</span> Add MCQ
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -547,12 +568,13 @@ export default function AdminMCQsPage() {
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
                     Question *
                   </label>
-                  <textarea
+                  <RichContentEditor
                     value={formData.question}
-                    onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-                    required
-                    rows={3}
-                    className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                    onChange={(value) => setFormData({ ...formData, question: value })}
+                    mode="markdown"
+                    height="150px"
+                    showPreview={false}
+                    showToolbar={true}
                   />
                 </div>
 
@@ -645,12 +667,13 @@ export default function AdminMCQsPage() {
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
                     Explanation
                   </label>
-                  <textarea
+                  <RichContentEditor
                     value={formData.explanation}
-                    onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                    rows={2}
-                    className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)]"
-                    placeholder="Explain why this answer is correct"
+                    onChange={(value) => setFormData({ ...formData, explanation: value })}
+                    mode="markdown"
+                    height="150px"
+                    showPreview={false}
+                    showToolbar={true}
                   />
                 </div>
 
@@ -686,6 +709,19 @@ export default function AdminMCQsPage() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Content Importer Modal */}
+        {showImporter && (
+          <ContentImporter
+            type="mcq"
+            technologyId={filters.technology || undefined}
+            onImportComplete={(result) => {
+              toast[result.success ? 'success' : 'error'](`Imported ${result.imported} MCQ(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+              if (result.success) fetchMCQs();
+            }}
+            onClose={() => setShowImporter(false)}
+          />
         )}
     </div>
   );

@@ -1,6 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const RichContentEditor = dynamic(() => import('@/components/UI/RichContentEditor'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading Editor...</div>
+});
 
 interface LessonContent {
   type: 'text' | 'video' | 'pdf' | 'link' | 'code';
@@ -479,12 +485,14 @@ export default function AdminLessonsPage() {
                   <label className="form-label">
                     {contentForm.type === 'code' ? 'Code' : 'Content'} *
                   </label>
-                  <textarea
-                    className="form-textarea"
+                  <RichContentEditor
                     value={contentForm.content || ''}
-                    onChange={(e) => setContentForm({ ...contentForm, content: e.target.value })}
-                    placeholder={contentForm.type === 'code' ? 'Enter code here...' : 'Enter content here... (Supports Markdown)'}
-                    style={contentForm.type === 'code' ? { fontFamily: "'Fira Code', monospace" } : {}}
+                    onChange={(value) => setContentForm({ ...contentForm, content: value })}
+                    mode={contentForm.type === 'code' ? 'code' : 'markdown'}
+                    language={contentForm.type === 'code' ? (contentForm.language || 'javascript') : undefined}
+                    height="300px"
+                    showPreview={true}
+                    showToolbar={true}
                   />
                 </div>
               )}
