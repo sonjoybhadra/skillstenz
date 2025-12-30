@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
 import DynamicSEO from '../../components/DynamicSEO';
+import { useSettings } from '@/lib/settings';
 import { blogAPI } from '@/lib/api';
 
 interface Category {
@@ -376,11 +377,7 @@ export default function InsightsPage() {
 
   return (
     <>
-      <DynamicSEO
-        title="Tech Insights - Latest Articles & Tutorials | TechTooTalk"
-        description="Stay updated with the latest insights, tutorials, and deep dives on AI, web development, cloud computing, and emerging technologies."
-        keywords="tech insights, programming articles, AI tutorials, web development, cloud computing, software engineering"
-      />
+      <BlogSEO />
       <Layout>
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white py-20">
@@ -678,5 +675,18 @@ export default function InsightsPage() {
         </div>
       </Layout>
     </>
+  );
+}
+
+// Helper component for dynamic siteName in SEO
+function BlogSEO() {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  return (
+    <DynamicSEO
+      title={`Tech Insights - Latest Articles & Tutorials | ${siteName}`}
+      description="Stay updated with the latest insights, tutorials, and deep dives on AI, web development, cloud computing, and emerging technologies."
+      keywords="tech insights, programming articles, AI tutorials, web development, cloud computing, software engineering"
+    />
   );
 }

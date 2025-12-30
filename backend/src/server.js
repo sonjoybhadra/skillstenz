@@ -139,6 +139,7 @@ app.use('/api/hackathons', require('./routes/hackathons'));
 app.use('/api/internships', require('./routes/internships'));
 app.use('/api/interview', require('./routes/interview'));
 app.use('/api/cms', require('./routes/cms'));
+app.use('/api/ai-tools', require('./routes/aitools'));
 
 // Health check
 app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));

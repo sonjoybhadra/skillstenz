@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -69,6 +70,7 @@ export default function MembershipPage() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
   const router = useRouter();
+  const { settings } = useSettings();
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -190,7 +192,7 @@ export default function MembershipPage() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'TechTooTalk',
+        name: settings.siteName || 'SkillStenz',
         description: `${plan.name} Plan - ${plan.duration} ${plan.durationType}`,
         order_id: orderData.orderId,
         handler: async (response: RazorpayResponse) => {

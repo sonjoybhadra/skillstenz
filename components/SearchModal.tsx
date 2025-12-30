@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useSettings } from '../lib/settings';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -230,9 +231,14 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-800 rounded">↑↓</kbd> Navigate</span>
             <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-800 rounded">↵</kbd> Select</span>
           </div>
-          <span>Powered by TechTooTalk</span>
+          <PoweredBy />
         </div>
       </div>
     </div>
   );
+}
+
+function PoweredBy() {
+  const { settings } = useSettings();
+  return <span>Powered by {settings.siteName || 'SkillStenz'}</span>;
 }

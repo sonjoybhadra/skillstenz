@@ -1,6 +1,12 @@
+'use client';
+
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 export default function TermsPage() {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -10,7 +16,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              By accessing and using TechTooTalk, you accept and agree to be bound by the terms and 
+              By accessing and using {siteName}, you accept and agree to be bound by the terms and 
               provisions of this agreement. If you do not agree to abide by these terms, please do not use this service.
             </p>
           </section>
@@ -18,8 +24,8 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">2. Use License</h2>
             <div className="text-gray-600 dark:text-gray-400 space-y-3">
-              <p>Permission is granted to temporarily access the materials on TechTooTalk for personal, non-commercial use only.</p>
-              <p>This license shall automatically terminate if you violate any of these restrictions and may be terminated by TechTooTalk at any time.</p>
+              <p>Permission is granted to temporarily access the materials on {siteName} for personal, non-commercial use only.</p>
+              <p>This license shall automatically terminate if you violate any of these restrictions and may be terminated by {siteName} at any time.</p>
             </div>
           </section>
 
@@ -40,7 +46,7 @@ export default function TermsPage() {
             <p className="text-gray-600 dark:text-gray-400">
               All course content is protected by copyright and other intellectual property laws. 
               You may not reproduce, distribute, or create derivative works from any content without 
-              explicit permission from TechTooTalk.
+              explicit permission from {siteName}.
             </p>
           </section>
 
@@ -74,7 +80,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">7. Disclaimer</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              The materials on TechTooTalk are provided on an &apos;as is&apos; basis. TechTooTalk makes no 
+              The materials on {siteName} are provided on an &apos;as is&apos; basis. {siteName} makes no 
               warranties, expressed or implied, and hereby disclaims and negates all other warranties 
               including, without limitation, implied warranties or conditions of merchantability.
             </p>
@@ -83,7 +89,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">8. Modifications</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              TechTooTalk may revise these terms of service at any time without notice. By using this 
+              {siteName} may revise these terms of service at any time without notice. By using this 
               website you are agreeing to be bound by the then current version of these terms of service.
             </p>
           </section>

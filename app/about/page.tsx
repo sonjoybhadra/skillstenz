@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -19,6 +20,8 @@ interface CmsPageData {
 
 export default function AboutPage() {
   const [cmsContent, setCmsContent] = useState<CmsPageData | null>(null);
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
 
   useEffect(() => {
     fetchCmsContent();
@@ -58,7 +61,7 @@ export default function AboutPage() {
         {/* Hero */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-5">
-            {cmsContent?.heroTitle || 'About TechTooTalk'}
+            {cmsContent?.heroTitle || `About ${siteName}`}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
             {cmsContent?.heroSubtitle || "We're on a mission to make quality tech education accessible to everyone, everywhere."}
@@ -98,7 +101,7 @@ export default function AboutPage() {
           <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-8 mb-12">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-              TechTooTalk was founded with a simple belief: that education should be accessible to everyone. 
+              {siteName} was founded with a simple belief: that education should be accessible to everyone. 
               We provide high-quality programming courses, tutorials, and resources to help learners 
               at all levels achieve their goals.
             </p>
@@ -134,7 +137,7 @@ export default function AboutPage() {
         {/* CTA */}
         <div className="text-center bg-blue-600 rounded-xl p-10 text-white">
           <h2 className="text-2xl font-bold mb-3">Ready to Start Learning?</h2>
-          <p className="text-blue-100 mb-6">Join thousands of learners who are already building their future with TechTooTalk.</p>
+          <p className="text-blue-100 mb-6">Join thousands of learners who are already building their future with {siteName}.</p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link 
               href="/courses" 

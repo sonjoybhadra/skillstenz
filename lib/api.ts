@@ -255,6 +255,92 @@ export interface HomeSectionsMap {
   [key: string]: HomeSection;
 }
 
+// AI Tool interfaces
+export interface AIToolParentCompany {
+  name: string;
+  logo?: string;
+  website?: string;
+  founded?: string;
+  headquarters?: string;
+  description?: string;
+}
+
+export interface AIToolPricingPlan {
+  name: string;
+  price: string;
+  features: string[];
+}
+
+export interface AIToolPricing {
+  type: 'free' | 'freemium' | 'paid' | 'enterprise' | 'open-source';
+  startingPrice?: string;
+  hasFreeTier: boolean;
+  pricingUrl?: string;
+  plans?: AIToolPricingPlan[];
+}
+
+export interface AIToolGettingStartedStep {
+  step: number;
+  title: string;
+  description: string;
+}
+
+export interface AITool {
+  _id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  icon?: string;
+  tagline?: string;
+  shortDescription: string;
+  overview?: string;
+  parentCompany?: AIToolParentCompany;
+  howToUse?: string;
+  gettingStarted?: AIToolGettingStartedStep[];
+  purpose?: string;
+  useCases?: string[];
+  features?: string[];
+  pricing: AIToolPricing;
+  category: 'chatbots' | 'image-generation' | 'video-generation' | 'audio-generation' | 
+            'writing-assistant' | 'code-assistant' | 'data-analysis' | 'automation' | 
+            'research' | 'design' | 'marketing' | 'productivity' | 'education' | 
+            'healthcare' | 'finance' | 'other';
+  tags?: string[];
+  apiAvailable?: boolean;
+  apiDocumentation?: string;
+  platforms?: string[];
+  integrations?: string[];
+  website?: string;
+  documentation?: string;
+  github?: string;
+  twitter?: string;
+  pros?: string[];
+  cons?: string[];
+  alternatives?: AITool[];
+  views?: number;
+  votes?: {
+    upvotes: number;
+    downvotes: number;
+  };
+  isPublished: boolean;
+  featured?: boolean;
+  trending?: boolean;
+  isNew?: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AIToolCategory {
+  slug: string;
+  name: string;
+  icon: string;
+  color: string;
+  count: number;
+}
+
 // Helper function to get auth headers
 const getAuthHeaders = (): HeadersInit => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -1135,6 +1221,131 @@ export const adminAPI = {
   },
 };
 
+// AI Tools API
+export const aiToolsAPI = {
+  // Public methods
+  getAll: async (params?: { 
+    search?: string; 
+    category?: string; 
+    pricing?: string;
+    featured?: boolean; 
+    trending?: boolean;
+    apiAvailable?: boolean;
+    platform?: string;
+    page?: number; 
+    limit?: number; 
+    sort?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.pricing) queryParams.append('pricing', params.pricing);
+    if (params?.featured) queryParams.append('featured', 'true');
+    if (params?.trending) queryParams.append('trending', 'true');
+    if (params?.apiAvailable) queryParams.append('apiAvailable', 'true');
+    if (params?.platform) queryParams.append('platform', params.platform);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.sort) queryParams.append('sort', params.sort);
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return apiRequest<{ 
+      tools: AITool[]; 
+      pagination: { page: number; limit: number; total: number; pages: number };
+      filters: { categories: { _id: string; count: number }[]; pricing: { _id: string; count: number }[] };
+    }>(`/ai-tools${query}`);
+  },
+
+  getBySlug: async (slug: string) => {
+    return apiRequest<{ tool: AITool; relatedTools: AITool[] }>(`/ai-tools/slug/${slug}`);
+  },
+
+  getCategories: async () => {
+    return apiRequest<AIToolCategory[]>('/ai-tools/categories');
+  },
+
+  getFeatured: async (limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return apiRequest<AITool[]>(`/ai-tools/featured${query}`);
+  },
+
+  getTrending: async (limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return apiRequest<AITool[]>(`/ai-tools/trending${query}`);
+  },
+
+  vote: async (id: string, vote: 'up' | 'down') => {
+    return apiRequest<{ message: string; upvotes: number; downvotes: number; voteScore: number }>(`/ai-tools/${id}/vote`, {
+      method: 'POST',
+      body: JSON.stringify({ vote }),
+    });
+  },
+
+  // Admin methods
+  getStats: async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{
+      stats: { total: number; published: number; featured: number; trending: number; draft: number };
+      byCategory: { _id: string; count: number }[];
+      byPricing: { _id: string; count: number }[];
+      topViewed: AITool[];
+      recentlyAdded: AITool[];
+    }>('/ai-tools/admin/stats', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  },
+
+  getById: async (id: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<AITool>(`/ai-tools/admin/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  },
+
+  create: async (data: Partial<AITool>) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ message: string; tool: AITool }>('/ai-tools', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(data),
+    });
+  },
+
+  update: async (id: string, data: Partial<AITool>) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ message: string; tool: AITool }>(`/ai-tools/${id}`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(data),
+    });
+  },
+
+  delete: async (id: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ message: string }>(`/ai-tools/${id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  },
+
+  bulkUpdate: async (ids: string[], updates: Partial<AITool>) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return apiRequest<{ message: string; modifiedCount: number }>('/ai-tools/bulk-update', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ ids, updates }),
+    });
+  },
+};
+
 const api = {
   auth: authAPI,
   technologies: technologiesAPI,
@@ -1144,6 +1355,7 @@ const api = {
   blog: blogAPI,
   admin: adminAPI,
   homepage: homepageAPI,
+  aiTools: aiToolsAPI,
 };
 
 export default api;

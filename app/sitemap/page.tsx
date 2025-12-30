@@ -1,13 +1,19 @@
+'use client';
+
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 export default function SitemapPage() {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  
   const siteStructure = [
     {
       category: 'Main Pages',
       pages: [
-        { path: '/', name: 'Home', description: 'TechTooTalk homepage' },
-        { path: '/about', name: 'About Us', description: 'Learn about TechTooTalk' },
+        { path: '/', name: 'Home', description: `${siteName} homepage` },
+        { path: '/about', name: 'About Us', description: `Learn about ${siteName}` },
         { path: '/contact', name: 'Contact', description: 'Get in touch with us' },
         { path: '/careers', name: 'Careers', description: 'Join our team' },
         { path: '/faq', name: 'FAQ', description: 'Frequently asked questions' },
@@ -78,7 +84,7 @@ export default function SitemapPage() {
         <div className="mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Sitemap</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Find all the pages and resources available on TechTooTalk.
+            Find all the pages and resources available on {siteName}.
           </p>
         </div>
 

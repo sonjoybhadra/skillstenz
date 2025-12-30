@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useSettings } from '../lib/settings';
 
 interface EnhancedSEOProps {
   title?: string;
@@ -16,19 +17,25 @@ interface EnhancedSEOProps {
 }
 
 export default function EnhancedSEO({
-  title = 'TechTooTalk - Learn AI, Web Development & Programming',
+  title,
   description = 'Master AI, AI Agents, Web Development, and Programming with expert-led courses, hands-on projects, and industry certifications.',
   keywords = 'AI courses, web development, programming, online learning, AI agents, machine learning',
   ogImage = '/og-image.png',
   ogType = 'website',
   canonical,
-  author = 'TechTooTalk',
+  author,
   publishedTime,
   modifiedTime,
   schema
 }: EnhancedSEOProps) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techtootalk.com';
-  const fullTitle = title.includes('TechTooTalk') ? title : `${title} | TechTooTalk`;
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  const siteTagline = settings.siteTagline || 'Learn AI, Web Development & Programming';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://skillstenz.com';
+  const defaultTitle = `${siteName} - ${siteTagline}`;
+  const pageTitle = title || defaultTitle;
+  const fullTitle = pageTitle.includes(siteName) ? pageTitle : `${pageTitle} | ${siteName}`;
+  const pageAuthor = author || siteName;
   const canonicalUrl = canonical || siteUrl;
   const imageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 
@@ -52,7 +59,7 @@ export default function EnhancedSEO({
     updateOrCreateMeta('title', fullTitle);
     updateOrCreateMeta('description', description);
     updateOrCreateMeta('keywords', keywords);
-    updateOrCreateMeta('author', author);
+    updateOrCreateMeta('author', pageAuthor);
 
     // Open Graph
     updateOrCreateMeta('og:type', ogType, true);
@@ -60,7 +67,7 @@ export default function EnhancedSEO({
     updateOrCreateMeta('og:title', fullTitle, true);
     updateOrCreateMeta('og:description', description, true);
     updateOrCreateMeta('og:image', imageUrl, true);
-    updateOrCreateMeta('og:site_name', 'TechTooTalk', true);
+    updateOrCreateMeta('og:site_name', siteName, true);
 
     // Twitter
     updateOrCreateMeta('twitter:card', 'summary_large_image');
@@ -88,7 +95,7 @@ export default function EnhancedSEO({
       'image': imageUrl,
       ...(publishedTime && { 'datePublished': publishedTime }),
       ...(modifiedTime && { 'dateModified': modifiedTime }),
-      ...(author && { 'author': { '@type': 'Person', 'name': author } })
+      ...(pageAuthor && { 'author': { '@type': 'Organization', 'name': pageAuthor } })
     };
 
     let script = document.querySelector('script[type="application/ld+json"]');
@@ -98,7 +105,7 @@ export default function EnhancedSEO({
       document.head.appendChild(script);
     }
     script.textContent = JSON.stringify(jsonLd);
-  }, [fullTitle, description, keywords, canonicalUrl, imageUrl, ogType, author, publishedTime, modifiedTime, schema]);
+  }, [fullTitle, description, keywords, canonicalUrl, imageUrl, ogType, pageAuthor, publishedTime, modifiedTime, schema, siteName]);
 
   return null;
 }

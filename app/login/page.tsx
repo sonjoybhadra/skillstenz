@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../../lib/auth';
 import { authAPI } from '../../lib/api';
+import { useSettings } from '../../lib/settings';
 import toast from 'react-hot-toast';
 
 function LoginForm() {
@@ -49,6 +50,10 @@ function LoginForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  const logoSrc = settings.logo || '/skillstenz-logo.png';
+  
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Banner */}
@@ -56,8 +61,12 @@ function LoginForm() {
         <div className="absolute inset-0 bg-gradient-to-b from-blue-600/30 to-blue-800/70" />
         <div className="relative z-10 flex flex-col justify-between p-10 text-white w-full">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/skillstenz-logo.png" alt="Logo" width={40} height={40} className="rounded" />
-            <span className="text-xl font-bold">TechTooTalk</span>
+            {settings.logo ? (
+              <img src={logoSrc} alt={siteName} className="w-10 h-10 rounded object-cover" />
+            ) : (
+              <Image src="/skillstenz-logo.png" alt="Logo" width={40} height={40} className="rounded" />
+            )}
+            <span className="text-xl font-bold">{siteName}</span>
           </Link>
           
           <div className="flex-1 flex flex-col justify-center max-w-md">
@@ -84,7 +93,7 @@ function LoginForm() {
             </div>
           </div>
           
-          <p className="text-sm text-blue-200">© 2025 TechTooTalk. All rights reserved.</p>
+          <p className="text-sm text-blue-200">© {new Date().getFullYear()} {siteName}. All rights reserved.</p>
         </div>
       </div>
 
@@ -93,8 +102,12 @@ function LoginForm() {
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-2 mb-4">
-              <Image src="/skillstenz-logo.png" alt="Logo" width={40} height={40} className="rounded" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">TechTooTalk</span>
+              {settings.logo ? (
+                <img src={logoSrc} alt={siteName} className="w-10 h-10 rounded object-cover" />
+              ) : (
+                <Image src="/skillstenz-logo.png" alt="Logo" width={40} height={40} className="rounded" />
+              )}
+              <span className="text-xl font-bold text-gray-900 dark:text-white">{siteName}</span>
             </Link>
           </div>
 

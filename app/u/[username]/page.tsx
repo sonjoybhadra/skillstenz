@@ -3,6 +3,7 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useSettings } from '@/lib/settings';
 
 interface PublicProfile {
   _id: string;
@@ -589,9 +590,7 @@ export default function PublicProfilePage() {
 
           {/* Footer */}
           <div className="px-8 py-4 bg-gray-50 dark:bg-gray-900 text-center print:hidden">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Powered by <Link href="/" className={`${colors.primary} hover:underline`}>TechTooTalk</Link>
-            </p>
+            <ProfileFooter colors={colors} />
           </div>
         </div>
       </div>
@@ -626,5 +625,16 @@ export default function PublicProfilePage() {
         }
       `}</style>
     </div>
+  );
+}
+
+// Helper component for dynamic siteName
+function ProfileFooter({ colors }: { colors: { primary: string } }) {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  return (
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      Powered by <Link href="/" className={`${colors.primary} hover:underline`}>{siteName}</Link>
+    </p>
   );
 }

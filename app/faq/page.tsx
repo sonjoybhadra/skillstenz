@@ -3,14 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
 
   const faqs = [
     {
-      question: 'What is TechTooTalk?',
-      answer: 'TechTooTalk is a comprehensive online learning platform that offers courses, tutorials, and resources for programming and technology. We provide free and premium content to help you learn at your own pace.'
+      question: `What is ${siteName}?`,
+      answer: `${siteName} is a comprehensive online learning platform that offers courses, tutorials, and resources for programming and technology. We provide free and premium content to help you learn at your own pace.`
     },
     {
       question: 'Are the courses free?',
@@ -46,7 +49,7 @@ export default function FAQPage() {
     },
     {
       question: 'Can I become an instructor?',
-      answer: 'Yes! We\'re always looking for qualified instructors. Visit our Careers page or contact us to learn about becoming a TechTooTalk instructor.'
+      answer: `Yes! We're always looking for qualified instructors. Visit our Careers page or contact us to learn about becoming a ${siteName} instructor.`
     },
   ];
 
@@ -57,7 +60,7 @@ export default function FAQPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Find answers to common questions about TechTooTalk
+            Find answers to common questions about {siteName}
           </p>
         </div>
 

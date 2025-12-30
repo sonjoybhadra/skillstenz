@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 import toast from 'react-hot-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -27,6 +28,8 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cmsContent, setCmsContent] = useState<CmsPage | null>(null);
+  const { settings } = useSettings();
+  const supportEmail = settings.supportEmail || settings.contactEmail || 'support@skillstenz.com';
 
   useEffect(() => {
     fetchCmsContent();
@@ -78,7 +81,7 @@ export default function ContactPage() {
   };
 
   const contactInfo = [
-    { icon: '📧', label: 'Email', value: 'support@techtootalk.com' },
+    { icon: '📧', label: 'Email', value: supportEmail },
     { icon: '📍', label: 'Address', value: '123 Tech Street, San Francisco, CA' },
     { icon: '📞', label: 'Phone', value: '+1 (555) 123-4567' },
     { icon: '⏰', label: 'Hours', value: 'Mon-Fri: 9AM - 6PM PST' },

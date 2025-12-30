@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import { useSettings } from '../lib/settings';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +33,12 @@ const authenticatedPages = [
 
 // Footer Component
 function Footer() {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  const logoIcon = settings.logoIcon || siteName.charAt(0);
+  const logoText = settings.logoText || siteName;
+  const logoAccentText = settings.logoAccentText || '';
+  
   return (
     <footer className="bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 py-12 relative overflow-hidden">
       {/* Background Pattern */}
@@ -44,8 +51,12 @@ function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">TechToo<span className="text-blue-500">Talk</span></span>
+              {settings.logo ? (
+                <img src={settings.logo} alt={siteName} className="w-8 h-8 rounded-lg object-cover" />
+              ) : (
+                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">{logoIcon}</div>
+              )}
+              <span className="text-xl font-bold text-gray-900 dark:text-white">{logoText}{logoAccentText && <span className="text-blue-500">{logoAccentText}</span>}</span>
             </Link>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
               A leading AI EdTech company focused on AI, Machine Learning, and cutting-edge technologies.
@@ -104,7 +115,7 @@ function Footer() {
 
         {/* Bottom */}
         <div className="border-t border-gray-200 dark:border-slate-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-gray-500 dark:text-gray-500">Copyright © 2025 TechTooTalk. All Rights Reserved.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-500">Copyright © {new Date().getFullYear()} {siteName}. All Rights Reserved.</p>
           <div className="flex gap-6">
             <Link href="/terms" className="text-xs text-gray-500 dark:text-gray-500 hover:text-blue-500 transition-colors">Terms of Use</Link>
             <Link href="/privacy" className="text-xs text-gray-500 dark:text-gray-500 hover:text-blue-500 transition-colors">Privacy Policy</Link>

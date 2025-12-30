@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useSettings } from '@/lib/settings';
 import Layout from '@/components/Layout';
 import toast from 'react-hot-toast';
 
@@ -303,7 +304,7 @@ export default function CodeEditorPage() {
                 <span className="text-white text-sm">{'</>'}</span>
               </div>
               <div>
-                <h1 className="text-sm font-bold text-white">TechTooTalk Editor</h1>
+                <EditorTitle />
                 <span className="text-[10px] text-[#8b949e]">HTML • CSS • JavaScript</span>
               </div>
             </div>
@@ -543,4 +544,11 @@ export default function CodeEditorPage() {
       </div>
     </Layout>
   );
+}
+
+// Helper component for dynamic siteName
+function EditorTitle() {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  return <h1 className="text-sm font-bold text-white">{siteName} Editor</h1>;
 }

@@ -37,7 +37,7 @@ const bottomMenuItems = [
   { name: 'Compiler', href: '/compiler', icon: '⚡' },
   { name: 'Code Editor', href: '/code-editor', icon: '💻' },
   { name: 'Certificates', href: '/certificates', icon: '🏆' },
-  { name: 'Articles', href: '/tutorials', icon: '📰' },
+  { name: 'AI Tools', href: '/ai-tools', icon: '🤖' },
 ];
 
 export default function Header() {

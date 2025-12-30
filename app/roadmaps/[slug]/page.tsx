@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -219,7 +220,7 @@ export default function RoadmapPage() {
         {/* Call to Action */}
         <div className="mt-12 bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Ready to Start Your Journey?</h2>
-          <p className="text-purple-100 mb-6">Join thousands of developers learning with TechTooTalk</p>
+          <RoadmapCTA />
           <Link href="/register" className="inline-block px-8 py-3 bg-white text-purple-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
             Create Free Account
           </Link>
@@ -227,4 +228,11 @@ export default function RoadmapPage() {
       </div>
     </Layout>
   );
+}
+
+// Helper component for dynamic siteName
+function RoadmapCTA() {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  return <p className="text-purple-100 mb-6">Join thousands of developers learning with {siteName}</p>;
 }

@@ -2,8 +2,12 @@
 
 import { useState } from 'react';
 import Layout from '@/components/Layout';
+import { useSettings } from '@/lib/settings';
 
 export default function CookiesPage() {
+  const { settings } = useSettings();
+  const contactEmail = settings.contactEmail || settings.supportEmail || 'support@skillstenz.com';
+  
   const [preferences, setPreferences] = useState({
     necessary: true,
     analytics: true,
@@ -125,7 +129,7 @@ export default function CookiesPage() {
           <section className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Contact Us</h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              If you have questions about our cookie policy, please contact us at privacy@techtootalk.com.
+              If you have questions about our cookie policy, please contact us at {contactEmail}.
             </p>
           </section>
 

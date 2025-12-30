@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSettings } from '@/lib/settings';
 
 type UserType = 'student' | 'professional';
 
 export default function MarketingPage() {
   const [userType, setUserType] = useState<UserType>('student');
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
 
   const studentFeatures = [
     {
@@ -87,7 +90,7 @@ export default function MarketingPage() {
       role: 'Software Engineer at Google',
       image: null,
       type: 'student' as UserType,
-      quote: 'TechTooTalk helped me crack my Google interview. The structured DSA roadmap and interview prep was exactly what I needed!',
+      quote: `${siteName} helped me crack my Google interview. The structured DSA roadmap and interview prep was exactly what I needed!`,
     },
     {
       name: 'Rahul Verma',
@@ -421,7 +424,7 @@ export default function MarketingPage() {
             Ready to Start Your Journey?
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            Join thousands of {userType === 'student' ? 'students' : 'professionals'} who are already learning and growing with TechTooTalk.
+            Join thousands of {userType === 'student' ? 'students' : 'professionals'} who are already learning and growing with {siteName}.
           </p>
           <Link
             href="/register"
@@ -440,7 +443,7 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white font-bold text-lg mb-4">TechTooTalk</h3>
+              <h3 className="text-white font-bold text-lg mb-4">{siteName}</h3>
               <p className="text-sm">
                 Empowering developers worldwide with quality education and career resources.
               </p>
@@ -474,7 +477,7 @@ export default function MarketingPage() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-gray-800 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} TechTooTalk. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
           </div>
         </div>
       </footer>

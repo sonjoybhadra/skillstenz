@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authAPI, authHelpers } from '../lib/api';
+import { useSettings } from '../lib/settings';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -123,11 +124,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
         <div className="p-6">
           {/* Header */}
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">T</div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{mode === 'login' ? 'Welcome Back!' : 'Create Account'}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{mode === 'login' ? 'Sign in to continue your learning journey' : 'Join TechTooTalk and start learning today'}</p>
-          </div>
+          <AuthModalHeader mode={mode} />
 
           {/* Tab Switcher */}
           <div className="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1 mb-6">
@@ -221,6 +218,27 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Helper component for AuthModal header
+function AuthModalHeader({ mode }: { mode: 'login' | 'register' }) {
+  const { settings } = useSettings();
+  const siteName = settings.siteName || 'SkillStenz';
+  const logoIcon = settings.logoIcon || siteName.charAt(0);
+  
+  return (
+    <div className="text-center mb-6">
+      {settings.logo ? (
+        <img src={settings.logo} alt={siteName} className="w-16 h-16 rounded-full mx-auto mb-4 object-cover" />
+      ) : (
+        <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">{logoIcon}</div>
+      )}
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{mode === 'login' ? 'Welcome Back!' : 'Create Account'}</h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        {mode === 'login' ? 'Sign in to continue your learning journey' : `Join ${siteName} and start learning today`}
+      </p>
     </div>
   );
 }
