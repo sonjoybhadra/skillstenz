@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { aiToolsAPI, AITool, AIToolCategory } from '@/lib/api';
 import { useSettings } from '@/lib/settings';
+import Head from 'next/head';
 
 // Category info with icons and colors
 const categoryInfo: Record<string, { name: string; icon: string; color: string }> = {
@@ -102,15 +103,14 @@ export default function AIToolsPage() {
   };
 
   return (
-    <Layout>
-      {/* SEO Meta */}
-      <head>
+    <>
+      <Head>
         <title>AI Tools Directory - Discover the Best AI Tools | {settings.siteName}</title>
         <meta name="description" content="Explore our comprehensive directory of AI tools. Find the best AI chatbots, image generators, code assistants, and more. Compare features, pricing, and reviews." />
         <meta name="keywords" content="AI tools, artificial intelligence, ChatGPT, DALL-E, Midjourney, AI assistant, machine learning tools" />
-      </head>
-
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      </Head>
+      <Layout>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white">
           <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
@@ -440,6 +440,7 @@ export default function AIToolsPage() {
           )}
         </div>
       </div>
-    </Layout>
+      </Layout>
+    </>
   );
 }

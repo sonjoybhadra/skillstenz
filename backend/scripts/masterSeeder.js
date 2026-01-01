@@ -20,6 +20,7 @@ const { seedBlog } = require('./seeders/blogSeeder');
 const { seedTopicsLessons } = require('./seeders/topicsLessonsSeeder');
 const { seedMCQs } = require('./seeders/mcqsSeeder');
 const { seedTutorialChapters } = require('./seeders/tutorialChaptersSeeder');
+const { seedAITools } = require('./seeders/aiToolsSeeder');
 
 // Database connection
 const connectDB = async () => {
@@ -51,7 +52,8 @@ const runAllSeeders = async () => {
     roadmaps: 0,
     cheatsheets: 0,
     mcqs: 0,
-    blogArticles: 0
+    blogArticles: 0,
+    aiTools: 0
   };
   
   try {
@@ -104,9 +106,14 @@ const runAllSeeders = async () => {
     results.mcqs = mcqs.length;
     
     // 10. Blog (categories + articles)
-    console.log('\n📝 Step 10/10: Seeding Blog...');
+    console.log('\n📝 Step 10/11: Seeding Blog...');
     const articles = await seedBlog();
     results.blogArticles = articles.length;
+
+    // 11. AI Tools
+    console.log('\n🤖 Step 11/11: Seeding AI Tools...');
+    const aiTools = await seedAITools();
+    results.aiTools = aiTools.length;
     
     // Summary
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -124,7 +131,8 @@ const runAllSeeders = async () => {
     console.log(`   ├── Roadmaps: ${results.roadmaps}`);
     console.log(`   ├── Cheatsheets: ${results.cheatsheets}`);
     console.log(`   ├── MCQs: ${results.mcqs}`);
-    console.log(`   └── Blog Articles: ${results.blogArticles}`);
+    console.log(`   ├── Blog Articles: ${results.blogArticles}`);
+    console.log(`   └── AI Tools: ${results.aiTools}`);
     console.log(`\n⏱️  Total time: ${duration} seconds`);
     console.log('='.repeat(60) + '\n');
     
@@ -152,7 +160,8 @@ const runSeeder = async (seederName) => {
     'roadmaps': seedRoadmaps,
     'cheatsheets': seedCheatsheets,
     'mcqs': seedMCQs,
-    'blog': seedBlog
+    'blog': seedBlog,
+    'ai-tools': seedAITools
   };
   
   const seeder = seeders[seederName];

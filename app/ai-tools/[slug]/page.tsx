@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Head from 'next/head';
 import Layout from '../../../components/Layout';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -107,18 +108,17 @@ export default function AIToolDetailPage() {
   }
 
   return (
-    <Layout>
-      {/* SEO Meta */}
-      <head>
+    <>
+      <Head>
         <title>{tool.metaTitle || `${tool.name} - AI Tool`} | {settings.siteName}</title>
         <meta name="description" content={tool.metaDescription || tool.shortDescription} />
         <meta name="keywords" content={tool.metaKeywords?.join(', ') || tool.tags?.join(', ')} />
         <meta property="og:title" content={`${tool.name} - AI Tool | ${settings.siteName}`} />
         <meta property="og:description" content={tool.shortDescription} />
         {tool.logo && <meta property="og:image" content={tool.logo} />}
-      </head>
-
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      </Head>
+      <Layout>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Breadcrumb */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -361,16 +361,17 @@ export default function AIToolDetailPage() {
                   {tool.useCases && tool.useCases.length > 0 && (
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
                       <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">💡 Use Cases</h2>
-                      <ul className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {tool.useCases.map((useCase, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
-                              {index + 1}
-                            </span>
-                            <span className="text-gray-700 dark:text-gray-300">{useCase}</span>
-                          </li>
+                          <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <span className="text-2xl flex-shrink-0">{useCase.icon || '✨'}</span>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100">{useCase.title}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{useCase.description}</p>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
 
@@ -460,8 +461,11 @@ export default function AIToolDetailPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {tool.features.map((feature, index) => (
                           <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                            <span className="text-blue-600">✓</span>
-                            <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                            <span className="text-2xl flex-shrink-0">{feature.icon || '⚡'}</span>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100">{feature.title}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -671,6 +675,7 @@ export default function AIToolDetailPage() {
           )}
         </div>
       </div>
-    </Layout>
+      </Layout>
+    </>
   );
 }
